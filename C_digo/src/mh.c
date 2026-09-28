@@ -129,7 +129,13 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, int *so
 }
 
 void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *hijo2, int n, int m)
-{	//no pueden haber elementos repetidos, por lo que hay que llevar control con las mezclas del padre. revisamos el hijo y llamamos a aleatorio para 
+{	/*
+	Cruzar: para cada par de individuos selecciona un punto aleatorio a partir del que se produce
+	la mezcla y los nuevos descendientes se crean intercambiando los genes de los padres entre
+	sí.
+	*/
+	
+	// no pueden haber elementos repetidos, por lo que hay que llevar control con las mezclas del padre. revisamos el hijo y llamamos a aleatorio para 
 	// que no tenga elementos repetidos
 	// Elegir un "punto" de corte aleatorio a partir del que se realiza el intercambio de los genes
 	
@@ -139,10 +145,51 @@ void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *h
 	
 	// Factibilizar: eliminar posibles repetidos de ambos hijos
 	// Si encuentro alguno repetido en el hijo1, lo cambio por otro que no este en el conjunto
+
+	//Primer paso, generar el punto de corte. Cruce en un solo punto.
+	// El punto de corte no se incluye como gen izquierdo.
+	int corte = 1 + aleatorio(n-1); //esto soluciona el problema de que salga corte = 0 y se copie directamente el padre2.
+
+	for (int i = 0 ; i < corte ; i ++){
+		hijo1->array_int[i] = padre1->array_int[i];
+		hijo2->array_int[i] = padre2->array_int[i];
+	}
+	for (int i = corte ; i < n ; i ++){
+		hijo1->array_int[i] = padre2->array_int[i];
+		hijo2->array_int[i] = padre1->array_int[i];
+	}
+	
+	for (int i = 0 ; i < corte ; i ++){
+		for(int j = corte ; j < n ; j++){
+			
+			if(hijo1->array_int[i] == hijo1->array_int[j]){
+				int nuevo;
+				do{
+					nuevo = aleatorio(n);
+				}while (find_element(hijo1->array_int, n, nuevo));
+				hijo1->array_int[j] = nuevo;
+			}
+			
+			if(hijo2->array_int[i] == hijo2->array_int[j]){
+				int nuevo;
+				do{
+					nuevo = aleatorio(n);
+				}while (find_element(hijo2->array_int, n, nuevo));
+				hijo2->array_int[j] = nuevo;
+			} //Hay una opcion con un array de marcas que es mas eficiente.
+		}
+	}
 }
 
 void mutar(Individuo *actual, int n, int m)
-{// for m hasta cierta mutation rate 0.15
+{
+	/*
+		Mutar: produce mutaciones en los descendientes en función de una cierta probabilidad
+(normalmente baja). Esto permite, por un lado, que la población sea diversa y, por otro, evita
+que el algoritmo converja de forma prematura.
+	*/
+
+	//for m hasta cierta mutation rate 0.15
 	// Decidir cuantos elementos mutar:
 	// Si el valor es demasiado pequeño la convergencia es muy pequeña y si es demasiado alto diverge
 	
@@ -154,7 +201,11 @@ void mutar(Individuo *actual, int n, int m)
 
 double distancia_ij(const double *d, int i, int j, int n)
 {
-        // Devuelve la distancia entre dos elementos i, j de la matriz 'd'
+    // Devuelve la distancia entre dos elementos i, j de la matriz 'd'
+
+	int val = (((n * n)- n)/2)-((((n-i)*(n-i))-(n-i))/2)+j-i-1;
+	return d[val];
+
 }
 
 
