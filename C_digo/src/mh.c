@@ -154,19 +154,19 @@ void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *h
 		hijo1->array_int[i] = padre1->array_int[i];
 		hijo2->array_int[i] = padre2->array_int[i];
 	}
-	for (int i = corte ; i < n ; i ++){
+	for (int i = corte ; i < m ; i ++){
 		hijo1->array_int[i] = padre2->array_int[i];
 		hijo2->array_int[i] = padre1->array_int[i];
 	}
 	
 	for (int i = 0 ; i < corte ; i ++){
-		for(int j = corte ; j < n ; j++){
+		for(int j = corte ; j < m ; j++){
 			
 			if(hijo1->array_int[i] == hijo1->array_int[j]){
 				int nuevo;
 				do{
 					nuevo = aleatorio(n);
-				}while (find_element(hijo1->array_int, n, nuevo));
+				}while (find_element(hijo1->array_int, m, nuevo));
 				hijo1->array_int[j] = nuevo;
 			}
 			
@@ -174,7 +174,7 @@ void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *h
 				int nuevo;
 				do{
 					nuevo = aleatorio(n);
-				}while (find_element(hijo2->array_int, n, nuevo));
+				}while (find_element(hijo2->array_int, m, nuevo));
 				hijo2->array_int[j] = nuevo;
 			} //Hay una opcion con un array de marcas que es mas eficiente.
 		}
@@ -189,6 +189,7 @@ void mutar(Individuo *actual, int n, int m)
 que el algoritmo converja de forma prematura.
 	*/
 
+
 	//for m hasta cierta mutation rate 0.15
 	// Decidir cuantos elementos mutar:
 	// Si el valor es demasiado pequeño la convergencia es muy pequeña y si es demasiado alto diverge
@@ -197,6 +198,20 @@ que el algoritmo converja de forma prematura.
 	// teniendo en cuenta que no puede haber elementos repetidos:
         // una posibilidad podría ser usar una variable, m_rate, para establecer la intensidad de la mutación 
         // (un bucle for con un número de iteraciones que dependa, por ejemplo, de m_rate*m)
+
+	int nmutar = (int) (MUTATION_RATE * m);
+	
+	for(int i = 0 ; i < nmutar; i++){
+		int pos = aleatorio(m);
+		int nuevo = 0;
+		do{
+			nuevo = aleatorio(n);
+		}while (find_element(actual->array_int, m, nuevo));
+		actual->array_int[i] = nuevo;
+	}
+
+
+
 }
 
 double distancia_ij(const double *d, int i, int j, int n)
@@ -214,4 +229,12 @@ void fitness(const double *d, Individuo *individuo, int n, int m)
 	// Determina la calidad del individuo calculando la suma de la distancia entre cada par de enteros
 	// 235. distancia del 2 al 3 mas 2 al 5 mas 3 al 5. la suma de uno a todos los de la derecha orden cuadratico. FOR i hasta n -1(FOR j = i+1 hasta n)
 	//el fitnes s mas fitness mas distania la podemos hacer en distancia, esta distancia es la formula de K 
-}//
+	double fitness = 0.0;
+	for(int i = 0 ; i < m-1 ; i++){
+		for(int j = i + 1; j < m ; j++){
+			fitness += distancia_ij(d,individuo->array_int[i], individuo->array_int[j], n);
+		}
+	}
+	individuo->fitness = fitness;
+
+}
