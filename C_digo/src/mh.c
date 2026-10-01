@@ -148,25 +148,35 @@ void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *h
 
 	//Primer paso, generar el punto de corte. Cruce en un solo punto.
 	// El punto de corte no se incluye como gen izquierdo.
-	int corte = 1 + aleatorio(n-1); //esto soluciona el problema de que salga corte = 0 y se copie directamente el padre2.
+	int corte = 1 + aleatorio(m-1); //esto soluciona el problema de que salga corte = 0 y se copie directamente el padre2.
 
+	//Copiamos al hijo1 la primera parte de los genes del padre1
+	//al hijo2 lo mismo pero con el padre2
 	for (int i = 0 ; i < corte ; i ++){
 		hijo1->array_int[i] = padre1->array_int[i];
 		hijo2->array_int[i] = padre2->array_int[i];
 	}
+	//Copiamos la parte restante del padre contrario
+	//Es decir, al hijo1 le copiamos la segunda parte del padre2
 	for (int i = corte ; i < m ; i ++){
 		hijo1->array_int[i] = padre2->array_int[i];
 		hijo2->array_int[i] = padre1->array_int[i];
 	}
 	
+	//Doble bucle para revisar que no existan genes duplicados 
+	//Partimos de que los padres NO tienen repetidos asi podemos 
+	//ahorrarnos parte del recorrido y solo comparar los genes de 
+	// la parte del padre1 con las del otro.
 	for (int i = 0 ; i < corte ; i ++){
 		for(int j = corte ; j < m ; j++){
-			
+			//Verificamos duplicado
 			if(hijo1->array_int[i] == hijo1->array_int[j]){
 				int nuevo;
 				do{
 					nuevo = aleatorio(n);
 				}while (find_element(hijo1->array_int, m, nuevo));
+				//Seguimos buscando un numero hasta que no sea uno que ya 
+				//este presente. Luego actualizamos
 				hijo1->array_int[j] = nuevo;
 			}
 			
@@ -199,25 +209,28 @@ que el algoritmo converja de forma prematura.
         // una posibilidad podría ser usar una variable, m_rate, para establecer la intensidad de la mutación 
         // (un bucle for con un número de iteraciones que dependa, por ejemplo, de m_rate*m)
 
-	int nmutar = (int) (MUTATION_RATE * m);
+	//Normalizamos para trabajar con enteros
+	//Mutamos un gen de un individuo el 15% de las veces
+	//La otra opcion es mutar cada gen con probabilidad 15% 
+	//pero en numeros mayores mutamos una gran cantidad de genes 
+	//por lo que no lo consideramos
+	int nmutar = (int)(MUTATION_RATE * 100);
 	
-	for(int i = 0 ; i < nmutar; i++){
+	if(aleatorio(100) < nmutar){
 		int pos = aleatorio(m);
 		int nuevo = 0;
+		//nos ahorramos un if si siempre se generan entradas validas
 		do{
 			nuevo = aleatorio(n);
 		}while (find_element(actual->array_int, m, nuevo));
-		actual->array_int[i] = nuevo;
+		actual->array_int[pos] = nuevo;
 	}
-
-
-
 }
 
 double distancia_ij(const double *d, int i, int j, int n)
 {
     // Devuelve la distancia entre dos elementos i, j de la matriz 'd'
-
+	// Formula de K
 	int val = (((n * n)- n)/2)-((((n-i)*(n-i))-(n-i))/2)+j-i-1;
 	return d[val];
 
@@ -230,6 +243,9 @@ void fitness(const double *d, Individuo *individuo, int n, int m)
 	// 235. distancia del 2 al 3 mas 2 al 5 mas 3 al 5. la suma de uno a todos los de la derecha orden cuadratico. FOR i hasta n -1(FOR j = i+1 hasta n)
 	//el fitnes s mas fitness mas distania la podemos hacer en distancia, esta distancia es la formula de K 
 	double fitness = 0.0;
+	//Doble bucle para recorrer todas las posiciones del individuo para calcular su fitness
+	//Se suman todas las combinaciones de los valores del subconjunto tomando 
+	//como valor su representacion en el array de distancias.
 	for(int i = 0 ; i < m-1 ; i++){
 		for(int j = i + 1; j < m ; j++){
 			fitness += distancia_ij(d,individuo->array_int[i], individuo->array_int[j], n);
