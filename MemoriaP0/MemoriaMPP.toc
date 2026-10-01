@@ -1,0 +1,3 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Ejercicios}{3}{section.1}%
+\contentsline {section}{\numberline {A}Informe completo de Valgrind}{6}{appendix.Alph1}%

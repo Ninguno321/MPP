@@ -60,7 +60,7 @@ int main(int argc,char **argv)
 
         double *d = new double[(n*n-n)/2];
 
-	generar_d(d, n, m);
+	generar_d(d, n);
 	escribir(d, n, m, n_gen, tam_pob);
 
         delete [] d;

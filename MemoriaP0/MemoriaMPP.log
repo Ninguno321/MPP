@@ -1,10 +1,10 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  30 SEP 2026 11:26
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  1 OCT 2026 20:46
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/Memoria/MemoriaMPP.tex
-(/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/Memoria/MemoriaMPP.tex
+**/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/MemoriaP0/MemoriaMPP.tex
+(/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/MemoriaP0/MemoriaMPP.tex
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
@@ -381,49 +381,478 @@ Package hyperref Info: Link coloring OFF on input line 45.
 \openout3 = `MemoriaMPP.out'.
 
 \big@size=\dimen167
-<sello.png, id=4, 502.12593pt x 502.12593pt>
+<sello.png, id=12, 502.12593pt x 502.12593pt>
 File: sello.png Graphic file (type png)
 <use sello.png>
-Package pdftex.def Info: sello.png  used on input line 66.
+Package pdftex.def Info: sello.png  used on input line 68.
 (pdftex.def)             Requested size: 188.8096pt x 188.8101pt.
  [1
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc} <./sello.png
 
 pdfTeX warning: pdflatex (file ./sello.png): large interlaced PNG might cause out of memory (use non-interlaced PNG to fix this)
->]
-LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 102.
+>] (./MemoriaMPP.toc
+LaTeX Info: Redefining \. on input line 1.
+LaTeX Info: Redefining \% on input line 1.
+)
+\tf@toc=\write4
+\openout4 = `MemoriaMPP.toc'.
+
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[2]
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 93.
+ (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+)
+LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 100.
  (/usr/share/texlive/texmf-dist/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 2023/04/13 v2.5m Standard LaTeX font definitions
 )
-LaTeX Font Info:    Trying to load font information for OT1+ztmcm on input line 102.
- (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ztmcm.fd
+Overfull \hbox (82.09032pt too wide) in paragraph at lines 102--102
+ []\T1/cmtt/m/n/12 valgrind --tool=memcheck --track-origins=yes --leak-check=yes --log-file=valgrind.txt[] 
+ []
+
+
+Overfull \hbox (32.61946pt too wide) in paragraph at lines 104--105
+\T1/ptm/m/n/12 me con los re-sul-ta-dos ob-te-ni-dos. Véa-se el in-for-me com-ple-to en el fi-che-ro \T1/cmtt/m/n/12 /doc/img/valgrind.txt
+ []
+
+
+Overfull \hbox (26.52888pt too wide) in paragraph at lines 130--130
+ []\T1/cmtt/m/n/12 ==18066==   total heap usage: 206 allocs, 5 frees, 2,171,792 bytes allocated[] 
+ []
+
+
+Overfull \hbox (248.77461pt too wide) in paragraph at lines 130--130
+ []\T1/cmtt/m/n/12 ==18066== 161,600 (1,600 direct, 160,000 indirect) bytes in 100 blocks are definitely lost in loss record 2 of 3[] 
+ []
+
+
+Overfull \hbox (137.65175pt too wide) in paragraph at lines 130--130
+ []\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (45.04936pt too wide) in paragraph at lines 130--130
+ []\T1/cmtt/m/n/12 ==18066== 1,998,000 bytes in 1 blocks are definitely lost in loss record 3 of 3[] 
+ []
+
+
+Overfull \hbox (137.65175pt too wide) in paragraph at lines 130--130
+ []\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (32.70238pt too wide) in paragraph at lines 130--130
+ []\T1/cmtt/m/n/12 ==18066== ERROR SUMMARY: 63941 errors from 34 contexts (suppressed: 0 from 0)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[3{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}]
+Overfull \hbox (45.04936pt too wide) in paragraph at lines 144--144
+ []\T1/cmtt/m/n/12 ==18066==  Address 0x4c6bcf0 is 0 bytes after a block of size 1,998,000 alloc'd[] 
+ []
+
+
+Overfull \hbox (137.65175pt too wide) in paragraph at lines 144--144
+ []\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (20.3554pt too wide) in paragraph at lines 165--165
+ []\T1/cmtt/m/n/12 ==24819==  Address 0x4e54a20 is 0 bytes inside a block of size 1,600 free'd[] 
+ []
+
+
+Overfull \hbox (125.30476pt too wide) in paragraph at lines 165--165
+ []\T1/cmtt/m/n/12 ==24819==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (137.65175pt too wide) in paragraph at lines 165--165
+ []\T1/cmtt/m/n/12 ==24819==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (20.3554pt too wide) in paragraph at lines 177--177
+ []\T1/cmtt/m/n/12 ==28993==  Address 0x4e55060 is 0 bytes after a block of size 1,600 alloc'd[] 
+ []
+
+
+Overfull \hbox (137.65175pt too wide) in paragraph at lines 177--177
+ []\T1/cmtt/m/n/12 ==28993==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (137.65175pt too wide) in paragraph at lines 192--192
+ []\T1/cmtt/m/n/12 ==31682==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[4]
+Overfull \hbox (63.56984pt too wide) in paragraph at lines 203--203
+ []\T1/cmtt/m/n/12 free(poblacion[i]); // primer arreglo leak memoria. El tercero esta en io.c free d[] 
+ []
+
+
+Overfull \hbox (38.87587pt too wide) in paragraph at lines 214--214
+ []\T1/cmtt/m/n/12 ==36402==   total heap usage: 206 allocs, 206 frees, 4,169,792 bytes allocated[] 
+ []
+
+LaTeX Font Info:    Trying to load font information for OT1+ztmcm on input line 236.
+(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ztmcm.fd
 File: ot1ztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OT1/ztmcm.
 )
-LaTeX Font Info:    Trying to load font information for OML+ztmcm on input line 102.
+LaTeX Font Info:    Trying to load font information for OML+ztmcm on input line 236.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omlztmcm.fd
 File: omlztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OML/ztmcm.
 )
-LaTeX Font Info:    Trying to load font information for OMS+ztmcm on input line 102.
+LaTeX Font Info:    Trying to load font information for OMS+ztmcm on input line 236.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omsztmcm.fd
 File: omsztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OMS/ztmcm.
 )
-LaTeX Font Info:    Trying to load font information for OMX+ztmcm on input line 102.
+LaTeX Font Info:    Trying to load font information for OMX+ztmcm on input line 236.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omxztmcm.fd
 File: omxztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OMX/ztmcm.
 )
-LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 102.
+LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 236.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 102.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 236.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 102.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 236.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 102.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 236.
 
-Underfull \hbox (badness 1231) in paragraph at lines 102--103
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[5]
+Overfull \hbox (15.67467pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==  Address 0x4c6bcf0 is 0 bytes after a block of size 1,998,000 alloc'd[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[6]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[7]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[8]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[9]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[10]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[11]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[12]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (95.93007pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x484988F: free (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[13]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[14]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[15]
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[16]
+Overfull \hbox (21.84816pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==  Address 0x4c98d60 is 1,616 bytes inside a block of size 4,096 alloc'd[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (52.71562pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    by 0x48CECC8: __printf_buffer_flush_to_file (printf_buffer_to_file.c:59)[] 
+ []
+
+
+Overfull \hbox (52.71562pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    by 0x48CECC8: __printf_buffer_to_file_done (printf_buffer_to_file.c:120)[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (219.39992pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066== 161,600 (1,600 direct, 160,000 indirect) bytes in 100 blocks are definitely lost in loss record 2 of 3[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Overfull \hbox (15.67467pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066== 1,998,000 bytes in 1 blocks are definitely lost in loss record 3 of 3[] 
+ []
+
+
+Overfull \hbox (108.27705pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)[] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[17]
+Overfull \hbox (3.32768pt too wide) in paragraph at lines 794--794
+[]\T1/cmtt/m/n/12 ==18066== ERROR SUMMARY: 63941 errors from 34 contexts (suppressed: 0 from 0)[] 
+ []
+
+
+Underfull \hbox (badness 1231) in paragraph at lines 801--802
 \T1/ptm/m/n/12 en: []$\T1/cmtt/m/n/12 https : / / www . baeldung . com / linux / parallel-[]command-[]tutorial$[] \T1/ptm/m/n/12 [Ac-ce-di-do: 09-
  []
 
@@ -434,7 +863,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[2{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc}] (./MemoriaMPP.aux
+[18] (./MemoriaMPP.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -443,21 +872,21 @@ LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-01-22>
  ***********
 Package rerunfilecheck Info: File `MemoriaMPP.out' has not changed.
-(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
+(rerunfilecheck)             Checksum: 8B5AE2E9F5F2891333D32DAC42D6D73A;290.
  ) 
 Here is how much of TeX's memory you used:
- 12952 strings out of 474222
- 199551 string characters out of 5748733
- 1926975 words of memory out of 5000000
- 35045 multiletter control sequences out of 15000+600000
- 579287 words of font info for 65 fonts, out of 8000000 for 9000
+ 13281 strings out of 474222
+ 202432 string characters out of 5748733
+ 1951975 words of memory out of 5000000
+ 35344 multiletter control sequences out of 15000+600000
+ 580708 words of font info for 67 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,79p,398b,456s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,11n,79p,474b,1349s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texmf/fonts/type1/public/cm-super/sftt1200.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on MemoriaMPP.pdf (2 pages, 152527 bytes).
+Output written on MemoriaMPP.pdf (18 pages, 195646 bytes).
 PDF statistics:
- 52 PDF objects out of 1000 (max. 8388607)
- 37 compressed objects within 1 object stream
- 8 named destinations out of 1000 (max. 500000)
- 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 139 PDF objects out of 1000 (max. 8388607)
+ 107 compressed objects within 2 object streams
+ 30 named destinations out of 1000 (max. 500000)
+ 22 words of extra memory for PDF output out of 10000 (max. 10000000)
 
