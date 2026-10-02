@@ -4,7 +4,7 @@ CFLAGS = -O3 -Wall -g
 N = 
 M = 
 N_GEN = 
-T_POB = 
+T_POB =
 
 EXEC = igen
 OUTFILE = ../input

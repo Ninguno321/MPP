@@ -5,7 +5,7 @@
 
 #include "../include/io.h"
 
-extern double aplicar_mh(const double *, int, int, int, int, int *);
+extern double aplicar_mh(const double *, int, int, int, int, double, int *);
 
 static double mseconds() {
 	struct timeval t ; //sexto arreglo, se quejaba porque tenia bytes basura 
@@ -16,7 +16,7 @@ static double mseconds() {
 int main(int argc, char **argv)
 {
 //	Check Number of Input Args
-	if(argc < 4) {
+	if(argc < 6) {
 		fprintf(stderr,"Ayuda:\n"); 
 		fprintf(stderr,"  ./programa n m nGen tamPob\n");
 		return(EXIT_FAILURE);
@@ -26,9 +26,13 @@ int main(int argc, char **argv)
 	int m = atoi(argv[2]);
 	int n_gen = atoi(argv[3]);
 	int tam_pob = atoi(argv[4]);
+	double m_rate = atof(argv[5]);
 	
 //	Check that 'm' is less than 'n'
 	assert(m < n);
+
+//  comprobamos que m_rate esté entre 0 y 1
+	assert(m_rate >= 0.0 && m_rate <= 1.0);	
 	
 //	Generate matrix D with distance values among elements
 	double *d = read_distances(n);
@@ -45,7 +49,7 @@ int main(int argc, char **argv)
 	#endif
 	
 //	Call Metaheuristic
-	double value = aplicar_mh(d, n, m, n_gen, tam_pob, sol);
+	double value = aplicar_mh(d, n, m, n_gen, tam_pob,  m_rate,  sol);
 	
 	#ifdef TIME
 		double tf = mseconds();

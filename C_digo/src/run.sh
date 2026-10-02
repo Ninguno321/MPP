@@ -14,11 +14,12 @@ while read line ; do
 		m=$(echo $line | tr -s ' ' | cut -f2 -d ' ')
 		gen=$(echo $line | tr -s ' ' | cut -f3 -d ' ')
 		tam=$(echo $line | tr -s ' ' | cut -f4 -d ' ')
+		mrate=$(echo $line | tr -s ' ' | cut -f5 -d ' ')
 	
 		echo -e
 		echo -n "Executing with: "
-		echo -e "N = "$n" M = "$m" N_GEN = "$gen" TAM_POB = "$tam
-		make test_sec N=$n M=$m N_GEN=$gen T_POB=$tam < "${in_file_distances}_${n}_${m}_${gen}_${tam}.txt"
+		echo -e "N = "$n" M = "$m" N_GEN = "$gen" TAM_POB = "$tam M_RATE = "$mrate
+		make test_sec N=$n M=$m N_GEN=$gen T_POB=$tam M_RATE=$mrate < "${in_file_distances}_${n}_${m}_${gen}_${tam}.txt"
 	fi
 done < $in_file
 

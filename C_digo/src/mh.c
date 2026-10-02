@@ -7,7 +7,6 @@
 
 #include "../include/mh.h"
 
-#define MUTATION_RATE 0.15
 #define PRINT 0
 
 int aleatorio(int n) {
@@ -57,7 +56,7 @@ int comp_fitness(const void *a, const void *b) {
 	return (*(Individuo **)b)->fitness - (*(Individuo **)a)->fitness;
 }
 
-double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, int *sol)
+double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double m_rate, int *sol)
 {
         // para reiniciar la secuencia pseudoaleatoria en cada ejecución
         srand(time(NULL) + getpid());
@@ -92,7 +91,7 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, int *so
 		
 		// muta 3/4 partes de la poblacion
 		for(i = mutation_start; i < tam_pob; i++) {
-			mutar(poblacion[i], n, m);
+			mutar(poblacion[i], n, m, m_rate);
 		}
 		
 		// recalcula el fitness del individuo
@@ -191,7 +190,7 @@ void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *h
 	}
 }
 
-void mutar(Individuo *actual, int n, int m)
+void mutar(Individuo *actual, int n, int m, double m_rate)
 {
 	/*
 		Mutar: produce mutaciones en los descendientes en función de una cierta probabilidad
@@ -214,9 +213,8 @@ que el algoritmo converja de forma prematura.
 	//La otra opcion es mutar cada gen con probabilidad 15% 
 	//pero en numeros mayores mutamos una gran cantidad de genes 
 	//por lo que no lo consideramos
-	int nmutar = (int)(MUTATION_RATE * 100);
 	
-	if(aleatorio(100) < nmutar){
+	if(aleatorio(100) < m_rate){
 		int pos = aleatorio(m);
 		int nuevo = 0;
 		//nos ahorramos un if si siempre se generan entradas validas
