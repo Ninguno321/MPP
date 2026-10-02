@@ -214,7 +214,7 @@ que el algoritmo converja de forma prematura.
 	//pero en numeros mayores mutamos una gran cantidad de genes 
 	//por lo que no lo consideramos
 	
-	if(aleatorio(100) < m_rate){
+	if(aleatorio(100) < m_rate * 100){
 		int pos = aleatorio(m);
 		int nuevo = 0;
 		//nos ahorramos un if si siempre se generan entradas validas
