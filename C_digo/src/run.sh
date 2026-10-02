@@ -18,7 +18,7 @@ while read line ; do
 	
 		echo -e
 		echo -n "Executing with: "
-		echo -e "N = "$n" M = "$m" N_GEN = "$gen" TAM_POB = "$tam M_RATE = "$mrate
+		echo -e "N = "$n" M = "$m" N_GEN = "$gen" TAM_POB = "$tam" M_RATE = "$mrate
 		make test_sec N=$n M=$m N_GEN=$gen T_POB=$tam M_RATE=$mrate < "${in_file_distances}_${n}_${m}_${gen}_${tam}.txt"
 	fi
 done < $in_file
