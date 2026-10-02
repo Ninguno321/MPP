@@ -228,6 +228,63 @@ Habrá que modificar también los ficheros run.sh y Makefile así como los argum
 algunas funciones del programa. Entonces, en el fichero de entrada habrá cinco columnas: n,
 m, n\_gen, tam\_pob, m\_rate codificando, por ejemplo, los valores 500 200 100 50 0,15.}
 
+
+Para convertir la tasa de mutación en un parámetro de entrada hemos sustituido la constante \texttt{MUTATION\_RATE} por una variable \texttt{m\_rate} de tipo \texttt{double}, que se lee del fichero \texttt{in.txt}.
+De este forma, los parámetros del programa pasan de cuatro a cinco: \texttt{n}, \texttt{m}, \texttt{n\_gen}, \texttt{tam\_pob} y \texttt{m\_rate}. 
+Los cambios realizados en cada fichero son los siguientes.
+
+\textbf{Fichero \texttt{include/mh.h}.} Hemos modificado el prototipo de \texttt{mutar()} para añadir la tasa de mutación como cuarto argumento:
+
+\begin{verbatim}
+void mutar(Individuo *, int, int, double);
+\end{verbatim}
+
+\textbf{Fichero \texttt{src/mh.c}.}
+
+\begin{itemize}
+    \item Hemos eliminado la definición de la constaante \texttt{\#define MUTATION\_RATE 0.15}.
+    \item La función \texttt{aplicar\_mh()} recibe un nuevo parámetro \texttt{double m\_rate}, situado entre \texttt{tam\_pob} y \texttt{sol}, y lo pasa a \texttt{mutar()} en cada llamada.
+    \item La función \texttt{mutar()} recibe \texttt{m\_rate} como parámetro y lo utiliza en lugar de la constante.
+\end{itemize}
+
+
+\begin{verbatim}
+void mutar(Individuo *actual, int n, int m, double m_rate)
+{
+	// m_rate es una probabilidad en [0,1]; aleatorio(100) es un entero
+	// en [0,99], por lo que se compara con el porcentaje m_rate*100
+	if(aleatorio(100) < m_rate * 100){
+		int pos = aleatorio(m);
+		int nuevo = 0;
+		//nos ahorramos un if si siempre se generan entradas validas
+		do{
+			nuevo = aleatorio(n);
+		}while (find_element(actual->array_int, m, nuevo));
+		actual->array_int[pos] = nuevo;
+	}
+}
+\end{verbatim}
+
+\textbf{Fichero \texttt{src/main.c}.}
+
+\begin{itemize}
+    \item Hemos actualizado la declaración \texttt{extern} de \texttt{aplicar\_mh()} para incluir el nuevo argumento de tipo \texttt{double}.
+    \item La comprobación del número de argumentos pasa de \texttt{argc < 5} a \texttt{argc < 6}, y el mensaje de ayuda indica el nuevo parámetro.
+    \item Leemos el nuevo argumento con \texttt{atof(argv[5])} y lo almacenamos en una variable \texttt{double m\_rate}. Utilizamos \texttt{atof} en lugar de \texttt{atoi} porque este último truncaría el valor a 0.
+    \item Hemos añadido \texttt{assert(m\_rate >= 0.0 \&\& m\_rate <= 1.0)}, ya que se trata de una probabilidad.
+    \item La llamada pasa a ser \texttt{aplicar\_mh(d, n, m, n\_gen, tam\_pob, m\_rate, sol)}.
+\end{itemize}
+
+\textbf{Fichero \texttt{src/run.sh}.} Leemos la quinta columna de cada línea de \texttt{in.txt} (variable \texttt{mrate}), la mostramos por pantalla junto al
+resto de parámetros y la pasamos a \texttt{make test\_sec} como \texttt{M\_RATE=\$mrate}.
+
+\textbf{Fichero \texttt{src/Makefile}.} Hemos añadido la variable \texttt{M\_RATE}, que se pasa como quinto argumento al ejecutable en el objetivo \texttt{test\_sec}. 
+Además, hemos incluido \texttt{M\_RATE} en el nombre del fichero de salida (\texttt{out\_N\_M\_NGEN\_TPOB\_MRATE.txt}) para que los resultados de experimentos que 
+solo se diferencian en la tasa de mutación no se mezclen en el mismo fichero.
+
+\textbf{Fichero \texttt{input/igen/in.txt}.} Hemos añadido la quinta columna con la tasa de mutación, por ejemplo \texttt{500 200 100 50 0.15}.
+
+
     \item \textbf{Cambiar el criterio de convergencia del algoritmo evolutivo de forma que se realice en función
 del fitness. El algoritmo finalizará cuando el valor de fitness no mejore el obtenido en la
 iteración anterior (o las 5, o 10, etc., iteraciones anteriores si el mejor fitness no cambia
