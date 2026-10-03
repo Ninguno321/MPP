@@ -8,6 +8,8 @@
 #include "../include/mh.h"
 
 #define PRINT 0
+#define PCT_CONVER 0.02   // valor porcentual de mejora esperado (2%)
+#define NGENERACIONES_ATRAS 5      // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
 
 int aleatorio(int n) {
 	return (rand() % n);  // genera un numero aleatorio entre 0 y n-1
@@ -77,6 +79,13 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 	
 	// ordena individuos segun la funcion de bondad (mayor "fitness" --> mas aptos)
 	qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
+
+	// historial del mejor fitness: hist[k] = mejor fitness tras k generaciones
+	//el array hist guarda el mejor fitness tras cada generación 
+	//(hist[k] = mejor fitness tras k generaciones, con hist[0] el de la población inicial).
+	double *hist = (double *) malloc((n_gen + 1) * sizeof(double));
+	assert(hist);
+	hist[0] = poblacion[0]->fitness;
 	
 	// evoluciona la poblacion durante un numero de generaciones
 	for(g = 0; g < n_gen; g++)
@@ -106,6 +115,19 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 			printf("Generacion %d - ", g);
 			printf("Fitness = %.0lf\n", poblacion[0]->fitness);
 		}
+
+		hist[g + 1] = poblacion[0]->fitness;
+
+		// criterio de convergencia: si en las últimas NGENERACIONES_ATRAS generaciones
+		// el fitness no ha mejorado al menos un PCT_CONVER , paramos
+		if (g + 1 >= NGENERACIONES_ATRAS) {
+   			 double antes = hist[g + 1 - NGENERACIONES_ATRAS];
+   			 double mejora = (hist[g + 1] - antes) / antes;
+    		 if (mejora < PCT_CONVER)
+        		 break;
+		}
+
+
 	}
 	
 	// ordena el array solucion
@@ -123,6 +145,8 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 		free(poblacion[i]); // primer arreglo leak memoria. El tercero esta en io.c free d
 	}
 	free(poblacion);
+	//hist se libera al final junto con el resto de estructuras.
+	free(hist);
 	// devuelve el valor obtenido para el fitness
 	return value;
 }
@@ -229,6 +253,10 @@ double distancia_ij(const double *d, int i, int j, int n)
 {
     // Devuelve la distancia entre dos elementos i, j de la matriz 'd'
 	// Formula de K
+	//Añadimos este if para comprobar porque la fórmula solo es válida con i < j, 
+	//el if garantiza que siempre se cumpla i < j, que es la condición de validez 
+	//de la fórmula, y que es correcto porque la distancia es simétric
+	if (i > j) { int t = i; i = j; j = t; }
 	int val = (((n * n)- n)/2)-((((n-i)*(n-i))-(n-i))/2)+j-i-1;
 	return d[val];
 
