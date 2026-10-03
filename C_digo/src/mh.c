@@ -116,6 +116,8 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 			printf("Fitness = %.0lf\n", poblacion[0]->fitness);
 		}
 
+		//esto es porque Justo antes, el qsort ordena la población de mayor a menor fitness y
+		// por eso poblacion[0] es el mejor individuo de esa generación
 		hist[g + 1] = poblacion[0]->fitness;
 
 		// criterio de convergencia: si en las últimas NGENERACIONES_ATRAS generaciones
