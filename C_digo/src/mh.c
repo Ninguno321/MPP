@@ -8,24 +8,8 @@
 #include "../include/mh.h"
 
 #define PRINT 0
-//#define PCT_CONVER 0.02   // valor porcentual de mejora esperado (2%)
-//#define NGENERACIONES_ATRAS 5      // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
-
-
-//#define PCT_CONVER 0.10
-//#define NGENERACIONES_ATRAS 5
-
-//#define PCT_CONVER 0.10
-//#define NGENERACIONES_ATRAS 10
-
-#define PCT_CONVER 0.10
-#define NGENERACIONES_ATRAS 15
-
-
-
-
-//#define PCT_CONVER 0.02
-//#define NGENERACIONES_ATRAS 5
+#define PCT_CONVER 0.02   // valor porcentual de mejora esperado (2%)
+#define NGENERACIONES_ATRAS 15      // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
 
 
 int aleatorio(int n) {
@@ -250,13 +234,15 @@ void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *h
 void mutar(Individuo *actual, int n, int m, double m_rate)
 {
 	/*
-		Mutar: produce mutaciones en los descendientes en función de una cierta probabilidad
-(normalmente baja). Esto permite, por un lado, que la población sea diversa y, por otro, evita
-que el algoritmo converja de forma prematura.
+	Mutar: produce mutaciones en los descendientes en función de una cierta probabilidad
+	(normalmente baja). Esto permite, por un lado, que la población sea diversa y, por otro, evita
+	que el algoritmo converja de forma prematura.
 	*/
 	//Mutamos X genes con probabilidad m_rate
 	//Siempre mutan porque solo mutan los ya seleccionados antes.
-
+	// m_rate es una probabilidad en [0,1]; aleatorio(100) es un entero
+	// en [0,99], por lo que se compara con el porcentaje m_rate*100 
+    //haciendo redondeo a un enter.
 	int nmutar = (int)(m_rate * m);
 	//minimo muta una vez, si m_rate no es 0.0
 	if(nmutar < 1 && m_rate > 0.0){

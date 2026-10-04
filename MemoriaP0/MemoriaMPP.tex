@@ -103,8 +103,8 @@
 
 % Bloque arriba a la derecha
 \begin{flushright}
-Abdellah Bensaidi, Souri \\
-Morales Vicuña, Andrey \\
+Abdellah Bensaidi, Souri 1.3\\
+Morales Vicuña, Andrey 1.1\\
 Asignatura: Multiprogramación paralela \\
 Grupo: 1 \\
 %  Subgrupo: 1.1 \\
@@ -438,19 +438,31 @@ void mutar(Individuo *, int, int, double);
 \end{itemize}
 
 \begin{lstlisting}[style=EstiloC]
-
 void mutar(Individuo *actual, int n, int m, double m_rate)
 {
+	/*
+	Mutar: produce mutaciones en los descendientes en funcion de una cierta probabilidad
+	(normalmente baja). Esto permite, por un lado, que la poblacion sea diversa y, por otro, evita
+	que el algoritmo converja de forma prematura.
+	*/
+	//Mutamos X genes con probabilidad m_rate
+	//Siempre mutan porque solo mutan los ya seleccionados antes.
 	// m_rate es una probabilidad en [0,1]; aleatorio(100) es un entero
 	// en [0,99], por lo que se compara con el porcentaje m_rate*100 
     //haciendo redondeo a un enter.
-    //Se hace asi porque es mas comodo y legible.
-	int nmutar = (int)(m_rate * 100);
+	int nmutar = (int)(m_rate * m);
+	//minimo muta una vez, si m_rate no es 0.0
+	if(nmutar < 1 && m_rate > 0.0){
+		nmutar=1;
+	}
 	
-	if(aleatorio(100) < nmutar){
+	//Para mutar los X genes
+	for(int i = 0; i<nmutar; i++){
+		//posicion aleatoria a mutar
 		int pos = aleatorio(m);
 		int nuevo = 0;
 		//nos ahorramos un if si siempre se generan entradas validas
+		//Buscamos otro mientras que sea repetido
 		do{
 			nuevo = aleatorio(n);
 		}while (find_element(actual->array_int, m, nuevo));
@@ -555,6 +567,8 @@ y por ende un reinicio de valores y avance del algoritmo.
 
 Puede darse el caso en el que siempre mejore algo (depende del factor de mejora puesto y la cantidad de mejora del algoritmo) el fitness en valores de parámetros altos, por lo 
 que llegaríamos a un bucle de duración basntante extensa o incluso infinita si se da el caso. Para solventar el problema mantenemos como cota superior el valor de n\_gen.
+
+Los valores de entrada utilizados son 2000 800 400 200 0.15/0.3 y 1000 400 200 100 0.15/0.3.
 
 \begin{table}[htbp]
 \centering
@@ -675,6 +689,18 @@ Algunas imágenes de las ejecuciones:
 
 
 \end{enumerate}
+
+\newpage
+
+\section{Reparto del trabajo}
+
+Cada uno he hecho por su cuenta la práctica, después las pusimos en común y nos quedamos con lo mejor de cada una. La memoria prácticamente igual,
+cada uno hizo una memoria en borrador y luego pusimos todo en común para unir todos los puntos de vista, alternativas y conclusiones de cada uno.
+
+Tiempo aproximado:
+
+Abdellah: 7h 35m
+Andrey: 8h
 
 
 \newpage
