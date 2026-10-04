@@ -487,6 +487,61 @@ demasiado entre iteraciones) en un valor porcentual establecido. Prueba con valo
 2\%, 5\%, 10\% u otros que estimes oportunos. Los resultados obtenidos con cada uno deben
 reflejar tanto el tiempo empleado en obtener la solución como valor final de fitness alcanzado.}
 
+Para controlar estos nuevos valores, se agregan las constantes:
+
+\begin{lstlisting}[style=EstiloC]
+#define PCT_CONVER 0.02   // valor porcentual de mejora esperado (2%)
+#define NGENERACIONES_ATRAS 5    // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
+\end{lstlisting}
+
+\begin{lstlisting}[style=EstiloC]
+    mc.h funcion aplicar_mh 
+
+    // evoluciona la poblacion durante un numero de generaciones
+	//Para tener un valor inicial y saber cuando mejora una generacion con respecto a las otras
+	double fitness_modelo = poblacion[0]->fitness;
+	//Contador para saber si tenemos que seguir avanzando o no en generaciones
+	int ngeneracion = 0;
+
+	//Mantenemos n_gen como limite para evitar un posible bucle infinito
+	for(g = 0; g < n_gen && ngeneracion < NGENERACIONES_ATRAS; g++)
+
+
+    for(i = 0; i < tam_pob; i++) {
+        fitness(d, poblacion[i], n, m);
+    }
+    
+    // ordena individuos segun la funcion de bondad (mayor "fitness" --> mas aptos)
+    qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
+    
+
+    //Valor de fitness que buscamos, esperamos esta mejora
+    double fitness_esperado = fitness_modelo * (1 + PCT_CONVER);
+    //Si la poblacion actual supera el fitness esperado entonces reiniciamos 
+    //el contador para poder seguir avanzando y mirar las siguientes 
+    // X generaciones (si X =5 y estamos en la posicion 5 quiere 
+    //decir que en las 5 anteriores no se ha conseguido superar 
+    //la mejora esperada y por ende converge)
+    if(poblacion[0]->fitness > fitness_esperado){
+        fitness_modelo = poblacion[0]->fitness;
+        ngeneracion=0;
+    }else{
+        ngeneracion++;
+    }		
+
+
+    if (PRINT) {
+        printf("Generacion %d - ", g);
+        printf("Fitness = %.0lf\n", poblacion[0]->fitness);
+    }
+
+\end{lstlisting}
+
+
+
+%Valores de 2 5 y 10 .
+
+
 
     %\begin{itemize}
     %    \item \textbf{}

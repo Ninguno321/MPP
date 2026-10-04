@@ -8,8 +8,50 @@
 #include "../include/mh.h"
 
 #define PRINT 0
-#define PCT_CONVER 0.02   // valor porcentual de mejora esperado (2%)
-#define NGENERACIONES_ATRAS 5      // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
+//#define PCT_CONVER 0.02   // valor porcentual de mejora esperado (2%)
+//#define NGENERACIONES_ATRAS 5      // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
+
+
+
+#define PCT_CONVER 0.02
+#define NGENERACIONES_ATRAS 5
+
+//#define PCT_CONVER 0.02
+//#define NGENERACIONES_ATRAS 10
+
+//#define PCT_CONVER 0.02
+//#define NGENERACIONES_ATRAS 15
+
+
+
+//#define PCT_CONVER 0.05
+//#define NGENERACIONES_ATRAS 5
+
+//#define PCT_CONVER 0.05
+//#define NGENERACIONES_ATRAS 10
+
+//#define PCT_CONVER 0.05
+//#define NGENERACIONES_ATRAS 15
+
+
+
+
+
+//#define PCT_CONVER 0.10
+//#define NGENERACIONES_ATRAS 5
+
+//#define PCT_CONVER 0.10
+//#define NGENERACIONES_ATRAS 10
+
+//#define PCT_CONVER 0.10
+//#define NGENERACIONES_ATRAS 15
+
+
+
+
+//#define PCT_CONVER 0.02
+//#define NGENERACIONES_ATRAS 5
+
 
 int aleatorio(int n) {
 	return (rand() % n);  // genera un numero aleatorio entre 0 y n-1
@@ -80,16 +122,23 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 	// ordena individuos segun la funcion de bondad (mayor "fitness" --> mas aptos)
 	qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
 
+	//segunda opcion
 	// historial del mejor fitness: hist[k] = mejor fitness tras k generaciones
 	//el array hist guarda el mejor fitness tras cada generación 
 	//(hist[k] = mejor fitness tras k generaciones, con hist[0] el de la población inicial).
-	double *hist = (double *) malloc((n_gen + 1) * sizeof(double));
-	assert(hist);
-	hist[0] = poblacion[0]->fitness;
+	//double *hist = (double *) malloc((n_gen + 1) * sizeof(double));
+	//assert(hist);
+	//hist[0] = poblacion[0]->fitness;
 	
 	// evoluciona la poblacion durante un numero de generaciones
-	for(g = 0; g < n_gen; g++)
-	{
+	//Para tener un valor inicial y saber cuando mejora una generacion con respecto a las otras
+	double fitness_modelo = poblacion[0]->fitness;
+	//Contador para saber si tenemos que seguir avanzando o no en generaciones
+	int ngeneracion = 0;
+
+	//Mantenemos n_gen como limite para evitar un posible bucle infinito
+	for(g = 0; g < n_gen ; g++)
+	{//&& ngeneracion < NGENERACIONES_ATRAS
 		// los hijos de los ascendientes mas aptos sustituyen a la ultima mitad de los individuos menos aptos
 		for(i = 0; i < (tam_pob/2) - 1; i += 2) {
 			cruzar(poblacion[i], poblacion[i+1], poblacion[tam_pob/2 + i], poblacion[tam_pob/2 + i + 1], n, m);
@@ -111,23 +160,40 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 		// ordena individuos segun la funcion de bondad (mayor "fitness" --> mas aptos)
 		qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
 		
+
+		//Valor de fitness que buscamos, esperamos esta mejora
+		double fitness_esperado = fitness_modelo * (1 + PCT_CONVER);
+		//Si la poblacion actual supera el fitness esperado entonces reiniciamos 
+		//el contador para poder seguir avanzando y mirar las siguientes 
+		// X generaciones (si X =5 y estamos en la posicion 5 quiere 
+		//decir que en las 5 anteriores no se ha conseguido superar 
+		//la mejora esperada y por ende converge)
+		if(poblacion[0]->fitness > fitness_esperado){
+			fitness_modelo = poblacion[0]->fitness;
+			ngeneracion=0;
+		}else{
+			ngeneracion++;
+		}		
+
+
 		if (PRINT) {
 			printf("Generacion %d - ", g);
 			printf("Fitness = %.0lf\n", poblacion[0]->fitness);
 		}
 
+		//segunda opcion
 		//esto es porque Justo antes, el qsort ordena la población de mayor a menor fitness y
 		// por eso poblacion[0] es el mejor individuo de esa generación
-		hist[g + 1] = poblacion[0]->fitness;
+		//hist[g + 1] = poblacion[0]->fitness;
 
 		// criterio de convergencia: si en las últimas NGENERACIONES_ATRAS generaciones
 		// el fitness no ha mejorado al menos un PCT_CONVER , paramos
-		if (g + 1 >= NGENERACIONES_ATRAS) {
-   			 double antes = hist[g + 1 - NGENERACIONES_ATRAS];
-   			 double mejora = (hist[g + 1] - antes) / antes;
-    		 if (mejora < PCT_CONVER)
-        		 break;
-		}
+		//if (g + 1 >= NGENERACIONES_ATRAS) {
+   		//	 double antes = hist[g + 1 - NGENERACIONES_ATRAS];
+   		//	 double mejora = (hist[g + 1] - antes) / antes;
+    	//	 if (mejora < PCT_CONVER)
+        //		 break;
+		//}
 
 
 	}
@@ -148,7 +214,7 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 	}
 	free(poblacion);
 	//hist se libera al final junto con el resto de estructuras.
-	free(hist);
+	//free(hist);
 	// devuelve el valor obtenido para el fitness
 	return value;
 }
