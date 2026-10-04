@@ -12,39 +12,14 @@
 //#define NGENERACIONES_ATRAS 5      // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
 
 
-
-#define PCT_CONVER 0.02
-#define NGENERACIONES_ATRAS 5
-
-//#define PCT_CONVER 0.02
-//#define NGENERACIONES_ATRAS 10
-
-//#define PCT_CONVER 0.02
-//#define NGENERACIONES_ATRAS 15
-
-
-
-//#define PCT_CONVER 0.05
-//#define NGENERACIONES_ATRAS 5
-
-//#define PCT_CONVER 0.05
-//#define NGENERACIONES_ATRAS 10
-
-//#define PCT_CONVER 0.05
-//#define NGENERACIONES_ATRAS 15
-
-
-
-
-
 //#define PCT_CONVER 0.10
 //#define NGENERACIONES_ATRAS 5
 
 //#define PCT_CONVER 0.10
 //#define NGENERACIONES_ATRAS 10
 
-//#define PCT_CONVER 0.10
-//#define NGENERACIONES_ATRAS 15
+#define PCT_CONVER 0.10
+#define NGENERACIONES_ATRAS 15
 
 
 
@@ -137,7 +112,7 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 	int ngeneracion = 0;
 
 	//Mantenemos n_gen como limite para evitar un posible bucle infinito
-	for(g = 0; g < n_gen ; g++)
+	for(g = 0; g < n_gen && ngeneracion < NGENERACIONES_ATRAS ; g++)
 	{//&& ngeneracion < NGENERACIONES_ATRAS
 		// los hijos de los ascendientes mas aptos sustituyen a la ultima mitad de los individuos menos aptos
 		for(i = 0; i < (tam_pob/2) - 1; i += 2) {
