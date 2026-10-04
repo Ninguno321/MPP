@@ -13,6 +13,8 @@
 \usepackage{geometry}
 \usepackage[spanish]{babel}
 \usepackage{hyperref}
+\usepackage{graphicx}
+
 
 % -------------------------
 % CONFIGURACIÓN DE PÁGINA
@@ -38,6 +40,53 @@
 
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
+
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+% --- Colores generales ---
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{bgC}{rgb}{0.98,0.98,0.98}
+\definecolor{bgValgrind}{rgb}{0.93,0.93,0.93}
+
+% --- ESTILO 1: Para Código C ---
+\lstdefinestyle{EstiloC}{
+    backgroundcolor=\color{bgC},   
+    commentstyle=\color{mGreen}\itshape,
+    keywordstyle=\color{magenta}\bfseries,
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 % ¡Evita que el código se salga por la derecha!
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=8pt,                  
+    showstringspaces=false,
+    tabsize=4,
+    language=C,
+    frame=single,                    
+    rulecolor=\color{mGray!30}
+}
+
+% --- ESTILO 2: Para trazas/logs de Valgrind ---
+\lstdefinestyle{EstiloValgrind}{
+    backgroundcolor=\color{bgValgrind},
+    basicstyle=\ttfamily\scriptsize, % Letra ligeramente más pequeña para trazas anchas
+    breakatwhitespace=false,
+    breaklines=true,                 % ¡Evita que los reportes de Valgrind se corten!
+    captionpos=b,
+    frame=single,
+    numbers=none,                    % Sin números de línea para logs de terminal
+    showstringspaces=false,
+    language={},                     % Sin resaltado de sintaxis de lenguaje
+    rulecolor=\color{mGray!50}
+}
+
 
 % -------------------------
 % INICIO DEL DOCUMENTO
@@ -81,6 +130,13 @@ Grupo: 1 \\
 \tableofcontents
 \newpage
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./image.png}
+    \caption{Sistema utilizado 6 núcleos.}
+    \label{fig:mi_imagen}
+\end{figure}
+
 \section{Ejercicios}
 
 \begin{enumerate}
@@ -91,19 +147,17 @@ errores.}
 
 \begin{lstlisting}[breaklines=true]
 double *d = (double *) malloc(((n*n-n)/2)*sizeof(int));
-PARA QUE NO SE CORTE 
-
 \end{lstlisting}
 
 Para generar el informe hemos utilizado Valgrind, específicamente las siguientes directivas:
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
 valgrind --tool=memcheck --track-origins=yes --leak-check=yes --log-file=valgrind.txt
-\end{verbatim}
 
+\end{lstlisting}
 Estas directivas permiten buscar fugas de memoria y desbordamientos, además de proporcionar información sobre la línea en la que se produce cada error. Finalmente, se genera un informe con los resultados obtenidos. Véase el informe completo en el fichero \texttt{/doc/img/valgrind.txt} o en el Anexo~\ref{anexo:valgrind}.
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
 ==18066== HEAP SUMMARY:
 ==18066==     in use at exit: 2,159,600 bytes in 201 blocks
 ==18066==   total heap usage: 206 allocs, 5 frees, 2,171,792 bytes allocated
@@ -127,13 +181,12 @@ Estas directivas permiten buscar fugas de memoria y desbordamientos, además de 
 ==18066==
 ==18066== For lists of detected and suppressed errors, rerun with: -s
 ==18066== ERROR SUMMARY: 63941 errors from 34 contexts (suppressed: 0 from 0)
-\end{verbatim}
-
+\end{lstlisting}
 Como podemos ver en el resumen, destaca el uso de la memoria heap: se realizaron 206 asignaciones de memoria y únicamente 5 liberaciones. Además, se detectaron 63941 errores.
 
 A continuación, iremos mostrando cómo identificamos los problemas de memoria, así como las decisiones que tomamos para corregirlos.
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
 ==18066== Invalid write of size 8
 ==18066==    at 0x48DDC8B: __vfscanf_internal (vfscanf-internal.c:2530)
 ==18066==    by 0x48CDEC5: __isoc99_scanf (isoc99_scanf.c:30)
@@ -141,17 +194,15 @@ A continuación, iremos mostrando cómo identificamos los problemas de memoria, 
 ==18066==    by 0x1092DE: main (main.c:34)
 ==18066==  Address 0x4c6bcf0 is 0 bytes after a block of size 1,998,000 alloc'd
 ==18066==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
-\end{verbatim}
-
+\end{lstlisting}
 El primer error corresponde al fichero \texttt{io.c}, en la línea 14:
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
 double *d = (double *) malloc(((n*n-n)/2)*sizeof(int));
-\end{verbatim}
-
+\end{lstlisting}
 El problema que tenemos aquí es que se declara un array de tipo \texttt{double} y se reserva memoria utilizando el tamaño de un entero. Por lo tanto, la cantidad de memoria reservada no es la adecuada para los elementos que se almacenarán en el array. La solución es sencilla: cambiar \texttt{int} por \texttt{double}, que es el tipo que corresponde.
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
 ==24819== Invalid read of size 4
 ==24819==    at 0x109720: printf (stdio2.h:86)
 ==24819==    by 0x109720: print_solution (io.c:46)
@@ -162,11 +213,10 @@ El problema que tenemos aquí es que se declara un array de tipo \texttt{double}
 ==24819==  Block was alloc'd at
 ==24819==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
 ==24819==    by 0x1092ED: main (main.c:41)
-\end{verbatim}
-
+\end{lstlisting}
 En la línea 56 de \texttt{main.c} se libera la variable mediante \texttt{free(sol);}, pero poco después se vuelve a utilizar esta misma variable al pasarla como parámetro a una función. Para solucionarlo, únicamente tenemos que mover la liberación a una línea posterior, en la que ya no necesitemos utilizarla.
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
 ==28993== Invalid read of size 4
 ==28993==    at 0x109720: printf (stdio2.h:86)
 ==28993==    by 0x109720: print_solution (io.c:46)
@@ -174,44 +224,41 @@ En la línea 56 de \texttt{main.c} se libera la variable mediante \texttt{free(s
 ==28993==  Address 0x4e55060 is 0 bytes after a block of size 1,600 alloc'd
 ==28993==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
 ==28993==    by 0x1092ED: main (main.c:41)
-\end{verbatim}
-
+\end{lstlisting}
 En la línea 46 de \texttt{io.c} nos salimos de la memoria al utilizar un menor o igual:
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
 for(int i = 0; i < m; i++) { printf("%d ", solucion[i]); }
-\end{verbatim}
-
+\end{lstlisting}
 Se soluciona quitando el igual para evitar salirnos de los límites del array.
-
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
 ==31682==  Uninitialised value was created by a heap allocation
 ==31682==    at 0x4846828: malloc (in /usr/libexec/valgrind/vgpreload_memcheck-amd64-linux.so)
 ==31682==    by 0x1098F5: aplicar_mh (mh.c:72)
 ==31682==    by 0x109339: main (main.c:48)
-\end{verbatim}
-
+\end{lstlisting}
 En la línea 122 de \texttt{mh.c} se libera \texttt{poblacion}, pero \texttt{poblacion} contiene punteros a listas, por lo que no estamos liberando todo su contenido. Por este motivo aparecen numerosos errores relacionados con accesos a memoria no inicializada.
 
 Se soluciona liberando todo el contenido antes de liberar \texttt{poblacion}:
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
 for (int  i=0; i<tam_pob ; i++){
 free(poblacion[i]->array_int);// segundo arreglo leak memoria
 free(poblacion[i]); // primer arreglo leak memoria. El tercero esta en io.c free d
 }
-\end{verbatim}
-
+\end{lstlisting}
 Finalmente, se crea una variable \texttt{d} que nunca se libera. Buscamos el punto en el que deja de utilizarse y la liberamos mediante \texttt{free(d)} al final de \texttt{main}, junto con la liberación de \texttt{sol}.
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloValgrind]
+
+
 ==36402== HEAP SUMMARY:
 ==36402==     in use at exit: 0 bytes in 0 blocks
 ==36402==   total heap usage: 206 allocs, 206 frees, 4,169,792 bytes allocated
 ==36402==
 ==36402== All heap blocks were freed -- no leaks are possible
 ==36402==
-\end{verbatim}
+\end{lstlisting}
 
 Este último resultado nos confirma que se ha liberado toda la memoria correctamente y que no quedan fugas de memoria.
 
@@ -221,13 +268,13 @@ mh.c. Los cambios realizados en el código deben ir acompañados de comentarios.
 memoria se explicará cómo se ha implementado cada una de las funciones, justificando las
 decisiones tomadas. El código mostrado en la memoria debe coincidir con el que se entregue.}
 
-\begin{verbatim}
+\begin{lstlisting}[style=EstiloC]
 
 void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *hijo2, int n, int m)
 {	
 	/*Cruzar: para cada par de individuos selecciona un punto aleatorio a partir del que se produce
 	la mezcla y los nuevos descendientes se crean intercambiando los genes de los padres entre
-	sí.*/
+	si.*/
 	
 	//Primer paso, generar el punto de corte. Cruce en un solo punto.
 	//El punto de corte no se incluye como parte de los genes izquierdos.
@@ -275,8 +322,7 @@ void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *h
 		}
 	}
 }
-\end{verbatim}
-
+\end{lstlisting}
 La mezcla siempre es igual, es la forma más fácil de hacerlo. Tal y como indica la práctica, los padres se dividen en un punto aleatorio de corte, 
 una vez cortado, la parte izquierda de cada padre pasa a un hijo (padre1->hijo1), y la segunda parte del corte del padre va destinada a la segunda parte del 
 hijo contrario (padre1.derecha->hijo2). Esto se hace con un bucle para cada pate del corte.
@@ -291,13 +337,13 @@ para verificar posiciones ya verificadas y así el nuevo elemento no sea idénti
 el valor en el array y continuamos con el hijo2.
 
 
-\begin{verbatim}
 
+\begin{lstlisting}[style=EstiloC]
 void mutar(Individuo *actual, int n, int m, double m_rate)
 {
 	/*
-		Mutar: produce mutaciones en los descendientes en función de una cierta probabilidad
-(normalmente baja). Esto permite, por un lado, que la población sea diversa y, por otro, evita
+		Mutar: produce mutaciones en los descendientes en funcion de una cierta probabilidad
+(normalmente baja). Esto permite, por un lado, que la poblacion sea diversa y, por otro, evita
 que el algoritmo converja de forma prematura.
 	*/
 	//Mutamos X genes con probabilidad m_rate
@@ -322,8 +368,7 @@ que el algoritmo converja de forma prematura.
 		actual->array_int[pos] = nuevo;
 	}
 }
-
-\end{verbatim}
+\end{lstlisting}
 
 Como antes de llamar a mutar ya se ha seleccionado una proporción de individuos a mutar, nos da a entender que estos seleccionados tienen que mutar como mínimo 
 una vez (mientras que m\_rate > 0) por lo que nuestro objetivo en la función mutar es mutar X genes del individuo, dado por el porcentaje de m\_rate.
@@ -331,8 +376,7 @@ una vez (mientras que m\_rate > 0) por lo que nuestro objetivo en la función mu
 Bucle simple explicado en funciones anteriores.
 
 
-\begin{verbatim}
-
+\begin{lstlisting}[style=EstiloC]
 void fitness(const double *d, Individuo *individuo, int n, int m)
 {
 	// Determina la calidad del individuo calculando la suma de la distancia entre cada par de enteros
@@ -347,11 +391,22 @@ void fitness(const double *d, Individuo *individuo, int n, int m)
 	}
 	individuo->fitness = fitness;
 }
-\end{verbatim}
+\end{lstlisting}
 
+\begin{lstlisting}[style=EstiloC]
 
-
-
+double distancia_ij(const double *d, int i, int j, int n)
+{
+    // Devuelve la distancia entre dos elementos i, j de la matriz 'd'
+	// Formula de K
+	//Agregamos este if para comprobar porque la formula solo es valida con i < j, 
+	//el if garantiza que siempre se cumpla i < j, que es la condicion de validez 
+	//de la formula, y que es correcto porque la distancia es simetrica
+	if (i > j) { int t = i; i = j; j = t; }
+	int val = (((n * n)- n)/2)-((((n-i)*(n-i))-(n-i))/2)+j-i-1;
+	return d[val];
+}
+\end{lstlisting}
 
 
     \item \textbf{Introduce un nuevo parámetro que represente la tasa de mutación, m\_rate, que será leído del
@@ -381,14 +436,14 @@ void mutar(Individuo *, int, int, double);
     \item La función \texttt{mutar()} recibe \texttt{m\_rate} como parámetro y lo utiliza en lugar de la constante.
 \end{itemize}
 
+\begin{lstlisting}[style=EstiloC]
 
-\begin{verbatim}
 void mutar(Individuo *actual, int n, int m, double m_rate)
 {
 	// m_rate es una probabilidad en [0,1]; aleatorio(100) es un entero
 	// en [0,99], por lo que se compara con el porcentaje m_rate*100 
     //haciendo redondeo a un enter.
-    //Se hace asi porque es mas cómodo y legible.
+    //Se hace asi porque es mas comodo y legible.
 	int nmutar = (int)(m_rate * 100);
 	
 	if(aleatorio(100) < nmutar){
@@ -401,7 +456,7 @@ void mutar(Individuo *actual, int n, int m, double m_rate)
 		actual->array_int[pos] = nuevo;
 	}
 }
-\end{verbatim}
+\end{lstlisting}
 
 \textbf{Fichero \texttt{src/main.c}.}
 
@@ -421,21 +476,6 @@ Además, hemos incluido \texttt{M\_RATE} en el nombre del fichero de salida (\te
 solo se diferencian en la tasa de mutación no se mezclen en el mismo fichero.
 
 \textbf{Fichero \texttt{input/igen/in.txt}.} Hemos añadido la quinta columna con la tasa de mutación, por ejemplo \texttt{500 200 100 50 0.15}.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
