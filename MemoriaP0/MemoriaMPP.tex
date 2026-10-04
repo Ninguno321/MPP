@@ -221,6 +221,139 @@ mh.c. Los cambios realizados en el código deben ir acompañados de comentarios.
 memoria se explicará cómo se ha implementado cada una de las funciones, justificando las
 decisiones tomadas. El código mostrado en la memoria debe coincidir con el que se entregue.}
 
+\begin{verbatim}
+
+void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *hijo2, int n, int m)
+{	
+	/*Cruzar: para cada par de individuos selecciona un punto aleatorio a partir del que se produce
+	la mezcla y los nuevos descendientes se crean intercambiando los genes de los padres entre
+	sí.*/
+	
+	//Primer paso, generar el punto de corte. Cruce en un solo punto.
+	//El punto de corte no se incluye como parte de los genes izquierdos.
+	//Esto soluciona el problema de que salga corte = 0 y se copie 
+	//directamente el padre2 entero.
+	int corte = 1 + aleatorio(m-1); 
+
+	//Copiamos al hijo1 la primera parte de los genes del padre1
+	//al hijo2 lo mismo pero con el padre2
+	for (int i = 0 ; i < corte ; i ++){
+		hijo1->array_int[i] = padre1->array_int[i];
+		hijo2->array_int[i] = padre2->array_int[i];
+	}
+	//Copiamos la parte restante del padre contrario
+	//Es decir, al hijo1 le copiamos la segunda parte del padre2
+	for (int i = corte ; i < m ; i ++){
+		hijo1->array_int[i] = padre2->array_int[i];
+		hijo2->array_int[i] = padre1->array_int[i];
+	}
+	
+	//Doble bucle para revisar que no existan genes duplicados 
+	//Partimos de que los padres NO tienen repetidos asi podemos 
+	//ahorrarnos parte del recorrido y solo comparar los genes de 
+	// la parte del padre1 con las del otro.
+	for (int i = 0 ; i < corte ; i ++){
+		for(int j = corte ; j < m ; j++){
+			//Verificamos duplicado
+			if(hijo1->array_int[i] == hijo1->array_int[j]){
+				int nuevo;
+				do{
+					nuevo = aleatorio(n);
+				}while (find_element(hijo1->array_int, m, nuevo));
+				//Seguimos buscando un numero hasta que no sea uno que ya 
+				//este presente. Luego actualizamos
+				hijo1->array_int[j] = nuevo;
+			}
+			
+			if(hijo2->array_int[i] == hijo2->array_int[j]){
+				int nuevo;
+				do{
+					nuevo = aleatorio(n);
+				}while (find_element(hijo2->array_int, m, nuevo));
+				hijo2->array_int[j] = nuevo;
+			}
+		}
+	}
+}
+\end{verbatim}
+
+La mezcla siempre es igual, es la forma más fácil de hacerlo. Tal y como indica la práctica, los padres se dividen en un punto aleatorio de corte, 
+una vez cortado, la parte izquierda de cada padre pasa a un hijo (padre1->hijo1), y la segunda parte del corte del padre va destinada a la segunda parte del 
+hijo contrario (padre1.derecha->hijo2). Esto se hace con un bucle para cada pate del corte.
+
+La parte compleja de esta función reside en la búsqueda de genes repetidos en un mismo individuo.
+Verificar que no existan genes repetidos se consigue con la ejecución de un doble bucle anidado para recorrer al individuo 
+comparando la parte izquierda con la derecha.
+
+Para cada posición se verifica que sean iguales, en caso de verificarse entramos en el objetivo de buscar un gen no repetido para 
+sustituir el gen (derecha) por uno que no se repita, para ello, mientras que encontremos el nuevo elemento en el array (se hace una búsqueda completa
+para verificar posiciones ya verificadas y así el nuevo elemento no sea idéntico a ningún otro) buscamos otro aleatorio (uno entre todos los n disponibles), una vez encontrado actualizamos 
+el valor en el array y continuamos con el hijo2.
+
+
+\begin{verbatim}
+
+void mutar(Individuo *actual, int n, int m, double m_rate)
+{
+	/*
+		Mutar: produce mutaciones en los descendientes en función de una cierta probabilidad
+(normalmente baja). Esto permite, por un lado, que la población sea diversa y, por otro, evita
+que el algoritmo converja de forma prematura.
+	*/
+	//Mutamos X genes con probabilidad m_rate
+	//Siempre mutan porque solo mutan los ya seleccionados antes.
+
+	int nmutar = (int)(m_rate * m);
+	//minimo muta una vez, si m_rate no es 0.0
+	if(nmutar < 1 && m_rate > 0.0){
+		nmutar=1;
+	}
+	
+	//Para mutar los X genes
+	for(int i = 0; i<nmutar; i++){
+		//posicion aleatoria a mutar
+		int pos = aleatorio(m);
+		int nuevo = 0;
+		//nos ahorramos un if si siempre se generan entradas validas
+		//Buscamos otro mientras que sea repetido
+		do{
+			nuevo = aleatorio(n);
+		}while (find_element(actual->array_int, m, nuevo));
+		actual->array_int[pos] = nuevo;
+	}
+}
+
+\end{verbatim}
+
+Como antes de llamar a mutar ya se ha seleccionado una proporción de individuos a mutar, nos da a entender que estos seleccionados tienen que mutar como mínimo 
+una vez (mientras que m\_rate > 0) por lo que nuestro objetivo en la función mutar es mutar X genes del individuo, dado por el porcentaje de m\_rate.
+
+Bucle simple explicado en funciones anteriores.
+
+
+\begin{verbatim}
+
+void fitness(const double *d, Individuo *individuo, int n, int m)
+{
+	// Determina la calidad del individuo calculando la suma de la distancia entre cada par de enteros
+		double fitness = 0.0;
+	//Doble bucle para recorrer todas las posiciones del individuo para calcular su fitness
+	//Se suman todas las combinaciones de los valores del subconjunto tomando 
+	//como valor su representacion en el array de distancias.
+	for(int i = 0 ; i < m-1 ; i++){
+		for(int j = i + 1; j < m ; j++){
+			fitness += distancia_ij(d,individuo->array_int[i], individuo->array_int[j], n);
+		}
+	}
+	individuo->fitness = fitness;
+}
+\end{verbatim}
+
+
+
+
+
+
     \item \textbf{Introduce un nuevo parámetro que represente la tasa de mutación, m\_rate, que será leído del
 fichero de entrada in.txt, y que sustituirá a la constante definida para tal propósito en el
 fichero mh.c, facilitándose así la experimentación con este parámetro que pasa a ser variable.
@@ -231,6 +364,7 @@ m, n\_gen, tam\_pob, m\_rate codificando, por ejemplo, los valores 500 200 100 5
 
 Para convertir la tasa de mutación en un parámetro de entrada hemos sustituido la constante \texttt{MUTATION\_RATE} por una variable \texttt{m\_rate} de tipo \texttt{double}, que se lee del fichero \texttt{in.txt}.
 De este forma, los parámetros del programa pasan de cuatro a cinco: \texttt{n}, \texttt{m}, \texttt{n\_gen}, \texttt{tam\_pob} y \texttt{m\_rate}. 
+Asimismo se han modificados los ficheros de igen para generar entradas válidas con el nuevo parámetro.
 Los cambios realizados en cada fichero son los siguientes.
 
 \textbf{Fichero \texttt{include/mh.h}.} Hemos modificado el prototipo de \texttt{mutar()} para añadir la tasa de mutación como cuarto argumento:
@@ -252,8 +386,12 @@ void mutar(Individuo *, int, int, double);
 void mutar(Individuo *actual, int n, int m, double m_rate)
 {
 	// m_rate es una probabilidad en [0,1]; aleatorio(100) es un entero
-	// en [0,99], por lo que se compara con el porcentaje m_rate*100
-	if(aleatorio(100) < m_rate * 100){
+	// en [0,99], por lo que se compara con el porcentaje m_rate*100 
+    //haciendo redondeo a un enter.
+    //Se hace asi porque es mas cómodo y legible.
+	int nmutar = (int)(m_rate * 100);
+	
+	if(aleatorio(100) < nmutar){
 		int pos = aleatorio(m);
 		int nuevo = 0;
 		//nos ahorramos un if si siempre se generan entradas validas
@@ -269,7 +407,7 @@ void mutar(Individuo *actual, int n, int m, double m_rate)
 
 \begin{itemize}
     \item Hemos actualizado la declaración \texttt{extern} de \texttt{aplicar\_mh()} para incluir el nuevo argumento de tipo \texttt{double}.
-    \item La comprobación del número de argumentos pasa de \texttt{argc < 5} a \texttt{argc < 6}, y el mensaje de ayuda indica el nuevo parámetro.
+    \item La comprobación del número de argumentos pasa de \texttt{argc < 4} a \texttt{argc < 5}, y el mensaje de ayuda indica el nuevo parámetro.
     \item Leemos el nuevo argumento con \texttt{atof(argv[5])} y lo almacenamos en una variable \texttt{double m\_rate}. Utilizamos \texttt{atof} en lugar de \texttt{atoi} porque este último truncaría el valor a 0.
     \item Hemos añadido \texttt{assert(m\_rate >= 0.0 \&\& m\_rate <= 1.0)}, ya que se trata de una probabilidad.
     \item La llamada pasa a ser \texttt{aplicar\_mh(d, n, m, n\_gen, tam\_pob, m\_rate, sol)}.
@@ -283,6 +421,23 @@ Además, hemos incluido \texttt{M\_RATE} en el nombre del fichero de salida (\te
 solo se diferencian en la tasa de mutación no se mezclen en el mismo fichero.
 
 \textbf{Fichero \texttt{input/igen/in.txt}.} Hemos añadido la quinta columna con la tasa de mutación, por ejemplo \texttt{500 200 100 50 0.15}.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     \item \textbf{Cambiar el criterio de convergencia del algoritmo evolutivo de forma que se realice en función

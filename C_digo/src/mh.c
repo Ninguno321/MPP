@@ -154,26 +154,16 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 }
 
 void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *hijo2, int n, int m)
-{	/*
-	Cruzar: para cada par de individuos selecciona un punto aleatorio a partir del que se produce
+{	
+	/*Cruzar: para cada par de individuos selecciona un punto aleatorio a partir del que se produce
 	la mezcla y los nuevos descendientes se crean intercambiando los genes de los padres entre
-	sí.
-	*/
+	sí.*/
 	
-	// no pueden haber elementos repetidos, por lo que hay que llevar control con las mezclas del padre. revisamos el hijo y llamamos a aleatorio para 
-	// que no tenga elementos repetidos
-	// Elegir un "punto" de corte aleatorio a partir del que se realiza el intercambio de los genes
-	
-	// Los primeros genes del padre1 van al hijo1. Idem para el padre2 e hijo2.
-	
-	// Y los restantes son del otro padre, respectivamente.
-	
-	// Factibilizar: eliminar posibles repetidos de ambos hijos
-	// Si encuentro alguno repetido en el hijo1, lo cambio por otro que no este en el conjunto
-
 	//Primer paso, generar el punto de corte. Cruce en un solo punto.
-	// El punto de corte no se incluye como gen izquierdo.
-	int corte = 1 + aleatorio(m-1); //esto soluciona el problema de que salga corte = 0 y se copie directamente el padre2.
+	//El punto de corte no se incluye como parte de los genes izquierdos.
+	//Esto soluciona el problema de que salga corte = 0 y se copie 
+	//directamente el padre2 entero.
+	int corte = 1 + aleatorio(m-1); 
 
 	//Copiamos al hijo1 la primera parte de los genes del padre1
 	//al hijo2 lo mismo pero con el padre2
@@ -211,7 +201,7 @@ void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *h
 					nuevo = aleatorio(n);
 				}while (find_element(hijo2->array_int, m, nuevo));
 				hijo2->array_int[j] = nuevo;
-			} //Hay una opcion con un array de marcas que es mas eficiente.
+			}
 		}
 	}
 }
@@ -223,27 +213,22 @@ void mutar(Individuo *actual, int n, int m, double m_rate)
 (normalmente baja). Esto permite, por un lado, que la población sea diversa y, por otro, evita
 que el algoritmo converja de forma prematura.
 	*/
+	//Mutamos X genes con probabilidad m_rate
+	//Siempre mutan porque solo mutan los ya seleccionados antes.
 
-
-	//for m hasta cierta mutation rate 0.15
-	// Decidir cuantos elementos mutar:
-	// Si el valor es demasiado pequeño la convergencia es muy pequeña y si es demasiado alto diverge
+	int nmutar = (int)(m_rate * m);
+	//minimo muta una vez, si m_rate no es 0.0
+	if(nmutar < 1 && m_rate > 0.0){
+		nmutar=1;
+	}
 	
-	// Cambia el valor de algunos elementos de array_int de forma aleatoria
-	// teniendo en cuenta que no puede haber elementos repetidos:
-        // una posibilidad podría ser usar una variable, m_rate, para establecer la intensidad de la mutación 
-        // (un bucle for con un número de iteraciones que dependa, por ejemplo, de m_rate*m)
-
-	//Normalizamos para trabajar con enteros
-	//Mutamos un gen de un individuo el 15% de las veces
-	//La otra opcion es mutar cada gen con probabilidad 15% 
-	//pero en numeros mayores mutamos una gran cantidad de genes 
-	//por lo que no lo consideramos
-	
-	if(aleatorio(100) < m_rate * 100){
+	//Para mutar los X genes
+	for(int i = 0; i<nmutar; i++){
+		//posicion aleatoria a mutar
 		int pos = aleatorio(m);
 		int nuevo = 0;
 		//nos ahorramos un if si siempre se generan entradas validas
+		//Buscamos otro mientras que sea repetido
 		do{
 			nuevo = aleatorio(n);
 		}while (find_element(actual->array_int, m, nuevo));
@@ -257,11 +242,10 @@ double distancia_ij(const double *d, int i, int j, int n)
 	// Formula de K
 	//Añadimos este if para comprobar porque la fórmula solo es válida con i < j, 
 	//el if garantiza que siempre se cumpla i < j, que es la condición de validez 
-	//de la fórmula, y que es correcto porque la distancia es simétric
+	//de la fórmula, y que es correcto porque la distancia es simétrica
 	if (i > j) { int t = i; i = j; j = t; }
 	int val = (((n * n)- n)/2)-((((n-i)*(n-i))-(n-i))/2)+j-i-1;
 	return d[val];
-
 }
 
 

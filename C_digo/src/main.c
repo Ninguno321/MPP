@@ -16,9 +16,9 @@ static double mseconds() {
 int main(int argc, char **argv)
 {
 //	Check Number of Input Args
-	if(argc < 6) {
+	if(argc < 5) {
 		fprintf(stderr,"Ayuda:\n"); 
-		fprintf(stderr,"  ./programa n m nGen tamPob\n");
+		fprintf(stderr,"  ./programa n m nGen tamPob m_rate\n");
 		return(EXIT_FAILURE);
 	}
 	

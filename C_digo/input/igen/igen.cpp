@@ -26,7 +26,7 @@ void generar_d(double *d, int n)
   }
 }
 
-void escribir(double *d, int n, int m, int n_gen, int tam_pob)
+void escribir(double *d, int n, int m, int n_gen, int tam_pob, double m_rate)
 {
   int i, j, pos=0;
 
@@ -47,7 +47,7 @@ void escribir(double *d, int n, int m, int n_gen, int tam_pob)
 int main(int argc,char **argv)
 {
         //	Check Number of Input Args
-	if(argc < 4) {
+	if(argc < 5) {
 		cerr << "Ayuda: " << endl;
 		cerr << "  ./programa n m nGen tamPob " << endl;
 		return(EXIT_FAILURE);
@@ -57,11 +57,12 @@ int main(int argc,char **argv)
 	int m = atoi(argv[2]);
         int n_gen = atoi(argv[3]);
 	int tam_pob = atoi(argv[4]);
+        double m_rate = atoi(argv[5]);
 
         double *d = new double[(n*n-n)/2];
 
 	generar_d(d, n);
-	escribir(d, n, m, n_gen, tam_pob);
+	escribir(d, n, m, n_gen, tam_pob, m_rate);
 
         delete [] d;
 }

@@ -12,8 +12,8 @@ while read line ; do
 		m=$(echo $line | tr -s ' ' | cut -f2 -d ' ')
 		gen=$(echo $line | tr -s ' ' | cut -f3 -d ' ')
 		tam=$(echo $line | tr -s ' ' | cut -f4 -d ' ')
-	
-		make exe_igen N=$n M=$m N_GEN=$gen T_POB=$tam
+		mrate=$(echo $line | tr -s ' ' | cut -f5 -d ' ')
+		make exe_igen N=$n M=$m N_GEN=$gen T_POB=$tam M_RATE=$mrate
 	fi
 done < $in_file
 
