@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <time.h>
 #include <unistd.h>
+#include <omp.h>
 
 #include "../include/mh.h"
 
@@ -70,14 +71,15 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 	assert(poblacion);
 	
 	// crea cada individuo (array de enteros aleatorios)
-	for(i = 0; i < tam_pob; i++) {
-		poblacion[i] = (Individuo *) malloc(sizeof(Individuo));
-		poblacion[i]->array_int = crear_individuo(n, m);
-		
-		// calcula el fitness del individuo
-		fitness(d, poblacion[i], n, m);
-	}
-	
+	// FOR-INI
+	#pragma omp parallel for shared (poblacion,d) private(i) schedule(static)
+		for(i = 0; i < tam_pob; i++) {
+			poblacion[i] = (Individuo *) malloc(sizeof(Individuo));
+			poblacion[i]->array_int = crear_individuo(n, m);
+			
+			// calcula el fitness del individuo
+			fitness(d, poblacion[i], n, m);
+		}
 	// ordena individuos segun la funcion de bondad (mayor "fitness" --> mas aptos)
 	qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
 
