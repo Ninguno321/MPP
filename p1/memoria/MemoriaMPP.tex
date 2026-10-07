@@ -145,7 +145,7 @@ Grupo: 1 \\
 
 
 % --- BLOQUE 1: Creación de individuo ---
-Sí que se podría llegar a paralelizar, pero no tiene sentido hacerlo. Cada ejecución depende del resultado de la ejecución anterior (dependencia \textit{Read-After-Write} sobre el array \texttt{individuo}), ya que se están generando constantemente elementos nuevos que en la siguiente iteración se tienen que comprobar mediante \texttt{find\_element}.
+\textbf{Justificación:} Sí que se podría llegar a paralelizar, pero no tiene sentido hacerlo. Cada ejecución depende del resultado de la ejecución anterior (dependencia \textit{Read-After-Write} sobre el array \texttt{individuo}), ya que se están generando constantemente elementos nuevos que en la siguiente iteración se tienen que comprobar mediante \texttt{find\_element}.
 
 Esto introduce una dependencia fuerte que obligaría a los hilos a sincronizarse en cada iteración. Por otro lado, la función a la que llama realiza búsquedas muy cortas sobre $m$ elementos, por lo que paralelizar este bucle internamente no nos aporta ningún beneficio a priori respecto a la sobrecarga (\textit{overhead}) que introduce.
 
@@ -200,7 +200,7 @@ for(g = 0; g < n_gen && ngeneracion < NGENERACIONES_ATRAS ; g++)
 \vspace{0.5cm}
 
 % --- BLOQUE 3: Cruce a nivel de genes ---
-Sí se puede paralelizar, no existe ninguna dependencia de datos entre iteraciones. Cada hilo escribe en índices independientes de la memoria sin generar condiciones de carrera, ya que cada iteración trabaja con una posición de array distinta (\texttt{hijo1->array\_int[i]}). Sin embargo, al ser $m$ habitualmente un valor reducido, es más eficiente paralelizar a nivel de la población (bucle externo) para evitar la sobrecarga de gestión de hilos.
+\textbf{Justificación:} Sí se puede paralelizar, no existe ninguna dependencia de datos entre iteraciones. Cada hilo escribe en índices independientes de la memoria sin generar condiciones de carrera, ya que cada iteración trabaja con una posición de array distinta (\texttt{hijo1->array\_int[i]}). Sin embargo, al ser $m$ habitualmente un valor reducido, es más eficiente paralelizar a nivel de la población (bucle externo) para evitar la sobrecarga de gestión de hilos.
 
 \begin{lstlisting}[style=EstiloC]
 for (int i = corte ; i < m ; i ++){
@@ -212,7 +212,7 @@ for (int i = corte ; i < m ; i ++){
 \vspace{0.5cm}
 
 % --- BLOQUE 4: Mutación interna ---
-No se puede paralelizar a este nivel debido a la existencia de condiciones de carrera directas sobre el mismo individuo (\texttt{actual->array\_int}). Las posiciones aleatorias generadas hacen que los accesos a memoria sean inciertos y la comprobación de elementos repetidos mediante \texttt{find\_element} obligaría a sincronizar continuamente a todos los hilos, degradando el rendimiento.
+\textbf{Justificación:} No se puede paralelizar a este nivel debido a la existencia de condiciones de carrera directas sobre el mismo individuo (\texttt{actual->array\_int}). Las posiciones aleatorias generadas hacen que los accesos a memoria sean inciertos y la comprobación de elementos repetidos mediante \texttt{find\_element} obligaría a sincronizar continuamente a todos los hilos, degradando el rendimiento.
 
 \begin{lstlisting}[style=EstiloC]
 for(int i = 0; i < nmutar; i++){
@@ -229,7 +229,7 @@ for(int i = 0; i < nmutar; i++){
 \end{lstlisting}
 
 	
-% ===== CUESTION 1: pegar justo debajo del texto del enunciado de la Cuestión 1 =====
+
 
 \vspace{0.3cm}
 \textbf{Función \texttt{find\_element}}
