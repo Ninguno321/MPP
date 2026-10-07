@@ -229,6 +229,104 @@ for(int i = 0; i < nmutar; i++){
 \end{lstlisting}
 
 	
+% ===== CUESTION 1: pegar justo debajo del texto del enunciado de la Cuestión 1 =====
+
+\vspace{0.3cm}
+\textbf{Función \texttt{find\_element}}
+\begin{lstlisting}[style=EstiloC]
+int find_element(int *array, int end, int element)
+{
+    int i = 0;
+    int found = 0;
+
+    // comprueba que un elemento no esta incluido en el individuo
+    // (el cual no admite enteros repetidos)
+    while ((i < end) && !found) {
+        if (array[i] == element) {
+            found = 1;
+        }
+        i++;
+    }
+    return found;
+}
+\end{lstlisting}
+\textbf{Justificación:} Se puede paralelizar transformando el \texttt{while} en un \texttt{for}, ya que cada iteración solo lee \texttt{array[i]} y no hay dependencias entre iteraciones (\texttt{found} se trata como reducción).
+
+\vspace{0.3cm}
+\textbf{Función \texttt{aplicar\_mh} -- Bucle 1}
+\begin{lstlisting}[style=EstiloC]
+// crea cada individuo (array de enteros aleatorios)
+for (i = 0; i < tam_pob; i++) {
+    poblacion[i] = (Individuo *) malloc(sizeof(Individuo));
+    poblacion[i]->array_int = crear_individuo(n, m);
+
+    // calcula el fitness del individuo
+    fitness(d, poblacion[i], n, m);
+}
+\end{lstlisting}
+\textbf{Justificación:} Se puede paralelizar porque cada iteración trabaja solo con su propio individuo \texttt{poblacion[i]}, sin depender de ninguna otra iteración.
+
+\vspace{0.3cm}
+\textbf{Función \texttt{aplicar\_mh} -- Tercer bucle}
+\begin{lstlisting}[style=EstiloC]
+// se libera la memoria reservada
+for (int i = 0; i < tam_pob; i++) {
+    free(poblacion[i]->array_int);
+    free(poblacion[i]);
+}
+\end{lstlisting}
+\textbf{Justificación:} Se puede paralelizar porque cada iteración libera la memoria de un individuo distinto, por lo que no hay dependencias entre iteraciones.
+
+\vspace{0.3cm}
+\textbf{Función \texttt{cruzar} -- Primer bucle}
+\begin{lstlisting}[style=EstiloC]
+// al hijo2 lo mismo pero con el padre2
+for (int i = 0; i < corte; i++) {
+    hijo1->array_int[i] = padre1->array_int[i];
+    hijo2->array_int[i] = padre2->array_int[i];
+}
+\end{lstlisting}
+\textbf{Justificación:} Se puede paralelizar con \texttt{parallel for} porque cada iteración escribe en una posición distinta (\texttt{hijo[i]}) y no hay dependencias.
+
+\vspace{0.3cm}
+\textbf{Función \texttt{cruzar} -- Tercer bucle}
+\begin{lstlisting}[style=EstiloC]
+for (int i = 0; i < corte; i++) {
+    for (int j = corte; j < m; j++) {
+        if (hijo1->array_int[i] == hijo1->array_int[j]) {
+            int nuevo;
+            do {
+                nuevo = aleatorio(n);
+            } while (find_element(hijo1->array_int, m, nuevo));
+            hijo1->array_int[j] = nuevo;
+        }
+
+        if (hijo2->array_int[i] == hijo2->array_int[j]) {
+            int nuevo;
+            do {
+                nuevo = aleatorio(n);
+            } while (find_element(hijo2->array_int, m, nuevo));
+            hijo2->array_int[j] = nuevo;
+        }
+    }
+}
+\end{lstlisting}
+\textbf{Justificación:} No se puede paralelizar tal cual, porque las iteraciones escriben en \texttt{array\_int[j]} mientras otras lo leen (en la comparación y en \texttt{find\_element}). Además, el \texttt{do-while} no tiene un número fijo de iteraciones y no se puede convertir en \texttt{for}.
+
+\vspace{0.3cm}
+\textbf{Función \texttt{fitness}}
+\begin{lstlisting}[style=EstiloC]
+for (int i = 0; i < m-1; i++) {
+    for (int j = i + 1; j < m; j++) {
+        fitness += distancia_ij(d, individuo->array_int[i],
+                                individuo->array_int[j], n);
+    }
+}
+\end{lstlisting}
+\textbf{Justificación:} Se puede paralelizar porque cada par $(i,j)$ solo lee datos y calcula su distancia de forma independiente. La única dependencia es la suma sobre \texttt{fitness}, que se resuelve con \texttt{reduction(+:fitness)}.
+
+
+
 \item \textbf{Cuestión 2.} Con el fin de obtener un código más eficiente en la parte de memoria compartida y poder optimizar el proceso de mejora de la población de individuos: reemplazar las llamadas a la función \texttt{rand} por \texttt{rand\_r} (que es ``thread safe'' y se usará para el resto de cuestiones de la práctica) para evitar, por un lado, que se genere la misma secuencia de valores aleatorios en diferentes hilos y, por otro, que se pierda paralelismo durante la generación de dichos valores debido a la secuencialidad que introduce la función \texttt{rand}. Además, añadir el código necesario para implementar correctamente la generación aleatoria a lo largo del algoritmo.
 
 Para ello, una posibilidad sería crear en \texttt{mh.c} una variable global \texttt{seed} que se hará \texttt{threadprivate} y que se pasará como argumento por referencia a \texttt{rand\_r}. Así, además, cada hilo podrá inicializar \texttt{seed} en paralelo de forma independiente (por ejemplo, en función del tiempo del sistema, de su identificador de hilo o una combinación de ambos) en una primera región paralela situada justo antes de generar la población inicial de subconjuntos $B$ del problema MDP (bucle \texttt{for} que crea cada individuo, que identificaremos como \texttt{FOR\_INI}). Es en esta generación aleatoria de individuos donde el efecto sobre el paralelismo de \texttt{rand\_r} en lugar de \texttt{rand} es claramente apreciable.
