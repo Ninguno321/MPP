@@ -144,6 +144,90 @@ Grupo: 1 \\
 	\item \textbf{Cuestión 1.} Justificar qué funciones y/o zonas del código son paralelizables. No es necesario indicar las directivas OpenMP que sería necesario utilizar.
 
 
+% --- BLOQUE 1: Creación de individuo ---
+Sí que se podría llegar a paralelizar, pero no tiene sentido hacerlo. Cada ejecución depende del resultado de la ejecución anterior (dependencia \textit{Read-After-Write} sobre el array \texttt{individuo}), ya que se están generando constantemente elementos nuevos que en la siguiente iteración se tienen que comprobar mediante \texttt{find\_element}.
+
+Esto introduce una dependencia fuerte que obligaría a los hilos a sincronizarse en cada iteración. Por otro lado, la función a la que llama realiza búsquedas muy cortas sobre $m$ elementos, por lo que paralelizar este bucle internamente no nos aporta ningún beneficio a priori respecto a la sobrecarga (\textit{overhead}) que introduce.
+
+\begin{lstlisting}[style=EstiloC]
+while(i < m) {
+    value = aleatorio(n);
+    // si el nuevo elemento no esta en el array...
+    if(!find_element(individuo, i, value)) {
+        individuo[i] = value;  // lo incluimos
+        i++;
+    }
+}
+return individuo;
+\end{lstlisting}
+
+\vspace{0.5cm}
+
+% --- BLOQUE 2: Bucle principal de generaciones ---
+El bucle más externo no se puede paralelizar debido a que cuenta con numerosas dependencias secuenciales entre generaciones. Por ejemplo, se parte de la premisa de que los individuos están ordenados de mayor a menor aptitud (\textit{fitness}); si la generación anterior no se ordenase o no terminase previamente, se estaría trabajando con datos imprecisos o inconsistentes. Además, la condición de parada del algoritmo depende directamente de los resultados obtenidos en las ejecuciones pasadas.
+
+Lo que sí se puede paralelizar son los bucles internos de cada generación, ya que no presentan dependencias entre sus iteraciones o trabajan únicamente con sus datos locales.
+
+\begin{lstlisting}[style=EstiloC]
+for(g = 0; g < n_gen && ngeneracion < NGENERACIONES_ATRAS ; g++)
+{
+    for(i = 0; i < (tam_pob/2) - 1; i += 2) {
+        cruzar(poblacion[i], poblacion[i+1], poblacion[tam_pob/2 + i], poblacion[tam_pob/2 + i + 1], n, m);
+    }
+    
+    mutation_start = tam_pob/4;
+    
+    for(i = mutation_start; i < tam_pob; i++) {
+        mutar(poblacion[i], n, m, m_rate);
+    }
+    
+    for(i = 0; i < tam_pob; i++) {
+        fitness(d, poblacion[i], n, m);
+    }
+    
+    // ordena individuos segun la funcion de bondad (mayor "fitness" --> mas aptos)
+    qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
+        
+    if(poblacion[0]->fitness > fitness_esperado){
+        fitness_modelo = poblacion[0]->fitness;
+        ngeneracion=0;
+    }else{
+        ngeneracion++;
+    }       
+}
+\end{lstlisting}
+
+\vspace{0.5cm}
+
+% --- BLOQUE 3: Cruce a nivel de genes ---
+Sí se puede paralelizar, no existe ninguna dependencia de datos entre iteraciones. Cada hilo escribe en índices independientes de la memoria sin generar condiciones de carrera, ya que cada iteración trabaja con una posición de array distinta (\texttt{hijo1->array\_int[i]}). Sin embargo, al ser $m$ habitualmente un valor reducido, es más eficiente paralelizar a nivel de la población (bucle externo) para evitar la sobrecarga de gestión de hilos.
+
+\begin{lstlisting}[style=EstiloC]
+for (int i = corte ; i < m ; i ++){
+    hijo1->array_int[i] = padre2->array_int[i];
+    hijo2->array_int[i] = padre1->array_int[i];
+}
+\end{lstlisting}
+
+\vspace{0.5cm}
+
+% --- BLOQUE 4: Mutación interna ---
+No se puede paralelizar a este nivel debido a la existencia de condiciones de carrera directas sobre el mismo individuo (\texttt{actual->array\_int}). Las posiciones aleatorias generadas hacen que los accesos a memoria sean inciertos y la comprobación de elementos repetidos mediante \texttt{find\_element} obligaría a sincronizar continuamente a todos los hilos, degradando el rendimiento.
+
+\begin{lstlisting}[style=EstiloC]
+for(int i = 0; i < nmutar; i++){
+    // posicion aleatoria a mutar
+    int pos = aleatorio(m);
+    int nuevo = 0;
+    // nos ahorramos un if si siempre se generan entradas validas
+    // Buscamos otro mientras que sea repetido
+    do{
+        nuevo = aleatorio(n);
+    }while (find_element(actual->array_int, m, nuevo));
+    actual->array_int[pos] = nuevo;
+}
+\end{lstlisting}
+
 	
 \item \textbf{Cuestión 2.} Con el fin de obtener un código más eficiente en la parte de memoria compartida y poder optimizar el proceso de mejora de la población de individuos: reemplazar las llamadas a la función \texttt{rand} por \texttt{rand\_r} (que es ``thread safe'' y se usará para el resto de cuestiones de la práctica) para evitar, por un lado, que se genere la misma secuencia de valores aleatorios en diferentes hilos y, por otro, que se pierda paralelismo durante la generación de dichos valores debido a la secuencialidad que introduce la función \texttt{rand}. Además, añadir el código necesario para implementar correctamente la generación aleatoria a lo largo del algoritmo.
 
