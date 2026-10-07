@@ -1,7 +1,7 @@
 # Fdb version 4
-["pdflatex"] 1791125910.00571 "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/MemoriaP0/MemoriaMPP.tex" "MemoriaMPP.pdf" "MemoriaMPP" 1791125911.63549 0
+["pdflatex"] 1791126613.97076 "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/MemoriaP0/MemoriaMPP.tex" "MemoriaMPP.pdf" "MemoriaMPP" 1791126615.6189 0
   "/etc/texmf/web2c/texmf.cnf" 1758975172.57738 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/MemoriaP0/MemoriaMPP.tex" 1791125909.87718 61015 8a13e99d1319d0ba3c53a5dfdac319e3 ""
+  "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/MemoriaP0/MemoriaMPP.tex" 1791126613.85247 61006 124b025d7b3580bc8804987e4c4a4b62 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/symbol/psyr.tfm" 1136768653 1408 5937f58aa508ea2cea4901c07d10f5fe ""
@@ -115,10 +115,10 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1758976704.7222 5472669 54eaf61a88b6b7896ebd0dac973cb29c ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1758976728 8214834 66938f21b6776074ba61687929f0c78c ""
-  "MemoriaMPP.aux" 1791125911.56183 1968 71932c56c4c3a0bd2fd029337da06ce2 "pdflatex"
-  "MemoriaMPP.out" 1791125911.56283 434 b5de93dc716307c1449866ee573f2bd1 "pdflatex"
-  "MemoriaMPP.tex" 1791125909.87718 61015 8a13e99d1319d0ba3c53a5dfdac319e3 ""
-  "MemoriaMPP.toc" 1791125911.56393 262 78561d595a546cce367a1e551a9de210 "pdflatex"
+  "MemoriaMPP.aux" 1791126615.5458 1968 71932c56c4c3a0bd2fd029337da06ce2 "pdflatex"
+  "MemoriaMPP.out" 1791126615.5468 434 b5de93dc716307c1449866ee573f2bd1 "pdflatex"
+  "MemoriaMPP.tex" 1791126613.85247 61006 124b025d7b3580bc8804987e4c4a4b62 ""
+  "MemoriaMPP.toc" 1791126615.54807 262 78561d595a546cce367a1e551a9de210 "pdflatex"
   "entrada10001500203015.png" 1791111654 159444 a002d472b3f8a08dcb443e168fbf2ff8 ""
   "entrada200050.02mut0.3.png" 1791111371 132029 3c54d541a77ef35ce0c6dd6636be4aa4 ""
   "image.png" 1791106386.43161 62307 7294f176c35da8bba6a97f786071ce60 ""
