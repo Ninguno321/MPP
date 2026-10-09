@@ -329,6 +329,111 @@ for (int i = 0; i < m-1; i++) {
 
 \item \textbf{Cuestión 2.} Con el fin de obtener un código más eficiente en la parte de memoria compartida y poder optimizar el proceso de mejora de la población de individuos: reemplazar las llamadas a la función \texttt{rand} por \texttt{rand\_r} (que es ``thread safe'' y se usará para el resto de cuestiones de la práctica) para evitar, por un lado, que se genere la misma secuencia de valores aleatorios en diferentes hilos y, por otro, que se pierda paralelismo durante la generación de dichos valores debido a la secuencialidad que introduce la función \texttt{rand}. Además, añadir el código necesario para implementar correctamente la generación aleatoria a lo largo del algoritmo.
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+\medskip
+\noindent\textbf{Implementación}\par
+\smallskip
+ 
+Hemos paralelizado el bucle \texttt{FOR\_INI}, que crea cada individuo de la población inicial, con \texttt{\#pragma omp parallel for} y \texttt{schedule(static)}. Cada individuo se crea de forma independiente de los demás, así que las iteraciones se pueden repartir entre los hilos sin problemas.
+ 
+Para la serie (a) se ha dejado la función \texttt{rand}. Para la serie (b) se ha sustituido por \texttt{rand\_r}, con estos cambios:
+ 
+\begin{itemize}
+    \item Una variable global \texttt{seed}, declarada como \texttt{threadprivate}, por lo que cada hilo tiene su propia copia.
+    \item La llamada \texttt{omp\_set\_dynamic(0)} y el mismo número de hilos en todas las regiones paralelas, para que cada hilo conserve su \texttt{seed} de una región a otra.
+    \item Una región paralela situada justo antes de \texttt{FOR\_INI}, en la que cada hilo inicializa su \texttt{seed} con la suma de \texttt{time(NULL)}, \texttt{getpid()} y su identificador de hilo (\texttt{omp\_get\_thread\_num()}). El identificador es lo que hace distintas las semillas de los hilos, y el tiempo y el PID evitan repetir la misma secuencia entre ejecuciones.
+    \item \texttt{rand\_r(\&seed)} en la función \texttt{aleatorio}, que usan la creación, el cruce y la mutación.
+\end{itemize}
+ 
+\medskip
+\noindent\textbf{Realización de los experimentos}\par
+\smallskip
+ 
+Medimos solo el tiempo del bucle \texttt{FOR\_INI}, porque el resto del algoritmo es secuencial y taparía el efecto de la generación aleatoria. Cada valor es la media de 5 ejecuciones, descartando la primera de cada tanda por efectos de arranque (esto lo puedes cambiar Andres dependiendo de cuantas ejecuciones uses). Las ejecuciones de las series (a) y (b) se han intercalado en la misma sesión, para que las dos se midan en las mismas condiciones de la máquina (te he dejado el script a ejecutar que lo hace todo, se llama comparar2.sh). Como tiempo secuencial para el \textit{speed-up} se ha usado el del propio código paralelo con 1 hilo.
+ 
+\medskip
+\noindent\textbf{Resultados con $m=20$ (serie principal)}\par
+\smallskip
+ 
+Parámetros: $n=2000$, $m=20$, \texttt{n\_gen} $=1$, \texttt{tam\_pob} $=200000$, \texttt{m\_rate} $=0,15$. Hemos elegido un $m$ pequeño para que el cálculo de cada individuo pese poco y se aprecie mejor el efecto de los números aleatorios, como se pide en el enunciado.
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{c rrr rrr}
+        \toprule
+        & \multicolumn{3}{c}{(a) \texttt{rand}} & \multicolumn{3}{c}{(b) \texttt{rand\_r}} \\
+        \cmidrule(lr){2-4} \cmidrule(lr){5-7}
+        Hilos & $t$ (ms) & \textit{Speed-up} & Eficiencia & $t$ (ms) & \textit{Speed-up} & Eficiencia \\
+        \midrule
+        1 & 400,2 & 1,00 & 1,00 & 347,6 & 1,00 & 1,00 \\
+        2 & 261,8 & 1,53 & 0,76 & 176,4 & 1,97 & 0,99 \\
+        4 & 304,6 & 1,31 & 0,33 & 146,4 & 2,37 & 0,59 \\
+        6 & 389,2 & 1,03 & 0,17 & 111,2 & 3,13 & 0,52 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tiempo de \texttt{FOR\_INI}, \textit{speed-up} y eficiencia con $n=2000$, $m=20$, \texttt{n\_gen} $=1$, \texttt{tam\_pob} $=200000$ y \texttt{m\_rate} $=0,15$.}
+    \label{tab:c2_m20}
+\end{table}
+ 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{grafica_cuestion2.png}
+    \caption{Tiempo de \texttt{FOR\_INI} frente al número de hilos para las series (a) y (b), con $m=20$.}
+    \label{fig:c2_grafica}
+\end{figure}
+ 
+\medskip
+\noindent\textbf{Análisis}\par
+\smallskip
+ 
+Con \texttt{rand}, el tiempo mejora al pasar de 1 a 2 hilos, pero a partir de ahí \textbf{empeora}: sube de 261,8 ms con 2 hilos a 304,6 ms con 4 y a 389,2 ms con 6. Con 6 hilos casi no hay ganancia respecto a 1 (\textit{speed-up} de 1,03) y la eficiencia cae a 0,17. La razón es que \texttt{rand} guarda su estado en una variable global compartida y el sistema obliga a que se ejecute de uno en uno para evitar errores. Cuantos más hilos hay, más tiempo pasan esperando su turno para pedir un número aleatorio, y esa espera acaba siendo mayor que lo que se gana repartiendo el trabajo. Además, con \texttt{rand} varios hilos podrían obtener secuencias repetidas, ya que comparten el mismo estado.
+ 
+Con \texttt{rand\_r}, el tiempo baja al aumentar los hilos: de 347,6 ms con 1 hilo a 111,2 ms con 6. Con 2 hilos la eficiencia es prácticamente perfecta como podemos ver (0,99) y con 6 hilos se mantiene en 0,52. Cada hilo trabaja con su propia \texttt{seed}, por lo que no hay esperas por la generación aleatoria y se conserva lo que es el paralelismo. La diferencia entre las dos versiones crece con el número de hilos: con 6 hilos, la versión con \texttt{rand} tarda unas 3,5 veces más que la de \texttt{rand\_r}.
+ 
+También podemos observar que con 1 hilo, \texttt{rand\_r} es algo más rápida (347,6 frente a 400,2 ms). Esto puede deberse a que \texttt{rand} realiza un bloqueo interno en cada llamada, que tiene un coste incluso sin competencia entre hilos.
+ 
+La eficiencia de \texttt{rand\_r} no llega a 1 con más de 2 hilos pero es normal, porque otras partes del bucle (las reservas de memoria con \texttt{malloc} y el acceso a memoria compartida) no escalan perfectamente.
+ 
+\medskip
+\noindent\textbf{Análisis adicional con $m=200$}\par
+\smallskip
+ 
+Para comprobar cuánto depende el efecto del coste de cada individuo, se repitió la comparación con $n=2000$, $m=200$, \texttt{n\_gen} $=400$, \texttt{tam\_pob} $=4000$ y \texttt{m\_rate} $=0,15$:
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{c rr}
+        \toprule
+        Hilos & $t$ (a) \texttt{rand} (ms) & $t$ (b) \texttt{rand\_r} (ms) \\
+        \midrule
+        1 & 478,4 & 482,0 \\
+        2 & 272,4 & 237,4 \\
+        4 & 202,4 & 188,0 \\
+        6 & 175,0 & 178,0 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tiempo de \texttt{FOR\_INI} con $n=2000$, $m=200$, \texttt{n\_gen} $=400$, \texttt{tam\_pob} $=4000$ y \texttt{m\_rate} $=0,15$.}
+    \label{tab:c2_m200}
+\end{table}
+ 
+Aquí las dos versiones dan tiempos muy parecidos. Con $m=200$, cada individuo requiere mucho más cálculo (la comprobación de repetidos y el cálculo del \texttt{fitness} crecen con el cuadrado de $m$), mientras que las llamadas a \texttt{rand} siguen siendo pocas en comparación. La espera por \texttt{rand} queda diluida dentro del trabajo total y apenas se nota. Por tanto, el beneficio de \texttt{rand\_r} depende de cuanto uso de la generación aleatoria hay respecto al resto del cálculo.
+ 
+\medskip
+\noindent\textbf{Conclusión}\par
+\smallskip
+ 
+Usar \texttt{rand\_r} con una semilla privada por hilo evita la serialización de \texttt{rand} y permite que el bucle \texttt{FOR\_INI} escale al aumentar los hilos. El efecto es muy claro cuando la generación aleatoria pesa mucho en el bucle ($m=20$) y casi desaparece cuando el cálculo por individuo es elevado ($m=200$).
+ 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 Para ello, una posibilidad sería crear en \texttt{mh.c} una variable global \texttt{seed} que se hará \texttt{threadprivate} y que se pasará como argumento por referencia a \texttt{rand\_r}. Así, además, cada hilo podrá inicializar \texttt{seed} en paralelo de forma independiente (por ejemplo, en función del tiempo del sistema, de su identificador de hilo o una combinación de ambos) en una primera región paralela situada justo antes de generar la población inicial de subconjuntos $B$ del problema MDP (bucle \texttt{for} que crea cada individuo, que identificaremos como \texttt{FOR\_INI}). Es en esta generación aleatoria de individuos donde el efecto sobre el paralelismo de \texttt{rand\_r} en lugar de \texttt{rand} es claramente apreciable.
 
 Paralelizar el bucle \texttt{FOR\_INI}, lanzar ejecuciones y tomar tiempos, representando en una misma gráfica dos series de tiempos variando el número de hilos: serie (a) usando \texttt{rand}, y serie (b) usando \texttt{rand\_r} y las modificaciones del código previamente indicadas. Analizar los resultados obtenidos.

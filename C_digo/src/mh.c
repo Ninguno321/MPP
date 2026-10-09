@@ -5,16 +5,27 @@
 #include <time.h>
 #include <unistd.h>
 #include <omp.h>
-
+#include <sys/time.h>
 #include "../include/mh.h"
 
 #define PRINT 0
 #define PCT_CONVER 0.02   // valor porcentual de mejora esperado (2%)
 #define NGENERACIONES_ATRAS 15      // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
 
+unsigned int seed;
+
+#pragma omp threadprivate(seed)
+
+static double mseconds() {
+    struct timeval t;
+    gettimeofday(&t, NULL);
+    return t.tv_sec*1000 + t.tv_usec/1000;
+}
 
 int aleatorio(int n) {
-	return (rand() % n);  // genera un numero aleatorio entre 0 y n-1
+	//SERIE a return (rand() % n);  // genera un numero aleatorio entre 0 y n-1
+	//SERIE b
+	return (rand_r(&seed) % n);  
 }
 
 int find_element(int *array, int end, int element)
@@ -60,10 +71,14 @@ int comp_fitness(const void *a, const void *b) {
 	return (*(Individuo **)b)->fitness - (*(Individuo **)a)->fitness;
 }
 
+
+
 double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double m_rate, int *sol)
 {
         // para reiniciar la secuencia pseudoaleatoria en cada ejecución
-        srand(time(NULL) + getpid());
+       // SERIE (a) srand(time(NULL) + getpid());
+
+	omp_set_dynamic(0);   // SERIE (b) para desactivar el ajuste dinámico de hilos
 	int i, g, mutation_start;
 	
 	// crea poblacion inicial (array de individuos)
@@ -71,7 +86,15 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 	assert(poblacion);
 	
 	// crea cada individuo (array de enteros aleatorios)
+	// SERIE (b): cada hilo inicializa su seed (fuera del tiempo medido)
+	#pragma omp parallel
+	{
+		seed = time(NULL) + getpid() + omp_get_thread_num();
+	}
+
+
 	// FOR-INI
+	double ti = mseconds();
 	#pragma omp parallel for shared (poblacion,d) private(i) schedule(static)
 		for(i = 0; i < tam_pob; i++) {
 			poblacion[i] = (Individuo *) malloc(sizeof(Individuo));
@@ -80,6 +103,8 @@ double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double 
 			// calcula el fitness del individuo
 			fitness(d, poblacion[i], n, m);
 		}
+		double tf = mseconds();
+		printf("Hilos: %d  Tiempo FOR_INI: %.2lf ms\n", omp_get_max_threads(), tf - ti);
 	// ordena individuos segun la funcion de bondad (mayor "fitness" --> mas aptos)
 	qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
 
