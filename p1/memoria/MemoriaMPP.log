@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  7 OCT 2026 12:43
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.4.2)  10 OCT 2026 16:25
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -541,16 +541,99 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [6]
-Overfull \hbox (25.61182pt too wide) in paragraph at lines 332--333
+Overfull \hbox (77.74019pt too wide) in paragraph at lines 332--334
+[]\T1/ptm/m/n/12 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ []
+
+
+Overfull \hbox (77.74019pt too wide) in paragraph at lines 332--334
+\T1/ptm/m/n/12 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+ []
+
+
+Overfull \hbox (53.81027pt too wide) in paragraph at lines 347--348
+\T1/cmtt/m/n/12 seed \T1/ptm/m/n/12 con la su-ma de \T1/cmtt/m/n/12 time(NULL)\T1/ptm/m/n/12 , \T1/cmtt/m/n/12 getpid() \T1/ptm/m/n/12 y su iden-ti-fi-ca-dor de hi-lo (\T1/cmtt/m/n/12 omp_get_thread_num()\T1/ptm/m/n/12 ).
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[7]
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 366.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 366.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 366.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[8]
+Overfull \hbox (31.03792pt too wide) in paragraph at lines 433--435
+[]\T1/ptm/m/n/12 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ []
+
+
+Overfull \hbox (21.03029pt too wide) in paragraph at lines 433--435
+\T1/ptm/m/n/12 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+ []
+
+
+Overfull \hbox (25.61182pt too wide) in paragraph at lines 437--438
 []\T1/ptm/m/n/12 Para ello, una po-si-bi-li-dad se-ría crear en \T1/cmtt/m/n/12 mh.c \T1/ptm/m/n/12 una va-ria-ble glo-bal \T1/cmtt/m/n/12 seed \T1/ptm/m/n/12 que se ha-rá \T1/cmtt/m/n/12 threadprivate
  []
 
 
-Overfull \hbox (8.74248pt too wide) in paragraph at lines 336--337
+Overfull \hbox (8.74248pt too wide) in paragraph at lines 441--442
 []\T1/ptm/b/n/12 Cuestión 3. \T1/ptm/m/n/12 Pa-ra-le-li-zar la fun-ción \T1/cmtt/m/n/12 fitness \T1/ptm/m/n/12 uti-li-zan-do, por un la-do, los cons-truc-to-res \T1/cmtt/m/n/12 critical
  []
 
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 342.
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[9]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[10]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[11]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[12]
+Overfull \hbox (4.3509pt too wide) in paragraph at lines 664--665
+[]\T1/ptm/m/n/12 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+ []
+
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 669.
 (C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\tex/latex/psnfss\ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
@@ -561,7 +644,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[7]
+[13]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -569,7 +652,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[8] (MemoriaMPP.aux
+[14] (MemoriaMPP.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -581,17 +664,17 @@ Package rerunfilecheck Info: File `MemoriaMPP.out' has not changed.
 (rerunfilecheck)             Checksum: 6D78FB9418EB64E3ED1A042465B046E9;93.
  ) 
 Here is how much of TeX's memory you used:
- 14024 strings out of 467871
- 217493 string characters out of 5416925
- 1233044 words of memory out of 5000000
- 42573 multiletter control sequences out of 15000+600000
- 657131 words of font info for 82 fonts, out of 8000000 for 9000
+ 14174 strings out of 467871
+ 219602 string characters out of 5416925
+ 1233802 words of memory out of 5000000
+ 42630 multiletter control sequences out of 15000+600000
+ 675445 words of font info for 113 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,12n,79p,885b,1387s stack positions out of 10000i,1000n,20000p,200000b,200000s
- <C:\Users\Abdellah\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecit1000.pk> <C:\Users\Abdellah\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1000.pk> <C:\Users\Abdellah\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1200.pk><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on MemoriaMPP.pdf (8 pages, 289623 bytes).
+ 75i,12n,79p,889b,1387s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ <C:\Users\Abdellah\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1095.pk> <C:\Users\Abdellah\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecit1000.pk> <C:\Users\Abdellah\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1000.pk> <C:\Users\Abdellah\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1200.pk><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Users/Abdellah/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
+Output written on MemoriaMPP.pdf (14 pages, 335721 bytes).
 PDF statistics:
- 393 PDF objects out of 1000 (max. 8388607)
- 147 named destinations out of 1000 (max. 500000)
+ 549 PDF objects out of 1000 (max. 8388607)
+ 229 named destinations out of 1000 (max. 500000)
  19 words of extra memory for PDF output out of 10000 (max. 10000000)
 
