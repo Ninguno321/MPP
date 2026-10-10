@@ -312,9 +312,19 @@ void fitness(const double *d, Individuo *individuo, int n, int m)
 	//Doble bucle para recorrer todas las posiciones del individuo para calcular su fitness
 	//Se suman todas las combinaciones de los valores del subconjunto tomando 
 	//como valor su representacion en el array de distancias.
+
+	//EJERCICIO3 
+	//para la version reduction quitamos fitness de shared porque cada hilo tiene su copia privada, pero para el resto la añadimos en shared
+	#pragma omp parallel for reduction (+:fitness) shared(n,m,d,individuo)
 	for(int i = 0 ; i < m-1 ; i++){
 		for(int j = i + 1; j < m ; j++){
-			fitness += distancia_ij(d,individuo->array_int[i], individuo->array_int[j], n);
+			//version critical
+			//esto se puede hacer todo junto como antes pero la ganancia no sería importante como si lo hacemos de esta forma, por ello la llamada la funcion la hacemos en paralelo y ya la suma del resultado la hacemos usando critical.
+			double dist = distancia_ij(d,individuo->array_int[i], individuo->array_int[j], n);
+			// #pragma omp critical
+			//#pragma omp atomic
+		
+			fitness += dist;
 		}
 	}
 	individuo->fitness = fitness;
