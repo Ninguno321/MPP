@@ -12,10 +12,23 @@
 \usepackage{xcolor}
 \usepackage{geometry}
 \usepackage[spanish]{babel}
-\usepackage{hyperref}
 \usepackage{graphicx}
 \usepackage{booktabs} % Para líneas profesionales (\toprule, \midrule, \bottomrule)
 \usepackage{multirow} % Para agrupar celdas verticales
+
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+
+% Definición de colores principales
+\definecolor{primary}{RGB}{30, 64, 175}
+\definecolor{secondary}{RGB}{13, 148, 136}
+\definecolor{danger}{RGB}{225, 29, 72}
+\definecolor{neutral-bg}{RGB}{248, 250, 252}
+
 
 % -------------------------
 % CONFIGURACIÓN DE PÁGINA
@@ -337,9 +350,13 @@ for (int i = 0; i < m-1; i++) {
 \noindent\textbf{Implementación}\par
 \smallskip
  
-Hemos paralelizado el bucle \texttt{FOR\_INI}, que crea cada individuo de la población inicial, con \texttt{\#pragma omp parallel for} y \texttt{schedule(static)}. Cada individuo se crea de forma independiente de los demás, así que las iteraciones se pueden repartir entre los hilos sin problemas.
+Hemos paralelizado el bucle \texttt{FOR\_INI}, que crea cada
+ individuo de la población inicial, con \texttt{\#pragma omp parallel for} y \
+ texttt{schedule(static)}. Cada individuo se crea de forma independiente de los
+  demás, así que las iteraciones se pueden repartir entre los hilos sin problemas.
  
-Para la serie (a) se ha dejado la función \texttt{rand}. Para la serie (b) se ha sustituido por \texttt{rand\_r}, con estos cambios:
+Para la serie (a) se ha dejado la función \texttt{rand}. Para la serie (b) se ha 
+sustituido por \texttt{rand\_r}, con estos cambios:
  
 \begin{itemize}
     \item Una variable global \texttt{seed}, declarada como \texttt{threadprivate}, por lo que cada hilo tiene su propia copia.
@@ -352,14 +369,79 @@ Para la serie (a) se ha dejado la función \texttt{rand}. Para la serie (b) se h
 \noindent\textbf{Realización de los experimentos}\par
 \smallskip
  
-Medimos solo el tiempo del bucle \texttt{FOR\_INI}, porque el resto del algoritmo es secuencial y taparía el efecto de la generación aleatoria. Cada valor es la media de 5 ejecuciones, descartando la primera de cada tanda por efectos de arranque (esto lo puedes cambiar Andres dependiendo de cuantas ejecuciones uses). Las ejecuciones de las series (a) y (b) se han intercalado en la misma sesión, para que las dos se midan en las mismas condiciones de la máquina (te he dejado el script a ejecutar que lo hace todo, se llama comparar2.sh). Como tiempo secuencial para el \textit{speed-up} se ha usado el del propio código paralelo con 1 hilo.
+Medimos solo el tiempo del bucle \texttt{FOR\_INI}, 
+porque el resto del algoritmo es secuencial y taparía 
+el efecto de la generación aleatoria. Cada valor es la 
+media de 5 ejecuciones, descartando la primera de cada tanda 
+por efectos de arranque. Las ejecuciones de las series (a) y (b) 
+se han intercalado en la misma sesión, para que las dos se midan en las 
+mismas condiciones de la máquina. Como tiempo secuencial para el 
+\textit{speed-up} se ha usado el del propio código paralelo con 1 hilo.
  
 \medskip
-\noindent\textbf{Resultados con $m=20$ (serie principal)}\par
+\noindent\textbf{Resultados con $m=200$ (serie principal)}\par
 \smallskip
  
-Parámetros: $n=2000$, $m=20$, \texttt{n\_gen} $=1$, \texttt{tam\_pob} $=200000$, \texttt{m\_rate} $=0,15$. Hemos elegido un $m$ pequeño para que el cálculo de cada individuo pese poco y se aprecie mejor el efecto de los números aleatorios, como se pide en el enunciado.
- 
+Parámetros: $n=1000$, $m=200$, \texttt{n\_gen} $=100$, \texttt{tam\_pob} $=20000$, \texttt{m\_rate} $=0,15$. Hemos 
+elegido un $m$ pequeño para que el cálculo de cada individuo 
+pese poco y se aprecie mejor el efecto de los números aleatorios, 
+como se pide en el enunciado.
+
+Las métricas evaluadas se definen formalmente mediante las siguientes expresiones:
+\begin{equation}
+    \text{Speed-up } (S_p) = \frac{T_{\text{secuencial}}}{T_{\text{paralelo}}(p)} = \frac{T_1}{T_p}
+\end{equation}
+\begin{equation}
+    \text{Eficiencia } (E_p) = \frac{S_p}{p} = \frac{T_1}{p \cdot T_p}
+\end{equation}
+
+\begin{table}[h!]
+\centering
+\caption{Prestaciones obtenidas utilizando la función estándar \texttt{rand()} ($n=1000, m=200, n\_gen=100, tam\_pob=20000, m\_rate=0.15$).}
+\vspace{2mm}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Nº Hilos ($p$)} & \textbf{Tiempo Ejecución ($T_p$, ms)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
+\midrule
+1  & 560 & 1.00 & 100.0\% \\
+2  & 320 & 1.75 & 87.5\% \\
+4  & 404 & 1.39 & 34.7\% \\
+6  & 462 & 1.21 & 20.2\% \\
+8  & 526 & 1.06 & 13.3\% \\
+12 & 574 & 0.98 & 8.1\% \\
+\bottomrule
+\end{tabular}
+\label{tab:rand}
+\end{table}
+
+
+\begin{table}[h!]
+\centering
+\caption{Prestaciones obtenidas utilizando la función reentrante \texttt{rand\_r()} ($n=1000, m=200, n\_gen=100, tam\_pob=20000, m\_rate=0.15$).}
+\vspace{2mm}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Nº Hilos ($p$)} & \textbf{Tiempo Ejecución ($T_p$, ms)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
+\midrule
+1  & 554 & 1.00 & 100.0\% \\
+2  & 282 & 1.96 & 98.2\% \\
+4  & 148 & 3.74 & 93.6\% \\
+6  & 106 & 5.23 & 87.1\% \\
+8  & 98  & 5.65 & 70.7\% \\
+12 & 84  & 6.60 & 55.0\% \\
+\bottomrule
+\end{tabular}
+\label{tab:rand_r}
+\end{table}
+
+La versión con \texttt{rand\_r()} y semilla
+\texttt{threadprivate} demuestra una \textbf{escalabilidad
+paralela} hasta 6 hilos ($E_6 = 87.1\%$),
+alcanzando un tiempo mínimo de \textbf{84 ms}
+con 12 hilos ($S_{12} = 6.60$).
+
+
+%%%%%%%%% ABDELLAH
 \begin{table}[htbp]
     \centering
     \small
@@ -389,15 +471,13 @@ Parámetros: $n=2000$, $m=20$, \texttt{n\_gen} $=1$, \texttt{tam\_pob} $=200000$
 \medskip
 \noindent\textbf{Análisis}\par
 \smallskip
- 
-Con \texttt{rand}, el tiempo mejora al pasar de 1 a 2 hilos, pero a partir de ahí \textbf{empeora}: sube de 261,8 ms con 2 hilos a 304,6 ms con 4 y a 389,2 ms con 6. Con 6 hilos casi no hay ganancia respecto a 1 (\textit{speed-up} de 1,03) y la eficiencia cae a 0,17. La razón es que \texttt{rand} guarda su estado en una variable global compartida y el sistema obliga a que se ejecute de uno en uno para evitar errores. Cuantos más hilos hay, más tiempo pasan esperando su turno para pedir un número aleatorio, y esa espera acaba siendo mayor que lo que se gana repartiendo el trabajo. Además, con \texttt{rand} varios hilos podrían obtener secuencias repetidas, ya que comparten el mismo estado.
- 
-Con \texttt{rand\_r}, el tiempo baja al aumentar los hilos: de 347,6 ms con 1 hilo a 111,2 ms con 6. Con 2 hilos la eficiencia es prácticamente perfecta como podemos ver (0,99) y con 6 hilos se mantiene en 0,52. Cada hilo trabaja con su propia \texttt{seed}, por lo que no hay esperas por la generación aleatoria y se conserva lo que es el paralelismo. La diferencia entre las dos versiones crece con el número de hilos: con 6 hilos, la versión con \texttt{rand} tarda unas 3,5 veces más que la de \texttt{rand\_r}.
- 
-También podemos observar que con 1 hilo, \texttt{rand\_r} es algo más rápida (347,6 frente a 400,2 ms). Esto puede deberse a que \texttt{rand} realiza un bloqueo interno en cada llamada, que tiene un coste incluso sin competencia entre hilos.
- 
-La eficiencia de \texttt{rand\_r} no llega a 1 con más de 2 hilos pero es normal, porque otras partes del bucle (las reservas de memoria con \texttt{malloc} y el acceso a memoria compartida) no escalan perfectamente.
- 
+ Con \texttt{rand}, el tiempo mejora al pasar de 1 a 2 hilos, bajando de 560 ms a 320 ms, pero a partir de ahí \textbf{empeora}: sube a 404 ms con 4 hilos, 462 ms con 6, 526 ms con 8 y 574 ms con 12. Con 12 hilos, el tiempo incluso supera al de la ejecución con un solo hilo, con un \textit{speed-up} de 0,98 y una eficiencia del 8,1\%. Esto se debe a que \texttt{rand} utiliza un estado interno compartido y su implementación puede requerir sincronización entre hilos para evitar accesos simultáneos. Cuantos más hilos hay, mayor puede ser la espera para generar números aleatorios, hasta que el coste de esa sincronización supera las ventajas de repartir el trabajo. Por tanto, el rendimiento paralelo se degrada a medida que aumenta el número de hilos.
+
+Con \texttt{rand\_r}, el tiempo disminuye al aumentar los hilos: pasa de 554 ms con 1 hilo a 282 ms con 2, 148 ms con 4 y 106 ms con 6. La mejora continúa con 8 hilos, alcanzando 98 ms, y llega a 84 ms con 12 hilos. La eficiencia es del 98,2\% con 2 hilos y del 87,1\% con 6, mientras que con 12 hilos se reduce al 55,0\%. Al utilizar una semilla independiente para cada hilo, \texttt{rand\_r} evita la necesidad de compartir el estado del generador aleatorio, reduciendo la contención y favoreciendo el paralelismo. La diferencia entre ambas versiones aumenta con el número de hilos: con 6 hilos, \texttt{rand} tarda aproximadamente 4,36 veces más que \texttt{rand\_r}, y con 12 hilos tarda unas 6,83 veces más.
+
+También podemos observar que con 1 hilo, \texttt{rand\_r} es ligeramente más rápida: 554 ms frente a 560 ms con \texttt{rand}. Esta diferencia es pequeña y podría deberse a las características de la implementación o a la variabilidad de las mediciones. No obstante, a medida que aumenta el número de hilos, las diferencias se hacen mucho más significativas.
+
+La eficiencia de \texttt{rand\_r} no se mantiene en el 100\% al utilizar más de un hilo, lo cual es normal, ya que otras partes del algoritmo, como las reservas de memoria con \texttt{malloc}, el acceso a memoria compartida y la sobrecarga de coordinación entre hilos, pueden limitar la escalabilidad. Aun así, los resultados muestran que \texttt{rand\_r} aprovecha mucho mejor el paralelismo, alcanzando un \textit{speed-up} de 6,60 con 12 hilos, frente al 0,98 obtenido con \texttt{rand}.
 \medskip
 \noindent\textbf{Análisis adicional con $m=200$}\par
 \smallskip
@@ -429,15 +509,6 @@ Aquí las dos versiones dan tiempos muy parecidos. Con $m=200$, cada individuo r
  
 Usar \texttt{rand\_r} con una semilla privada por hilo evita la serialización de \texttt{rand} y permite que el bucle \texttt{FOR\_INI} escale al aumentar los hilos. El efecto es muy claro cuando la generación aleatoria pesa mucho en el bucle ($m=20$) y casi desaparece cuando el cálculo por individuo es elevado ($m=200$).
  
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-Para ello, una posibilidad sería crear en \texttt{mh.c} una variable global \texttt{seed} que se hará \texttt{threadprivate} y que se pasará como argumento por referencia a \texttt{rand\_r}. Así, además, cada hilo podrá inicializar \texttt{seed} en paralelo de forma independiente (por ejemplo, en función del tiempo del sistema, de su identificador de hilo o una combinación de ambos) en una primera región paralela situada justo antes de generar la población inicial de subconjuntos $B$ del problema MDP (bucle \texttt{for} que crea cada individuo, que identificaremos como \texttt{FOR\_INI}). Es en esta generación aleatoria de individuos donde el efecto sobre el paralelismo de \texttt{rand\_r} en lugar de \texttt{rand} es claramente apreciable.
-
-Paralelizar el bucle \texttt{FOR\_INI}, lanzar ejecuciones y tomar tiempos, representando en una misma gráfica dos series de tiempos variando el número de hilos: serie (a) usando \texttt{rand}, y serie (b) usando \texttt{rand\_r} y las modificaciones del código previamente indicadas. Analizar los resultados obtenidos.
-
 \item \textbf{Cuestión 3.} Paralelizar la función \texttt{fitness} utilizando, por un lado, los constructores \texttt{critical} y \texttt{atomic} (de forma independiente) y, por otro, la cláusula \texttt{reduction}, indicando en cada caso qué variables serían privadas y cuáles compartidas. Ejecutar el código variando el número de hilos y comparar los resultados obtenidos respecto a versión secuencial utilizando las métricas de rendimiento.
 
 Justificar de forma teórica las diferencias y optimizar, en lo posible, el código de \texttt{critical} y \texttt{atomic} teniendo en cuenta cómo está implementada internamente \texttt{reduction}.
