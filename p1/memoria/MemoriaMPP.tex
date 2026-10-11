@@ -151,6 +151,12 @@ Grupo: 1 \\
     \label{fig:mi_imagen}
 \end{figure}
 
+
+
+
+
+
+
 \section{Ejercicios}
 
 \begin{enumerate}
@@ -339,11 +345,20 @@ for (int i = 0; i < m-1; i++) {
 \textbf{Justificación:} Se puede paralelizar porque cada par $(i,j)$ solo lee datos y calcula su distancia de forma independiente. La única dependencia es la suma sobre \texttt{fitness}, que se resuelve con \texttt{reduction(+:fitness)}.
 
 
+\vspace{2cm}
 
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./rand.png}
+    \caption{Ejecución para la cuestión 3}
+    \label{fig:mi_imdasagen}
+\end{figure}
+
+
+\newpage
 \item \textbf{Cuestión 2.} Con el fin de obtener un código más eficiente en la parte de memoria compartida y poder optimizar el proceso de mejora de la población de individuos: reemplazar las llamadas a la función \texttt{rand} por \texttt{rand\_r} (que es ``thread safe'' y se usará para el resto de cuestiones de la práctica) para evitar, por un lado, que se genere la misma secuencia de valores aleatorios en diferentes hilos y, por otro, que se pierda paralelismo durante la generación de dichos valores debido a la secuencialidad que introduce la función \texttt{rand}. Además, añadir el código necesario para implementar correctamente la generación aleatoria a lo largo del algoritmo.
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 \medskip
@@ -354,7 +369,7 @@ Hemos paralelizado el bucle \texttt{FOR\_INI}, que crea cada
  individuo de la población inicial, con \texttt{\#pragma omp parallel for} y \
  texttt{schedule(static)}. Cada individuo se crea de forma independiente de los
   demás, así que las iteraciones se pueden repartir entre los hilos sin problemas.
- 
+    
 Para la serie (a) se ha dejado la función \texttt{rand}. Para la serie (b) se ha 
 sustituido por \texttt{rand\_r}, con estos cambios:
  
@@ -376,7 +391,7 @@ media de 5 ejecuciones, descartando la primera de cada tanda
 por efectos de arranque. Las ejecuciones de las series (a) y (b) 
 se han intercalado en la misma sesión, para que las dos se midan en las 
 mismas condiciones de la máquina. Como tiempo secuencial para el 
-\textit{speed-up} se ha usado el del propio código paralelo con 1 hilo.
+\textit{speed-up} se ha usado el del propio código paralelo con 1 hilo (cada versión tiene el suyo).
  
 \medskip
 \noindent\textbf{Resultados con $m=200$ (serie principal)}\par
@@ -439,35 +454,8 @@ La versión con \texttt{rand\_r()} y semilla
 paralela} hasta 6 hilos ($E_6 = 87.1\%$),
 alcanzando un tiempo mínimo de \textbf{84 ms}
 con 12 hilos ($S_{12} = 6.60$).
-
-
-%%%%%%%%% ABDELLAH
-\begin{table}[htbp]
-    \centering
-    \small
-    \begin{tabular}{c rrr rrr}
-        \toprule
-        & \multicolumn{3}{c}{(a) \texttt{rand}} & \multicolumn{3}{c}{(b) \texttt{rand\_r}} \\
-        \cmidrule(lr){2-4} \cmidrule(lr){5-7}
-        Hilos & $t$ (ms) & \textit{Speed-up} & Eficiencia & $t$ (ms) & \textit{Speed-up} & Eficiencia \\
-        \midrule
-        1 & 400,2 & 1,00 & 1,00 & 347,6 & 1,00 & 1,00 \\
-        2 & 261,8 & 1,53 & 0,76 & 176,4 & 1,97 & 0,99 \\
-        4 & 304,6 & 1,31 & 0,33 & 146,4 & 2,37 & 0,59 \\
-        6 & 389,2 & 1,03 & 0,17 & 111,2 & 3,13 & 0,52 \\
-        \bottomrule
-    \end{tabular}
-    \caption{Tiempo de \texttt{FOR\_INI}, \textit{speed-up} y eficiencia con $n=2000$, $m=20$, \texttt{n\_gen} $=1$, \texttt{tam\_pob} $=200000$ y \texttt{m\_rate} $=0,15$.}
-    \label{tab:c2_m20}
-\end{table}
  
-\begin{figure}[htbp]
-    \centering
-  %  \includegraphics[width=0.8\textwidth]{}
-    \caption{Tiempo de \texttt{FOR\_INI} frente al número de hilos para las series (a) y (b), con $m=20$.}
-    \label{fig:c2_grafica}
-\end{figure}
- 
+
 \medskip
 \noindent\textbf{Análisis}\par
 \smallskip
@@ -478,42 +466,202 @@ Con \texttt{rand\_r}, el tiempo disminuye al aumentar los hilos: pasa de 554 ms 
 También podemos observar que con 1 hilo, \texttt{rand\_r} es ligeramente más rápida: 554 ms frente a 560 ms con \texttt{rand}. Esta diferencia es pequeña y podría deberse a las características de la implementación o a la variabilidad de las mediciones. No obstante, a medida que aumenta el número de hilos, las diferencias se hacen mucho más significativas.
 
 La eficiencia de \texttt{rand\_r} no se mantiene en el 100\% al utilizar más de un hilo, lo cual es normal, ya que otras partes del algoritmo, como las reservas de memoria con \texttt{malloc}, el acceso a memoria compartida y la sobrecarga de coordinación entre hilos, pueden limitar la escalabilidad. Aun así, los resultados muestran que \texttt{rand\_r} aprovecha mucho mejor el paralelismo, alcanzando un \textit{speed-up} de 6,60 con 12 hilos, frente al 0,98 obtenido con \texttt{rand}.
+
+
 \medskip
-\noindent\textbf{Análisis adicional con $m=200$}\par
+\noindent\textbf{Análisis adicional con $m=1$}\par
 \smallskip
- 
-Para comprobar cuánto depende el efecto del coste de cada individuo, se repitió la comparación con $n=2000$, $m=200$, \texttt{n\_gen} $=400$, \texttt{tam\_pob} $=4000$ y \texttt{m\_rate} $=0,15$:
- 
+
+Para comprobar el impacto de la generación aleatoria en un escenario de baja intensidad computacional por individuo, se repitió la experiencia reduciendo la dimensión a $m=1$ manteniendo el resto de parámetros de la instancia:
+
 \begin{table}[htbp]
     \centering
     \small
     \begin{tabular}{c rr}
         \toprule
-        Hilos & $t$ (a) \texttt{rand} (ms) & $t$ (b) \texttt{rand\_r} (ms) \\
+        \textbf{Hilos ($p$)} & \textbf{$t$ (a) \texttt{rand} (s)} & \textbf{$t$ (b) \texttt{rand\_r} (s)} \\
         \midrule
-        1 & 478,4 & 482,0 \\
-        2 & 272,4 & 237,4 \\
-        4 & 202,4 & 188,0 \\
-        6 & 175,0 & 178,0 \\
+        1  & 0.202 & 0.154 \\
+        2  & 0.140 & 0.104 \\
+        4  & 0.174 & 0.044 \\
+        8  & 0.260 & 0.032 \\
+        12 & 0.310 & 0.026 \\
         \bottomrule
     \end{tabular}
-    \caption{Tiempo de \texttt{FOR\_INI} con $n=2000$, $m=200$, \texttt{n\_gen} $=400$, \texttt{tam\_pob} $=4000$ y \texttt{m\_rate} $=0,15$.}
-    \label{tab:c2_m200}
+    \caption{Tiempos de ejecución con $m=1$ ($n=1000$, \texttt{n\_gen} $=100$, \texttt{tam\_pob} $=20000$ y \texttt{m\_rate} $=0.15$).}
+    \label{tab:c2_m1}
 \end{table}
- 
-Aquí las dos versiones dan tiempos muy parecidos. Con $m=200$, cada individuo requiere mucho más cálculo (la comprobación de repetidos y el cálculo del \texttt{fitness} crecen con el cuadrado de $m$), mientras que las llamadas a \texttt{rand} siguen siendo pocas en comparación. La espera por \texttt{rand} queda diluida dentro del trabajo total y apenas se nota. Por tanto, el beneficio de \texttt{rand\_r} depende de cuanto uso de la generación aleatoria hay respecto al resto del cálculo.
- 
+
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.85\textwidth,
+    height=7.2cm,
+    title={\textbf{Speed-up ($S_p$) vs. Número de Hilos ($m=1$)}},
+    xlabel={Número de hilos ($p$)},
+    ylabel={Speed-up ($S_p$)},
+    xmin=1, xmax=12,
+    ymin=0, ymax=12,
+    xtick={1,2,4,8,12},
+    legend pos=north west,
+    ymajorgrids=true,
+    xmajorgrids=true,
+    grid style=dashed,
+]
+
+% Aceleración Ideal
+\addplot[color=gray, dashed, domain=1:12, line width=1pt] {x};
+\addlegendentry{Speed-up Ideal}
+
+% Curva rand_r
+\addplot[color=secondary, mark=square*, line width=1.5pt] coordinates {
+    (1, 1.00) (2, 1.48) (4, 3.50) (8, 4.81) (12, 5.92)
+};
+\addlegendentry{\texttt{rand\_r()} (Threadprivate)}
+
+% Curva rand
+\addplot[color=danger, mark=*, line width=1.5pt] coordinates {
+    (1, 1.00) (2, 1.44) (4, 1.16) (8, 0.78) (12, 0.65)
+};
+\addlegendentry{\texttt{rand()} (Estándar)}
+
+\end{axis}
+\end{tikzpicture}
+\caption{Comparativa de la aceleración ($Speed-up$) para la configuración $m=1$.}
+\end{figure}
+
+
+En este escenario con $m=1$, el tiempo invertido en el cálculo 
+del \texttt{fitness} y en las comprobaciones internas es mínimo,
+ provocando que la proporción de llamadas a la función aleatoria 
+ respecto al cómputo total sea máxima. Como consecuencia, la versión 
+ estática con \texttt{rand()} sufre un colapso acusado por la 
+ contención del cerrojo interno (depende de la implementación, consideremos que está presente debido al deterioro con el aumento de hilos) al aumentar el número de hilos
+  (pasando de 0.140s con 2 hilos a 0.310s con 12 hilos, empeorando
+   incluso el resultado secuencial). Por el contrario, la versión 
+   reentrante con \texttt{rand\_r()} aprovecha al máximo la paralelización, r
+   educiendo de manera continua el tiempo desde los 0.154s hasta los 0.026s 
+   con 12 hilos ($S_{12} = 5.92$).
+
 \medskip
 \noindent\textbf{Conclusión}\par
 \smallskip
- 
-Usar \texttt{rand\_r} con una semilla privada por hilo evita la serialización de \texttt{rand} y permite que el bucle \texttt{FOR\_INI} escale al aumentar los hilos. El efecto es muy claro cuando la generación aleatoria pesa mucho en el bucle ($m=20$) y casi desaparece cuando el cálculo por individuo es elevado ($m=200$).
- 
+
+Usar \texttt{rand\_r()} con una semilla privada por hilo evita por completo la serialización impuesta por \texttt{rand()} y permite una aceleración efectiva al incrementar el número de hilos. La ventaja de la implementación reentrante es especialmente drástica en entornos donde el coste computacional propio de cada individuo es reducido ($m=1$), ya que en estos casos la generación aleatoria constituye el mayor cuello de botella de la región paralela.
+
+
+
+
 \item \textbf{Cuestión 3.} Paralelizar la función \texttt{fitness} utilizando, por un lado, los constructores \texttt{critical} y \texttt{atomic} (de forma independiente) y, por otro, la cláusula \texttt{reduction}, indicando en cada caso qué variables serían privadas y cuáles compartidas. Ejecutar el código variando el número de hilos y comparar los resultados obtenidos respecto a versión secuencial utilizando las métricas de rendimiento.
 
 Justificar de forma teórica las diferencias y optimizar, en lo posible, el código de \texttt{critical} y \texttt{atomic} teniendo en cuenta cómo está implementada internamente \texttt{reduction}.
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+\textbf{Valores de entrada:} $n = 2000$, $m = 500$, \texttt{n\_gen} $= 1$, \texttt{tam\_pob} $= 20000$ y \texttt{m\_rate} $= 0{,}15$.
+
+Para evaluar con precisión el impacto de la sincronización en la función \texttt{fitness}, hemos mantenido la medición del tiempo acotada a la fase inicial de evaluación (\texttt{FOR\_INI}). De esta manera evitamos introducir la sobrecarga asociada a otras etapas como el cruce, la mutación, la ordenación o el doble cálculo de la función sobre la población.
+
+Se han seleccionado estos parámetros de entrada debido a que un valor elevado de $m$ ($m=500$) incrementa exponencialmente el número de pares a evaluar ($\approx \frac{m^2}{2} = 124.750$ iteraciones por individuo), garantizando que el coste computacional de \texttt{fitness} domine sobre la generación de números pseudoaleatorios. Como tiempo base/secuencial de referencia ($T_{\text{sec}}$) se ha medido el tiempo de ejecución del bucle sin directivas OpenMP utilizando $1$ hilo y promediando $5$ ejecuciones ($T_{\text{sec}} = 4{,}236\text{ s}$). En todas las pruebas se hace uso de \texttt{rand\_r}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Clasificación de las variables de la función \texttt{fitness} en cada versión.}
+    \label{tab:variables_fitness}
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Versión} & \textbf{Variables privadas} & \textbf{Variables compartidas} \\
+        \midrule
+        \texttt{critical} & \texttt{i}, \texttt{j}, \texttt{dis} & \texttt{fitness} (protegida con \texttt{critical}), \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} \\
+        \texttt{atomic}   & \texttt{i}, \texttt{j}, \texttt{dis} & \texttt{fitness} (protegida con \texttt{atomic}), \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} \\
+        \texttt{reduction}& \texttt{i}, \texttt{j}, \texttt{dis}, \texttt{fitness\_local} & \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection*{Realización de los experimentos}
+
+Se midió el tiempo de ejecución con la función 
+\texttt{gettimeofday} (resolución de $1\,\mu\text{s}$).
+ El número de hilos se fijó mediante la variable de entorno 
+ \texttt{OMP\_NUM\_THREADS}. Las métricas calculadas corresponden 
+ al \textit{speed-up} ($S_p = T_{\text{sec}} / T_p$) y la eficiencia 
+ ($E_p = S_p / p$).
+
+\begin{table}[htbp]
+    \centering
+    \caption{Tiempo de ejecución, \textit{speed-up} y eficiencia de las tres versiones de \texttt{fitness} ($T_{\text{sec}} = 4{,}236\text{ s}$).}
+    \label{tab:resultados_fitness}
+    \small
+    \begin{tabular}{l c r c c}
+        \toprule
+        \textbf{Versión} & \textbf{Hilos ($p$)} & \textbf{Media ($t$)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
+        \midrule
+        \multirow{5}{*}{\texttt{critical}} 
+          & 1  & $15{,}618\text{ s}$ & $0{,}271$ & $0{,}271$ ($27{,}1\%$) \\
+          & 2  & $15{,}506\text{ s}$ & $0{,}273$ & $0{,}137$ ($13{,}7\%$) \\
+          & 4  & $15{,}212\text{ s}$ & $0{,}278$ & $0{,}070$ ($7{,}0\%$) \\
+          & 8  & $15{,}310\text{ s}$ & $0{,}277$ & $0{,}035$ ($3{,}5\%$) \\
+          & 12 & $15{,}072\text{ s}$ & $0{,}281$ & $0{,}023$ ($2{,}3\%$) \\
+        \midrule
+        \multirow{5}{*}{\texttt{atomic}} 
+          & 1  & $12{,}710\text{ s}$ & $0{,}333$ & $0{,}333$ ($33{,}3\%$) \\
+          & 2  & $12{,}446\text{ s}$ & $0{,}340$ & $0{,}170$ ($17{,}0\%$) \\
+          & 4  & $12{,}248\text{ s}$ & $0{,}346$ & $0{,}086$ ($8{,}6\%$) \\
+          & 8  & $12{,}280\text{ s}$ & $0{,}345$ & $0{,}043$ ($4{,}3\%$) \\
+          & 12 & $12{,}268\text{ s}$ & $0{,}345$ & $0{,}029$ ($2{,}9\%$) \\
+        \midrule
+        \multirow{5}{*}{\texttt{reduction}} 
+          & 1  & $4{,}238\text{ s}$  & $0{,}999$ & $0{,}999$ ($99{,}9\%$) \\
+          & 2  & $4{,}256\text{ s}$  & $0{,}995$ & $0{,}498$ ($49{,}8\%$) \\
+          & 4  & $4{,}492\text{ s}$  & $0{,}943$ & $0{,}236$ ($23{,}6\%$) \\
+          & 8  & $4{,}242\text{ s}$  & $0{,}999$ & $0{,}125$ ($12{,}5\%$) \\
+          & 12 & $4{,}268\text{ s}$  & $0{,}992$ & $0{,}083$ ($8{,}3\%$) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection*{Análisis de los resultados}
+
+\begin{itemize}
+    \item \textbf{Versión \texttt{critical}:} Al usar \texttt{critical} incluso con $1$ hilo, el programa sufre una sobrecarga masiva, pasando de $4{,}236\text{ s}$ a $15{,}618\text{ s}$ ($S_p = 0{,}27$). Esto se debe a que OpenMP ejecuta toda la lógica de adquisición y liberación del cerrojo en las más de $2{,}49 \times 10^9$ iteraciones totales de la población. Dado que la sección crítica limita la ejecución a un único hilo a la vez y la sobrecarga del cerrojo domina el cálculo, añadir más hilos no mejora el tiempo ($15{,}072\text{ s}$ a $12$ hilos), provocando una pérdida drástica de eficiencia ($2{,}3\%$).
+    
+    \item \textbf{Versión \texttt{atomic}:} La etiqueta \texttt{atomic} obtiene mejores tiempos que \texttt{critical} ($12{,}25\text{ s} - 12{,}71\text{ s}$) debido a que opera a nivel de instrucción atómica en ensamblador de la CPU, sin invocar las funciones de biblioteca de cerrojos de OpenMP. Sin embargo, no escala al añadir hilos ($S_p \approx 0{,}35$) porque para tipos de datos de punto flotante (\texttt{double}) la CPU debe emplear un bucle de comprobación \textit{compare-and-swap} (CAS) sobre el bus de memoria, provocando una constante contención de caché entre los núcleos.
+    
+    \item \textbf{Versión \texttt{reduction}:} Es la aproximación óptima, obteniendo tiempos casi idénticos al secuencial ($4{,}24\text{ s} - 4{,}49\text{ s}$, $S_p \approx 1{,}00$). En esta versión, la región paralela divide el bucle y cada hilo acumula su suma de forma completamente privada e independiente. Al finalizar la ejecución paralela, OpenMP combina los resultados locales en una única operación final, evitando la contención de memoria e interdependencia entre hilos.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABDELLAH
+
 
 
 
@@ -619,7 +767,10 @@ En las tres versiones, \texttt{i} es privada por ser el índice del \texttt{para
 \noindent\textbf{Realización de los experimentos}\par
 \smallskip
 
-Medimos el tiempo de ejecución total de \texttt{aplicar\_mh} con \texttt{gettimeofday} (reloj de pared, resolución de 1 ms). El número de hilos se fija con la variable de entorno \texttt{OMP\_NUM\_THREADS}. Parámetros: $n=2000$, $m=200$, \texttt{n\_gen} $=400$, \texttt{tam\_pob} $=4000$ y \texttt{m\_rate} $=0,15$. Como tiempo secuencial se ha usado el de la versión sin ninguna directiva en \texttt{fitness}, ejecutada con 1 hilo: $T_{sec}=7,16$ s (media de 5 ejecuciones). Las métricas son el \textit{speed-up} $S=T_{sec}/T_p$ y la eficiencia $E=S/p$. Cada tiempo de la tabla es la media de las repeticiones realizadas.
+Medimos el tiempo de ejecución total de \texttt{aplicar\_mh} con \texttt{gettimeofday} (reloj de pared, resolución de 1 ms). El número de hilos se fija con la variable de entorno \texttt{OMP\_NUM\_THREADS}. Parámetros: $n=2000$, $m=200$, \texttt{n\_gen} $=400$, \texttt{tam\_pob} $=4000$ y 
+
+
+\texttt{m\_rate} $=0,15$. Como tiempo secuencial se ha usado el de la versión sin ninguna directiva en \texttt{fitness}, ejecutada con 1 hilo: $T_{sec}=7,16$ s (media de 5 ejecuciones). Las métricas son el \textit{speed-up} $S=T_{sec}/T_p$ y la eficiencia $E=S/p$. Cada tiempo de la tabla es la media de las repeticiones realizadas.
 
 \begin{table}[htbp]
     \centering

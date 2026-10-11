@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  11 OCT 2026 13:47
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  11 OCT 2026 21:26
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -724,43 +724,43 @@ File: ./image.png Graphic file (type png)
 <use ./image.png>
 Package pdftex.def Info: ./image.png  used on input line 149.
 (pdftex.def)             Requested size: 377.62642pt x 286.6186pt.
-LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 161.
+LaTeX Font Info:    Trying to load font information for T1+cmtt on input line 167.
  (/usr/share/texlive/texmf-dist/tex/latex/base/t1cmtt.fd
 File: t1cmtt.fd 2023/04/13 v2.5m Standard LaTeX font definitions
 )
-LaTeX Font Info:    Trying to load font information for OT1+ztmcm on input line 163.
+LaTeX Font Info:    Trying to load font information for OT1+ztmcm on input line 169.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ztmcm.fd
 File: ot1ztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OT1/ztmcm.
 )
-LaTeX Font Info:    Trying to load font information for OML+ztmcm on input line 163.
+LaTeX Font Info:    Trying to load font information for OML+ztmcm on input line 169.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omlztmcm.fd
 File: omlztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OML/ztmcm.
 )
-LaTeX Font Info:    Trying to load font information for OMS+ztmcm on input line 163.
+LaTeX Font Info:    Trying to load font information for OMS+ztmcm on input line 169.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omsztmcm.fd
 File: omsztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OMS/ztmcm.
 )
-LaTeX Font Info:    Trying to load font information for OMX+ztmcm on input line 163.
+LaTeX Font Info:    Trying to load font information for OMX+ztmcm on input line 169.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/omxztmcm.fd
 File: omxztmcm.fd 2000/01/03 Fontinst v1.801 font definitions for OMX/ztmcm.
 )
-LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 163.
+LaTeX Font Info:    Trying to load font information for OT1+ptm on input line 169.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 )
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 163.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 169.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 163.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 169.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <7> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 163.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 169.
  (/usr/share/texlive/texmf-dist/tex/latex/listings/lstlang1.sty
 File: lstlang1.sty 2023/02/27 1.9 listings language file
 ) (/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
 File: lstmisc.sty 2023/02/27 1.9 (Carsten Heinz)
 )
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 166.
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 172.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -770,7 +770,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [3{/usr/share/texmf/fonts/enc/dvips/cm-super/cm-super-t1.enc} <./image.png>]
-Overfull \hbox (10.55344pt too wide) in paragraph at lines 216--217
+Overfull \hbox (10.55344pt too wide) in paragraph at lines 222--223
 \T1/ptm/m/n/12 rre-ra, ya que ca-da ite-ra-ción tra-ba-ja con una po-si-ción de array dis-tin-ta (\T1/cmtt/m/n/12 hijo1->array_int[i]\T1/ptm/m/n/12 ).
  []
 
@@ -783,7 +783,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [4]
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <12> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 248.
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 254.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -793,7 +793,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [5]
-Overfull \hbox (15.50824pt too wide) in paragraph at lines 327--328
+Overfull \hbox (15.50824pt too wide) in paragraph at lines 333--334
 \T1/ptm/b/n/12 Justificación: \T1/ptm/m/n/12 No se pue-de pa-ra-le-li-zar tal cual, por-que las ite-ra-cio-nes es-cri-ben en \T1/cmtt/m/n/12 array_int[j]
  []
 
@@ -805,19 +805,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [6]
-Overfull \hbox (77.74019pt too wide) in paragraph at lines 345--347
-[]\T1/ptm/m/n/12 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- []
-
-
-Overfull \hbox (77.74019pt too wide) in paragraph at lines 345--347
-\T1/ptm/m/n/12 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
- []
-
-
-Overfull \hbox (53.81027pt too wide) in paragraph at lines 364--365
-\T1/cmtt/m/n/12 seed \T1/ptm/m/n/12 con la su-ma de \T1/cmtt/m/n/12 time(NULL)\T1/ptm/m/n/12 , \T1/cmtt/m/n/12 getpid() \T1/ptm/m/n/12 y su iden-ti-fi-ca-dor de hi-lo (\T1/cmtt/m/n/12 omp_get_thread_num()\T1/ptm/m/n/12 ).
- []
+<./rand.png, id=167, 1390.19376pt x 892.33376pt>
+File: ./rand.png Graphic file (type png)
+<use ./rand.png>
+Package pdftex.def Info: ./rand.png  used on input line 353.
+(pdftex.def)             Requested size: 377.62642pt x 242.39023pt.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -826,21 +818,25 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[7]
-Underfull \hbox (badness 1769) in paragraph at lines 400--400
+[7 <./rand.png>]
+Overfull \hbox (53.81027pt too wide) in paragraph at lines 379--380
+\T1/cmtt/m/n/12 seed \T1/ptm/m/n/12 con la su-ma de \T1/cmtt/m/n/12 time(NULL)\T1/ptm/m/n/12 , \T1/cmtt/m/n/12 getpid() \T1/ptm/m/n/12 y su iden-ti-fi-ca-dor de hi-lo (\T1/cmtt/m/n/12 omp_get_thread_num()\T1/ptm/m/n/12 ).
+ []
+
+
+Underfull \hbox (badness 1769) in paragraph at lines 415--415
 []\T1/ptm/m/n/12 Cuadro 1: []Prestaciones ob-te-ni-das uti-li-zan-do la fun-ción es-tán-dar \T1/cmtt/m/n/12 rand() \T1/ptm/m/n/12 ($\OML/ztmcm/m/it/12 n \OT1/ztmcm/m/n/12 = 1000\OML/ztmcm/m/it/12 ; m \OT1/ztmcm/m/n/12 =
  []
 
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 404.
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 419.
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 448.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 448.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 448.
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -858,7 +854,20 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [9]
-Overfull \hbox (8.74825pt too wide) in paragraph at lines 512--513
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 480.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 480.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 480.
+LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10.95> not available
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 482.
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+
+Overfull \hbox (8.74825pt too wide) in paragraph at lines 557--558
 []\T1/ptm/b/n/12 Cuestión 3. \T1/ptm/m/n/12 Pa-ra-le-li-zar la fun-ción \T1/cmtt/m/n/12 fitness \T1/ptm/m/n/12 uti-li-zan-do, por un la-do, los cons-truc-to-res \T1/cmtt/m/n/12 critical
  []
 
@@ -870,6 +879,10 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [10]
+Overfull \hbox (18.80092pt too wide) in paragraph at lines 574--583
+ [][] 
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -886,6 +899,10 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [12]
+Overfull \hbox (0.87016pt too wide) in paragraph at lines 632--633
+[]\T1/ptm/b/n/12 Versión \T1/cmtt/m/n/12 atomic\T1/ptm/b/n/12 : \T1/ptm/m/n/12 La eti-que-ta \T1/cmtt/m/n/12 atomic \T1/ptm/m/n/12 ob-tie-ne me-jo-res tiem-pos que \T1/cmtt/m/n/12 critical \T1/ptm/m/n/12 ($\OT1/ztmcm/m/n/12 12[]25[] \OMS/ztmcm/m/n/12 ^^@
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -894,10 +911,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [13]
-Overfull \hbox (4.3509pt too wide) in paragraph at lines 735--736
-[]\T1/ptm/m/n/12 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
- []
-
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -913,7 +926,35 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[15] (./MemoriaMPP.aux
+[15]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[16]
+Overfull \hbox (4.3509pt too wide) in paragraph at lines 886--887
+[]\T1/ptm/m/n/12 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[17]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[18] (./MemoriaMPP.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -925,18 +966,18 @@ Package rerunfilecheck Info: File `MemoriaMPP.out' has not changed.
 (rerunfilecheck)             Checksum: 6D78FB9418EB64E3ED1A042465B046E9;93.
  ) 
 Here is how much of TeX's memory you used:
- 34527 strings out of 474222
- 776901 string characters out of 5748733
- 2391975 words of memory out of 5000000
- 55995 multiletter control sequences out of 15000+600000
- 610789 words of font info for 114 fonts, out of 8000000 for 9000
+ 35051 strings out of 474222
+ 791132 string characters out of 5748733
+ 2337975 words of memory out of 5000000
+ 56504 multiletter control sequences out of 15000+600000
+ 623885 words of font info for 128 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,12n,101p,886b,2177s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfit1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1200.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on MemoriaMPP.pdf (15 pages, 371061 bytes).
+ 99i,19n,101p,886b,2342s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfit1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1200.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/symbol/usyr.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on MemoriaMPP.pdf (18 pages, 558715 bytes).
 PDF statistics:
- 406 PDF objects out of 1000 (max. 8388607)
- 361 compressed objects within 4 object streams
- 234 named destinations out of 1000 (max. 500000)
- 31 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 428 PDF objects out of 1000 (max. 8388607)
+ 376 compressed objects within 4 object streams
+ 239 named destinations out of 1000 (max. 500000)
+ 36 words of extra memory for PDF output out of 10000 (max. 10000000)
 
