@@ -559,112 +559,6 @@ Usar \texttt{rand\_r()} con una semilla privada por hilo evita por completo la s
 Justificar de forma teórica las diferencias y optimizar, en lo posible, el código de \texttt{critical} y \texttt{atomic} teniendo en cuenta cómo está implementada internamente \texttt{reduction}.
 
 
-
-
-\textbf{Valores de entrada:} $n = 2000$, $m = 500$, \texttt{n\_gen} $= 1$, \texttt{tam\_pob} $= 20000$ y \texttt{m\_rate} $= 0{,}15$.
-
-Para evaluar con precisión el impacto de la sincronización en la función \texttt{fitness}, hemos mantenido la medición del tiempo acotada a la fase inicial de evaluación (\texttt{FOR\_INI}). De esta manera evitamos introducir la sobrecarga asociada a otras etapas como el cruce, la mutación, la ordenación o el doble cálculo de la función sobre la población.
-
-Se han seleccionado estos parámetros de entrada debido a que un valor elevado de $m$ ($m=500$) incrementa exponencialmente el número de pares a evaluar ($\approx \frac{m^2}{2} = 124.750$ iteraciones por individuo), garantizando que el coste computacional de \texttt{fitness} domine sobre la generación de números pseudoaleatorios. Como tiempo base/secuencial de referencia ($T_{\text{sec}}$) se ha medido el tiempo de ejecución del bucle sin directivas OpenMP utilizando $1$ hilo y promediando $5$ ejecuciones ($T_{\text{sec}} = 4{,}236\text{ s}$). En todas las pruebas se hace uso de \texttt{rand\_r}.
-
-\begin{table}[htbp]
-    \centering
-    \caption{Clasificación de las variables de la función \texttt{fitness} en cada versión.}
-    \label{tab:variables_fitness}
-    \begin{tabular}{lll}
-        \toprule
-        \textbf{Versión} & \textbf{Variables privadas} & \textbf{Variables compartidas} \\
-        \midrule
-        \texttt{critical} & \texttt{i}, \texttt{j}, \texttt{dis} & \texttt{fitness} (protegida con \texttt{critical}), \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} \\
-        \texttt{atomic}   & \texttt{i}, \texttt{j}, \texttt{dis} & \texttt{fitness} (protegida con \texttt{atomic}), \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} \\
-        \texttt{reduction}& \texttt{i}, \texttt{j}, \texttt{dis}, \texttt{fitness\_local} & \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\subsection*{Realización de los experimentos}
-
-Se midió el tiempo de ejecución con la función 
-\texttt{gettimeofday} (resolución de $1\,\mu\text{s}$).
- El número de hilos se fijó mediante la variable de entorno 
- \texttt{OMP\_NUM\_THREADS}. Las métricas calculadas corresponden 
- al \textit{speed-up} ($S_p = T_{\text{sec}} / T_p$) y la eficiencia 
- ($E_p = S_p / p$).
-
-\begin{table}[htbp]
-    \centering
-    \caption{Tiempo de ejecución, \textit{speed-up} y eficiencia de las tres versiones de \texttt{fitness} ($T_{\text{sec}} = 4{,}236\text{ s}$).}
-    \label{tab:resultados_fitness}
-    \small
-    \begin{tabular}{l c r c c}
-        \toprule
-        \textbf{Versión} & \textbf{Hilos ($p$)} & \textbf{Media ($t$)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
-        \midrule
-        \multirow{5}{*}{\texttt{critical}} 
-          & 1  & $15{,}618\text{ s}$ & $0{,}271$ & $0{,}271$ ($27{,}1\%$) \\
-          & 2  & $15{,}506\text{ s}$ & $0{,}273$ & $0{,}137$ ($13{,}7\%$) \\
-          & 4  & $15{,}212\text{ s}$ & $0{,}278$ & $0{,}070$ ($7{,}0\%$) \\
-          & 8  & $15{,}310\text{ s}$ & $0{,}277$ & $0{,}035$ ($3{,}5\%$) \\
-          & 12 & $15{,}072\text{ s}$ & $0{,}281$ & $0{,}023$ ($2{,}3\%$) \\
-        \midrule
-        \multirow{5}{*}{\texttt{atomic}} 
-          & 1  & $12{,}710\text{ s}$ & $0{,}333$ & $0{,}333$ ($33{,}3\%$) \\
-          & 2  & $12{,}446\text{ s}$ & $0{,}340$ & $0{,}170$ ($17{,}0\%$) \\
-          & 4  & $12{,}248\text{ s}$ & $0{,}346$ & $0{,}086$ ($8{,}6\%$) \\
-          & 8  & $12{,}280\text{ s}$ & $0{,}345$ & $0{,}043$ ($4{,}3\%$) \\
-          & 12 & $12{,}268\text{ s}$ & $0{,}345$ & $0{,}029$ ($2{,}9\%$) \\
-        \midrule
-        \multirow{5}{*}{\texttt{reduction}} 
-          & 1  & $4{,}238\text{ s}$  & $0{,}999$ & $0{,}999$ ($99{,}9\%$) \\
-          & 2  & $4{,}256\text{ s}$  & $0{,}995$ & $0{,}498$ ($49{,}8\%$) \\
-          & 4  & $4{,}492\text{ s}$  & $0{,}943$ & $0{,}236$ ($23{,}6\%$) \\
-          & 8  & $4{,}242\text{ s}$  & $0{,}999$ & $0{,}125$ ($12{,}5\%$) \\
-          & 12 & $4{,}268\text{ s}$  & $0{,}992$ & $0{,}083$ ($8{,}3\%$) \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\subsection*{Análisis de los resultados}
-
-\begin{itemize}
-    \item \textbf{Versión \texttt{critical}:} Al usar \texttt{critical} incluso con $1$ hilo, el programa sufre una sobrecarga masiva, pasando de $4{,}236\text{ s}$ a $15{,}618\text{ s}$ ($S_p = 0{,}27$). Esto se debe a que OpenMP ejecuta toda la lógica de adquisición y liberación del cerrojo en las más de $2{,}49 \times 10^9$ iteraciones totales de la población. Dado que la sección crítica limita la ejecución a un único hilo a la vez y la sobrecarga del cerrojo domina el cálculo, añadir más hilos no mejora el tiempo ($15{,}072\text{ s}$ a $12$ hilos), provocando una pérdida drástica de eficiencia ($2{,}3\%$).
-    
-    \item \textbf{Versión \texttt{atomic}:} La etiqueta \texttt{atomic} obtiene mejores tiempos que \texttt{critical} ($12{,}25\text{ s} - 12{,}71\text{ s}$) debido a que opera a nivel de instrucción atómica en ensamblador de la CPU, sin invocar las funciones de biblioteca de cerrojos de OpenMP. Sin embargo, no escala al añadir hilos ($S_p \approx 0{,}35$) porque para tipos de datos de punto flotante (\texttt{double}) la CPU debe emplear un bucle de comprobación \textit{compare-and-swap} (CAS) sobre el bus de memoria, provocando una constante contención de caché entre los núcleos.
-    
-    \item \textbf{Versión \texttt{reduction}:} Es la aproximación óptima, obteniendo tiempos casi idénticos al secuencial ($4{,}24\text{ s} - 4{,}49\text{ s}$, $S_p \approx 1{,}00$). En esta versión, la región paralela divide el bucle y cada hilo acumula su suma de forma completamente privada e independiente. Al finalizar la ejecución paralela, OpenMP combina los resultados locales en una única operación final, evitando la contención de memoria e interdependencia entre hilos.
-\end{itemize}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-%%%AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABDELLAH
-
-
-
-
 \medskip
 \noindent\textbf{Implementación}\par
 \smallskip
@@ -741,79 +635,217 @@ void fitness(const double *d, Individuo *individuo, int n, int m)
 }
 \end{lstlisting}
 
+
+\textbf{Valores de entrada de los experimentos:} $n = 2000$, $m = 500$, $n\_gen = 1$, $tam\_pob = 20000$, $m\_rate = 0.15$.
+
+Para evaluar adecuadamente el comportamiento de la función \texttt{fitness}, se ha mantenido la medición del tiempo centrada en la fase de evaluación e inicialización de la población (\texttt{FOR\_INI}). Esto permite aislar el rendimiento de la función de cálculo de calidad de los individuos frente a otras etapas como el cruce, la mutación o la ordenación. Se ha seleccionado un valor elevado de $m$ ($m=500$) para incrementar la densidad computacional de la función \texttt{fitness} ($\approx m^2/2$ operaciones por individuo) y así obtener mediciones precisas de escalabilidad.
+
+Como tiempo base/secuencial ($T_{\text{sec}}$) se ha utilizado la ejecución del bucle \texttt{FOR\_INI} monohilo sin ninguna directiva OpenMP dentro de \texttt{fitness}, empleando la función reentrante \texttt{rand\_r} con semillas independientes por hilo. El tiempo secuencial de referencia obtenido como media de 5 ejecuciones es $T_{\text{sec}} = 4,236\text{ s}$.
+
+\subsection*{Clasificación de Variables}
+
+En el Cuadro \ref{tab:variables_fitness} se resume la clasificación y el ámbito de las variables utilizadas en las tres variantes de implementación dentro del bucle interno de la función \texttt{fitness}.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Versión} & \textbf{Variables privadas} & \textbf{Variables compartidas} \\
+        \midrule
+        \texttt{critical} & \texttt{i}, \texttt{j}, \texttt{dis} & \texttt{fitness} (protegida con \texttt{critical}), \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} (solo lectura) \\
+        \texttt{atomic} & \texttt{i}, \texttt{j}, \texttt{dis} & \texttt{fitness} (protegida con \texttt{atomic}), \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} (solo lectura) \\
+        \texttt{reduction} & \texttt{i}, \texttt{j}, \texttt{dis} y copia local de \texttt{fitness} & \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} (solo lectura) \\
+        \bottomrule
+    \end{tabular}
+    \caption{Clasificación del ámbito de variables dentro de la función \texttt{fitness} según el método de sincronización.}
+    \label{tab:variables_fitness}
+\end{table}
+
+\subsection*{Resultados Experimentales}
+
+Las métricas de aceleración (\textit{Speed-up}, $S_p = T_{\text{sec}}/T_p$) y eficiencia ($E_p = S_p/p$) se han calculado respecto al tiempo secuencial puro ($T_{\text{sec}} = 4,236\text{ s}$). En el Cuadro \ref{tab:tiempos_cuestion3} se muestran los tiempos promediados para 1, 2, 4, 8 y 12 hilos.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lcrrr}
+        \toprule
+        \textbf{Versión} & \textbf{Hilos ($p$)} & \textbf{Tiempo medio (s)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
+        \midrule
+        \textbf{Secuencial} & 1 & 4,236 & 1,000 & 100,0\% \\
+        \midrule
+        \texttt{critical} 
+        & 1  & 15,627  & 0,271 & 27,1\% \\
+        & 2  & 69,430  & 0,061 & 3,1\% \\
+        & 4  & 161,027 & 0,026 & 0,7\% \\
+        & 8  & 270,540 & 0,016 & 0,2\% \\
+        & 12 & 348,600 & 0,012 & 0,1\% \\
+        \midrule
+        \texttt{atomic} 
+        & 1  & 13,240  & 0,320 & 32,0\% \\
+        & 2  & 44,217  & 0,096 & 4,8\% \\
+        & 4  & 88,170  & 0,048 & 1,2\% \\
+        & 8  & 127,525 & 0,033 & 0,4\% \\
+        & 12 & 234,675 & 0,018 & 0,2\% \\
+        \midrule
+        \texttt{reduction} 
+        & 1  & 4,462   & 0,949 & 94,9\% \\
+        & 2  & 3,806   & 1,113 & 55,6\% \\
+        & 4  & 2,420   & 1,750 & 43,8\% \\
+        & 8  & 2,420   & 1,750 & 21,9\% \\
+        & 12 & 2,350   & 1,803 & 15,0\% \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tiempo de ejecución, \textit{Speed-up} y eficiencia para \texttt{critical}, \texttt{atomic} y \texttt{reduction} ($T_{\text{sec}} = 4,236\text{ s}$).}
+    \label{tab:tiempos_cuestion3}
+\end{table}
+
+\subsection*{Análisis de Resultados}
+
+\begin{itemize}
+    \item \textbf{Análisis de \texttt{critical}:} 
+    Con 1 solo hilo, la versión \texttt{critical} tarda $15,627\text{ s}$, lo que representa una degradación de $3,69\times$ respecto al tiempo secuencial ($4,236\text{ s}$). Esto se debe al coste de gestión del cerrojo de exclusión mutua introducido por la biblioteca de OpenMP en cada una de las $\approx 124.750$ iteraciones del bucle por individuo. Al aumentar el número de hilos, los tiempos empeoran drásticamente hasta alcanzar $348,600\text{ s}$ a 12 hilos ($S_{12} = 0,012$). Este comportamiento destructivo se origina por la contención masiva del cerrojo (\textit{lock contention}) y el fenómeno de rebote de línea de caché (\textit{cache bouncing}) sobre la variable compartida \texttt{fitness}.
+
+    \item \textbf{Análisis de \texttt{atomic}:} 
+    La directiva \texttt{atomic} mejora los tiempos respecto a \texttt{critical} ($13,240\text{ s}$ con 1 hilo y $234,675\text{ s}$ con 12 hilos), debido a que no utiliza rutinas de la biblioteca de OpenMP sino instrucciones de bus de hardware a nivel de CPU. Sin embargo, dado que no existe una instrucción de adición atómica directa para números en punto flotante de doble precisión (\texttt{double}), la CPU implementa esta operación mediante un bucle de comparación y cambio (\textit{compare-and-swap}, CAS). La contención sobre la misma posición de memoria provoca constantes reintentos del bucle CAS, imposibilitando la escalabilidad.
+
+    \item \textbf{Análisis de \texttt{reduction}:} 
+    La variante con la cláusula \texttt{reduction(+:fitness)} es la única que logra reducir los tiempos por debajo del tiempo secuencial, pasando de $4,462\text{ s}$ con 1 hilo a $2,350\text{ s}$ con 12 hilos ($S_{12} = 1,803$). Dado que cada hilo realiza las adiciones en una copia local privada sin sincronizaciones intermedias, se elimina por completo la contención de memoria.
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=7.5cm,
+            xlabel={Número de hilos ($p$)},
+            ylabel={Tiempo de ejecución (segundos)},
+            xmin=1, xmax=12,
+            ymin=0, ymax=360,
+            xtick={1,2,4,8,12},
+            legend pos=north west,
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            \addplot[color=red, mark=square*, thick] coordinates {
+                (1,15.627) (2,69.430) (4,161.027) (8,270.540) (12,348.600)
+            };
+            \addlegendentry{\texttt{critical}}
+
+            \addplot[color=orange, mark=triangle*, thick] coordinates {
+                (1,13.240) (2,44.217) (4,88.170) (8,127.525) (12,234.675)
+            };
+            \addlegendentry{\texttt{atomic}}
+
+            \addplot[color=blue, mark=o*, thick] coordinates {
+                (1,4.462) (2,3.806) (4,2.420) (8,2.420) (12,2.350)
+            };
+            \addlegendentry{\texttt{reduction}}
+
+            \addplot[color=black, dashed, thick] coordinates {
+                (1,4.236) (12,4.236)
+            };
+            \addlegendentry{Secuencial ($T_{\text{sec}}$)}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Evolución del tiempo de ejecución en función del número de hilos.}
+    \label{fig:tiempos_cuestion3}
+\end{figure}
+
+\subsection*{Justificación Teórica y Optimización de \texttt{critical} y \texttt{atomic}}
+
+La cláusula \texttt{reduction} crea internamente una variable privada por hilo inicializada a cero. Cada hilo acumula en ella sus resultados locales y, al finalizar el bloque paralelo, combina su resultado con la variable compartida en un único acceso protegido.
+
+Para simular este comportamiento eficiente en la versión con \texttt{critical}, hemos reestructurado el código declarando una variable acumuladora local dentro de la región paralela y realizando una única actualización en la zona crítica por cada hilo al finalizar el bucle:
+
+\begin{lstlisting}[caption={Simulación de reducción mediante acumulación local y \texttt{critical}.}, style={EstiloC}]
+void fitness(const double *d, Individuo *individuo, int n, int m)
+{
+    double fitness = 0.0;
+
+    #pragma omp parallel shared(n, m, d, individuo, fitness)
+    {
+        double local = 0.0;
+
+        #pragma omp for nowait
+        for (int i = 0; i < m - 1; i++) {
+            for (int j = i + 1; j < m; j++) {
+                local += distancia_ij(d, individuo->array_int[i], 
+                                         individuo->array_int[j], n);
+            }
+        }
+
+        #pragma omp critical
+        fitness += local;
+    }
+    individuo->fitness = fitness;
+}
+\end{lstlisting}
+
+En esta estructura optimizada, las variables privadas son \texttt{i}, \texttt{j} y \texttt{local}, mientras que las compartidas son \texttt{fitness}, \texttt{n}, \texttt{m}, \texttt{d} e \texttt{individuo}.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{ccrr}
+        \toprule
+        \textbf{Hilos ($p$)} & \textbf{Tiempo (s)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
+        \midrule
+        1  & 0,857 & 4,942 & 494,2\% \\
+        2  & 0,840 & 5,043 & 252,1\% \\
+        4  & 0,900 & 4,707 & 117,7\% \\
+        8  & 1,383 & 3,063 & 38,3\% \\
+        12 & 1,477 & 2,868 & 23,9\% \\
+        \bottomrule
+    \end{tabular}
+    \caption{Rendimiento de la versión optimizada simulando \texttt{reduction} ($T_{\text{sec}} = 4,236\text{ s}$).}
+    \label{tab:optimizada_critical}
+\end{table}
+
+\textbf{Conclusión de la optimización:}  
+Al trasladar la acumulación a la variable privada \texttt{local}, 
+el número de accesos protegidos por \texttt{critical} se reduce drásticamente de $m(m-1)/2$ a 1 
+único acceso por hilo. Esto elimina las dependencias de datos y permite al compilador vectorizar el bucle interno, alcanzando tiempos de $0,857\text{ s}$ con 1 hilo y $0,840\text{ s}$ con 2 hilos ($S_2 = 5,043$ respecto a la versión secuencial sin modificar).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABDELLAH
+
+
+
 \medskip
 \noindent\textbf{Variables privadas y compartidas}\par
 \smallskip
 
 En las tres versiones, \texttt{i} es privada por ser el índice del \texttt{parallel for}, y \texttt{j} y \texttt{dist} lo son por estar declaradas dentro del bucle.
 
-\begin{table}[htbp]
-    \centering
-    \small
-    \begin{tabular}{l p{5.2cm} p{6.2cm}}
-        \toprule
-        Versión & Variables privadas & Variables compartidas \\
-        \midrule
-        \texttt{critical} & \texttt{i}, \texttt{j}, \texttt{dist} & \texttt{fitness} (protegida con \texttt{critical}), \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} (solo lectura) \\
-        \texttt{atomic} & \texttt{i}, \texttt{j}, \texttt{dist} & \texttt{fitness} (protegida con \texttt{atomic}), \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} (solo lectura) \\
-        \texttt{reduction} & \texttt{i}, \texttt{j}, \texttt{dist} y la copia local de \texttt{fitness} de cada hilo & \texttt{n}, \texttt{m}, \texttt{d}, \texttt{individuo} (solo lectura) \\
-        \bottomrule
-    \end{tabular}
-    \caption{Clasificación de las variables de \texttt{fitness} en cada versión.}
-    \label{tab:c3_variables}
-\end{table}
-
-\medskip
-\noindent\textbf{Realización de los experimentos}\par
-\smallskip
-
 Medimos el tiempo de ejecución total de \texttt{aplicar\_mh} con \texttt{gettimeofday} (reloj de pared, resolución de 1 ms). El número de hilos se fija con la variable de entorno \texttt{OMP\_NUM\_THREADS}. Parámetros: $n=2000$, $m=200$, \texttt{n\_gen} $=400$, \texttt{tam\_pob} $=4000$ y 
 
 
 \texttt{m\_rate} $=0,15$. Como tiempo secuencial se ha usado el de la versión sin ninguna directiva en \texttt{fitness}, ejecutada con 1 hilo: $T_{sec}=7,16$ s (media de 5 ejecuciones). Las métricas son el \textit{speed-up} $S=T_{sec}/T_p$ y la eficiencia $E=S/p$. Cada tiempo de la tabla es la media de las repeticiones realizadas.
-
-\begin{table}[htbp]
-    \centering
-    \small
-    \setlength{\tabcolsep}{4pt}
-    \begin{tabular}{l c rrr r r r}
-        \toprule
-        Versión & Hilos & $t_1$ (s) & $t_2$ (s) & $t_3$ (s) & Media (s) & \textit{Speed-up} & Eficiencia \\
-        \midrule
-        \multirow{4}{*}{\texttt{critical}}
-          & 1 & 18,75  & -- & -- & 18,75  & 0,38 & 0,38 \\
-          & 2 & 61,68  & -- & -- & 61,68  & 0,12 & 0,06 \\
-          & 4 & 86,12  & -- & -- & 86,12  & 0,08 & 0,02 \\
-          & 6 & 128,61 & -- & -- & 128,61 & 0,06 & 0,01 \\
-        \midrule
-        \multirow{4}{*}{\texttt{atomic}}
-          & 1 & 14,81 & -- & -- & 14,81 & 0,48 & 0,48 \\
-          & 2 & 28,75 & -- & -- & 28,75 & 0,25 & 0,12 \\
-          & 4 & 65,16 & -- & -- & 65,16 & 0,11 & 0,03 \\
-          & 6 & 77,43 & -- & -- & 77,43 & 0,09 & 0,02 \\
-        \midrule
-        \multirow{4}{*}{\texttt{reduction}}
-          & 1 & 8,03 & -- & -- & 8,03 & 0,89 & 0,89 \\
-          & 2 & 6,74 & -- & -- & 6,74 & 1,06 & 0,53 \\
-          & 4 & 8,25 & -- & -- & 8,25 & 0,87 & 0,22 \\
-          & 6 & 7,41 & -- & -- & 7,41 & 0,97 & 0,16 \\
-        \bottomrule
-    \end{tabular}
-    \caption{Tiempo de ejecución, \textit{speed-up} y eficiencia de las tres versiones de \texttt{fitness} con $n=2000$, $m=200$, \texttt{n\_gen} $=400$, \texttt{tam\_pob} $=4000$ y \texttt{m\_rate} $=0,15$ ($T_{sec}=7,16$ s).}
-    \label{tab:c3_resultados}
-\end{table}
-
-% Descomentar cuando este hecha la grafica
-% \begin{figure}[htbp]
-%     \centering
-%     \includegraphics[width=0.8\textwidth]{grafica_cuestion3.png}
-%     \caption{\textit{Speed-up} frente al numero de hilos para las tres versiones de \texttt{fitness}.}
-%     \label{fig:c3_grafica}
-% \end{figure}
-
-\medskip
-\noindent\textbf{Análisis}\par
-\smallskip
 
 Con \texttt{critical}, el tiempo ya es unas 2,6 veces el secuencial con 1 hilo (18,75 s frente a 7,16 s) y empeora al aumentar los hilos, hasta 128,61 s con 6 (\textit{speed-up} de 0,06). Cada iteración hace muy poco trabajo (una distancia y una suma), y entrar y salir de la zona crítica cuesta mucho más que ese trabajo. Además, con varios hilos todos compiten por un único cerrojo, por lo que pasan la mayor parte del tiempo esperando, y la variable \texttt{fitness} viaja continuamente entre las cachés de los núcleos. Este efecto se aprecia también en el bucle \texttt{FOR\_INI}, donde \texttt{fitness} se llama desde varios hilos que compiten por el mismo cerrojo: su tiempo pasa de 1174 ms con 1 hilo a 8380 ms con 6.
 
@@ -829,61 +861,10 @@ Internamente, \texttt{reduction} crea una copia privada de la variable para cada
 
 Para optimizar \texttt{critical} y \texttt{atomic} hemos imitado ese comportamiento haciendo que cada hilo acumule en una variable local \texttt{local} y solo al final de su trabajo la suma a \texttt{fitness} dentro de la zona protegida. Para ello separamos \texttt{parallel} y \texttt{for}, de modo que \texttt{local} se declare dentro de la región paralela (y sea privada), y usamos \texttt{nowait} para que los hilos no esperen en el bucle antes de combinar.
 
-\begin{lstlisting}[style=EstiloC]
-void fitness(const double *d, Individuo *individuo, int n, int m)
-{
-    double fitness = 0.0;
-
-    #pragma omp parallel shared(fitness,n,m,d,individuo)
-    {
-        double local = 0.0;
-
-        #pragma omp for nowait
-        for(int i = 0 ; i < m-1 ; i++){
-            for(int j = i + 1; j < m ; j++){
-                local += distancia_ij(d, individuo->array_int[i],
-                                      individuo->array_int[j], n);
-            }
-        }
-
-        // una sola actualizacion protegida por hilo
-        #pragma omp critical   // version atomic: #pragma omp atomic
-        fitness += local;
-    }
-    individuo->fitness = fitness;
-}
-\end{lstlisting}
-
-Las variables privadas son \texttt{i}, \texttt{j} y \texttt{local}, y las compartidas \texttt{fitness}, \texttt{n}, \texttt{m}, \texttt{d} e \texttt{individuo}.
-
-\begin{table}[htbp]
-    \centering
-    \small
-    \begin{tabular}{c rr rr}
-        \toprule
-        & \multicolumn{2}{c}{\texttt{critical} optimizada} & \multicolumn{2}{c}{\texttt{atomic} optimizada} \\
-        \cmidrule(lr){2-3} \cmidrule(lr){4-5}
-        Hilos & $t$ (s) & \textit{Speed-up} & $t$ (s) & \textit{Speed-up} \\
-        \midrule
-        1 & -- & -- & -- & -- \\
-        2 & -- & -- & -- & -- \\
-        4 & -- & -- & -- & -- \\
-        6 & -- & -- & -- & -- \\
-        \bottomrule
-    \end{tabular}
-    \caption{Tiempo y \textit{speed-up} de las versiones optimizadas de \texttt{critical} y \texttt{atomic}.}
-    \label{tab:c3_optimizadas}
-\end{table}
 
 
+%%%AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABDELLAH
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 \item \textbf{Cuestión 4.} Probar diferentes formas de reparto de trabajo, \texttt{scheduling} (\texttt{static}, \texttt{dynamic}, \texttt{guided}), variando el tamaño de asignación (\texttt{chunk\_size}) en aquellos bucles en los que se considere necesario. Ejecutar el código variando el número de hilos y justificar los tiempos de ejecución y rendimiento obtenidos con cada política.
