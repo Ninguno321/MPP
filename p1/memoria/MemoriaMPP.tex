@@ -869,6 +869,125 @@ Para optimizar \texttt{critical} y \texttt{atomic} hemos imitado ese comportamie
 
 \item \textbf{Cuestión 4.} Probar diferentes formas de reparto de trabajo, \texttt{scheduling} (\texttt{static}, \texttt{dynamic}, \texttt{guided}), variando el tamaño de asignación (\texttt{chunk\_size}) en aquellos bucles en los que se considere necesario. Ejecutar el código variando el número de hilos y justificar los tiempos de ejecución y rendimiento obtenidos con cada política.
 
+\textbf{Valores de entrada:} $n = 2000$, $m = 500$, $n\_gen = 1$, $tam\_pob = 20000$, $m\_rate = 0.15$.
+
+Para justificar la estrategia de paralelización, se realizó previamente un perfilado del código secuencial mediante la herramienta \texttt{Callgrind} (\texttt{Valgrind}) y su visualización en \texttt{KCachegrind}. Del informe de rendimiento se extrae que la función \texttt{aplicar\_mh} acapara el \textbf{91.41\% del tiempo total} de ejecución del programa. Dentro de este bloque, la evaluación de la función \texttt{fitness} representa el hotspot principal ($66.34\%$), seguida del bucle de creación e inicialización de la población (\texttt{crear\_individuo}) con un \textbf{20.74\% del coste total}, mientras que la fase de cruce representa únicamente un $4.29\%$.
+
+Aislando el bucle \texttt{FOR\_INI}, se evalúa la influencia de las políticas de planificación (\texttt{static}, \texttt{dynamic} y \texttt{guided}) y del tamaño de bloque (\textit{chunk size}) para $p \in \{1, 2, 4, 8, 12\}$ hilos. Como tiempo secuencial base se toma la ejecución monohilo óptima obtenida ($T_{\text{sec}} = 4.242\text{ s}$).
+
+\subsection*{Tabla de Tiempos, Speed-up y Eficiencia}
+
+En el Cuadro \ref{tab:scheduling_for_ini} se recogen los tiempos medios de ejecución en segundos, el Speed-up ($S_p = T_{\text{sec}} / T_p$) y la Eficiencia ($E_p = S_p / p$).
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{llrrrrr}
+        \toprule
+        \textbf{Planificador} & \textbf{Chunk Size} & \textbf{1 Hilo (s)} & \textbf{2 Hilos ($S_2 / E_2$)} & \textbf{4 Hilos ($S_4 / E_4$)} & \textbf{8 Hilos ($S_8 / E_8$)} & \textbf{12 Hilos ($S_{12} / E_{12}$)} \\
+        \midrule
+        \texttt{static} & Predeterminado & 4,396 & 2,166 (1.96 / 97.9\%) & 1,116 (3.80 / 95.0\%) & 0,796 (5.33 / 66.6\%) & 0,626 (6.78 / 56.5\%) \\
+        \texttt{static} & 1              & 4,600 & 2,388 (1.78 / 88.8\%) & 1,268 (3.35 / 83.6\%) & 0,940 (4.51 / 56.4\%) & 0,808 (5.25 / 43.8\%) \\
+        \texttt{static} & 16             & 4,303 & 2,532 (1.68 / 83.8\%) & 1,324 (3.20 / 80.1\%) & 0,850 (4.99 / 62.4\%) & 0,632 (6.71 / 55.9\%) \\
+        \texttt{static} & 64             & 4,242 & 2,130 (1.99 / 99.6\%) & 1,100 (3.86 / 96.4\%) & 0,786 (5.40 / 67.5\%) & 0,622 (6.82 / 56.8\%) \\
+        \texttt{static} & 256            & 4,242 & 2,120 (2.00 / 100.0\%) & 1,130 (3.75 / 93.8\%) & 0,798 (5.32 / 66.5\%) & 0,632 (6.71 / 55.9\%) \\
+        \midrule
+        \texttt{dynamic} & Predeterminado & 4,210 & 2,132 (1.99 / 99.5\%) & 1,210 (3.51 / 87.7\%) & 0,850 (4.99 / 62.4\%) & 0,750 (5.66 / 47.1\%) \\
+        \texttt{dynamic} & 16             & 4,238 & 2,128 (1.99 / 99.7\%) & 1,100 (3.86 / 96.4\%) & 0,710 (5.97 / 74.7\%) & \textbf{0,620 (6.84 / 57.0\%)} \\
+        \texttt{dynamic} & 64             & 4,356 & 2,302 (1.84 / 92.1\%) & 1,248 (3.40 / 85.0\%) & 0,852 (4.98 / 62.2\%) & 0,764 (5.55 / 46.3\%) \\
+        \texttt{dynamic} & 256            & 4,464 & 2,310 (1.84 / 91.8\%) & 1,286 (3.30 / 82.5\%) & 0,880 (4.82 / 60.3\%) & 0,792 (5.36 / 44.6\%) \\
+        \midrule
+        \texttt{guided} & 1              & 4,332 & 2,310 (1.84 / 91.8\%) & 1,248 (3.40 / 85.0\%) & 0,890 (4.77 / 59.6\%) & 0,764 (5.55 / 46.3\%) \\
+        \texttt{guided} & 16             & 4,262 & 2,158 (1.97 / 98.3\%) & 1,114 (3.81 / 95.2\%) & 0,744 (5.70 / 71.3\%) & \textbf{0,612 (6.93 / 57.8\%)} \\
+        \texttt{guided} & 64             & 4,224 & 2,128 (1.99 / 99.7\%) & 1,102 (3.85 / 96.2\%) & 0,750 (5.66 / 70.7\%) & 0,618 (6.86 / 57.2\%) \\
+        \texttt{guided} & 256            & 4,234 & 2,140 (1.98 / 99.1\%) & 1,124 (3.77 / 94.3\%) & 0,752 (5.64 / 70.5\%) & 0,634 (6.69 / 55.8\%) \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tiempos de ejecución, Speed-up y Eficiencia para el bucle \texttt{FOR\_INI} ($T_{\text{sec}} = 4.242\text{ s}$).}
+    \label{tab:scheduling_for_ini}
+\end{table}
+
+\subsection*{Representación Gráfica del Rendimiento}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=7.5cm,
+            xlabel={Número de hilos ($p$)},
+            ylabel={Tiempo de ejecución (s)},
+            xmin=1, xmax=12,
+            ymin=0.5, ymax=4.8,
+            xtick={1,2,4,8,12},
+            legend pos=north east,
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            \addplot[color=red, mark=square*, thick] coordinates {
+                (1,4.396) (2,2.166) (4,1.116) (8,0.796) (12,0.626)
+            };
+            \addlegendentry{\texttt{static} (Predet.)}
+
+            \addplot[color=blue, mark=triangle*, thick] coordinates {
+                (1,4.600) (2,2.388) (4,1.268) (8,0.940) (12,0.808)
+            };
+            \addlegendentry{\texttt{static, 1}}
+
+            \addplot[color=green!60!black, mark=o*, thick] coordinates {
+                (1,4.238) (2,2.128) (4,1.100) (8,0.710) (12,0.620)
+            };
+            \addlegendentry{\texttt{dynamic, 16}}
+
+            \addplot[color=purple, mark=diamond*, thick] coordinates {
+                (1,4.262) (2,2.158) (4,1.114) (8,0.744) (12,0.612)
+            };
+            \addlegendentry{\texttt{guided, 16}}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Comparativa de tiempos del bucle \texttt{FOR\_INI} según el planificador y número de hilos.}
+    \label{fig:tiempos_for_ini}
+\end{figure}
+
+\subsection*{Análisis y Justificación Técnica}
+
+\begin{enumerate}
+    \item \textbf{Evaluación de la política \texttt{static}:}
+    Teóricamente, la planificación estática es la más adecuada para el bucle \texttt{FOR\_INI} debido a que la carga de trabajo por iteración es muy homogénea (creación de un individuo de tamaño $m$ e invocación secuencial de \texttt{fitness}). 
+    \begin{itemize}
+        \item Con la asignación \textbf{predeterminada} (bloques contiguos de tamaño $tam\_pob/p$), la sobrecarga del runtime es nula, escalando hasta los $0.626\text{ s}$ a 12 hilos ($S_{12} = 6.78$).
+        \item Un tamaño de bloque muy pequeño (\textbf{\texttt{static, 1}}, reparto cíclico) empeora significativamente el tiempo ($0.808\text{ s}$ a 12 hilos, $S_{12} = 5.25$). Esto ocurre porque se pierde la localidad espacial en las líneas de caché de la CPU y aumentan los accesos a memoria al saltar entre bloques no contiguos.
+        \item Los tamaños de bloque de \textbf{64 y 256} ofrecen el punto dulce para \texttt{static} ($0.622\text{ s}$), al mantener una buena localidad espacial en la caché L1/L2.
+    \end{itemize}
+
+    \item \textbf{Evaluación de la política \texttt{dynamic}:}
+    La planificación dinámica asigna bloques de iteraciones en tiempo de ejecución conforme los hilos quedan libres.
+    \begin{itemize}
+        \item En la versión \textbf{predeterminada} (\texttt{dynamic, 1}), los hilos solicitan las iteraciones de una en una, provocando contención continua en el cerrojo interno de la cola de trabajo de OpenMP. Con 12 hilos el tiempo sube a $0.750\text{ s}$.
+        \item Al aumentar el tamaño de bloque a \textbf{\texttt{dynamic, 16}}, la frecuencia de acceso a los cerrojos del runtime disminuye sustancialmente y la granularidad es óptima, alcanzando un excelente tiempo de $0.620\text{ s}$ ($S_{12} = 6.84$).
+        \item Con bloques demasiado grandes (\textbf{\texttt{dynamic, 256}}), el tiempo vuelve a empeorar ($0.792\text{ s}$) debido al desbalanceo al final del bucle y la pérdida de flexibilidad en el reparto.
+    \end{itemize}
+
+    \item \textbf{Evaluación de la política \texttt{guided}:}
+    Esta política asigna bloques cuyo tamaño decrece de forma exponencial a medida que quedan menos iteraciones por repartir.
+    \begin{itemize}
+        \item Con \textbf{\texttt{guided, 1}} (equivalente a no especificar chunk size), las últimas iteraciones se asignan de 1 en 1, lo que reintroduce sobrecarga por sincronización en la fase final ($0.764\text{ s}$ a 12 hilos).
+        \item Al fijar un límite inferior con \textbf{\texttt{guided, 16}} o \textbf{\texttt{guided, 64}}, se evita la saturación por peticiones unitarias al final. Como resultado, \textbf{\texttt{guided, 16} obtiene el mejor tiempo absoluto de todo el experimento con $0.612\text{ s}$ a 12 hilos ($S_{12} = 6.93$, Eficiencia = $57.8\%$)}.
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Conclusión para el bucle \texttt{FOR\_INI}:}  
+Dado que el coste por iteración es uniforme, tanto \texttt{static} (con chunks de 64 a 256) como \texttt{guided, 16} representan las configuraciones óptimas, logrando reducir el tiempo de inicialización de $4.242\text{ s}$ a poco más de $0.61\text{ s}$ con 12 hilos.
+
+
+
+
+
+
+
+
+
+
 \item \textbf{Cuestión 5 (2ª Semana).} Paralelizar la función \texttt{cruzar} utilizando secciones. ¿Se podría usar la cláusula \texttt{nowait}? (argumentar la respuesta). Ejecutar el código variando el número de hilos y justificar el rendimiento obtenido.
 
 \item \textbf{Cuestión 6.} Reemplazar las llamadas a la función \texttt{qsort} por la función \texttt{mergeSort} que se muestra, para ordenar la población por \texttt{fitness}, no para ordenar los elementos de cada individuo. A continuación, paralelizar dicha rutina mediante el uso de tareas (\texttt{OpenMP tasks}) y ejecutar el código variando el número de hilos. La función \texttt{mezclar} a la que invoca se proporciona en el fichero \texttt{mezclar.c}.
