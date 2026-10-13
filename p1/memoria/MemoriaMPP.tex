@@ -865,6 +865,19 @@ Para optimizar \texttt{critical} y \texttt{atomic} hemos imitado ese comportamie
 
 %%%AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABDELLAH
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./capturaejecucionvalgrind.png}
+    \caption{Captura de la ejecución del informe de Callgrind.}
+    \label{fig:mi_imagedsann}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./capturapesos.png}
+    \caption{Análisis del peso de las funciones usando KCachegrind}
+    \label{fig:mi_sdjnsaimagen}
+\end{figure}
 
 
 \item \textbf{Cuestión 4.} Probar diferentes formas de reparto de trabajo, \texttt{scheduling} (\texttt{static}, \texttt{dynamic}, \texttt{guided}), variando el tamaño de asignación (\texttt{chunk\_size}) en aquellos bucles en los que se considere necesario. Ejecutar el código variando el número de hilos y justificar los tiempos de ejecución y rendimiento obtenidos con cada política.
@@ -875,39 +888,37 @@ Para justificar la estrategia de paralelización, se realizó previamente un per
 
 Aislando el bucle \texttt{FOR\_INI}, se evalúa la influencia de las políticas de planificación (\texttt{static}, \texttt{dynamic} y \texttt{guided}) y del tamaño de bloque (\textit{chunk size}) para $p \in \{1, 2, 4, 8, 12\}$ hilos. Como tiempo secuencial base se toma la ejecución monohilo óptima obtenida ($T_{\text{sec}} = 4.242\text{ s}$).
 
-\subsection*{Tabla de Tiempos, Speed-up y Eficiencia}
 
-En el Cuadro \ref{tab:scheduling_for_ini} se recogen los tiempos medios de ejecución en segundos, el Speed-up ($S_p = T_{\text{sec}} / T_p$) y la Eficiencia ($E_p = S_p / p$).
+En el Cuadro \ref{tab:scheduling_for_ini} se recogen los tiempos medios de ejecución en segundos, el Speed-up  y la Eficiencia 
 
 \begin{table}[htbp]
     \centering
     \small
     \begin{tabular}{llrrrrr}
         \toprule
-        \textbf{Planificador} & \textbf{Chunk Size} & \textbf{1 Hilo (s)} & \textbf{2 Hilos ($S_2 / E_2$)} & \textbf{4 Hilos ($S_4 / E_4$)} & \textbf{8 Hilos ($S_8 / E_8$)} & \textbf{12 Hilos ($S_{12} / E_{12}$)} \\
+        \textbf{Plan} & \textbf{Size} & \textbf{1 Hilo} & \textbf{2 Hilos ($S_2 / E_2$)} & \textbf{4 Hilos ($S_4 / E_4$)} & \textbf{8 Hilos ($S_8 / E_8$)} & \textbf{12 Hilos ($S_{12} / E_{12}$)} \\
         \midrule
-        \texttt{static} & Predeterminado & 4,396 & 2,166 (1.96 / 97.9\%) & 1,116 (3.80 / 95.0\%) & 0,796 (5.33 / 66.6\%) & 0,626 (6.78 / 56.5\%) \\
-        \texttt{static} & 1              & 4,600 & 2,388 (1.78 / 88.8\%) & 1,268 (3.35 / 83.6\%) & 0,940 (4.51 / 56.4\%) & 0,808 (5.25 / 43.8\%) \\
-        \texttt{static} & 16             & 4,303 & 2,532 (1.68 / 83.8\%) & 1,324 (3.20 / 80.1\%) & 0,850 (4.99 / 62.4\%) & 0,632 (6.71 / 55.9\%) \\
-        \texttt{static} & 64             & 4,242 & 2,130 (1.99 / 99.6\%) & 1,100 (3.86 / 96.4\%) & 0,786 (5.40 / 67.5\%) & 0,622 (6.82 / 56.8\%) \\
-        \texttt{static} & 256            & 4,242 & 2,120 (2.00 / 100.0\%) & 1,130 (3.75 / 93.8\%) & 0,798 (5.32 / 66.5\%) & 0,632 (6.71 / 55.9\%) \\
+        \texttt{stat} & Pred & 4,396 & 2,166 (1.96 / 97.9\%) & 1,116 (3.80 / 95.0\%) & 0,796 (5.33 / 66.6\%) & 0,626 (6.78 / 56.5\%) \\
+        \texttt{stat} & 1              & 4,600 & 2,388 (1.78 / 88.8\%) & 1,268 (3.35 / 83.6\%) & 0,940 (4.51 / 56.4\%) & 0,808 (5.25 / 43.8\%) \\
+        \texttt{stat} & 16             & 4,303 & 2,532 (1.68 / 83.8\%) & 1,324 (3.20 / 80.1\%) & 0,850 (4.99 / 62.4\%) & 0,632 (6.71 / 55.9\%) \\
+        \texttt{stat} & 64             & 4,242 & 2,130 (1.99 / 99.6\%) & 1,100 (3.86 / 96.4\%) & 0,786 (5.40 / 67.5\%) & 0,622 (6.82 / 56.8\%) \\
+        \texttt{stat} & 256            & 4,242 & 2,120 (2.00 / 100.0\%) & 1,130 (3.75 / 93.8\%) & 0,798 (5.32 / 66.5\%) & 0,632 (6.71 / 55.9\%) \\
         \midrule
-        \texttt{dynamic} & Predeterminado & 4,210 & 2,132 (1.99 / 99.5\%) & 1,210 (3.51 / 87.7\%) & 0,850 (4.99 / 62.4\%) & 0,750 (5.66 / 47.1\%) \\
-        \texttt{dynamic} & 16             & 4,238 & 2,128 (1.99 / 99.7\%) & 1,100 (3.86 / 96.4\%) & 0,710 (5.97 / 74.7\%) & \textbf{0,620 (6.84 / 57.0\%)} \\
-        \texttt{dynamic} & 64             & 4,356 & 2,302 (1.84 / 92.1\%) & 1,248 (3.40 / 85.0\%) & 0,852 (4.98 / 62.2\%) & 0,764 (5.55 / 46.3\%) \\
-        \texttt{dynamic} & 256            & 4,464 & 2,310 (1.84 / 91.8\%) & 1,286 (3.30 / 82.5\%) & 0,880 (4.82 / 60.3\%) & 0,792 (5.36 / 44.6\%) \\
+        \texttt{dyn} & Pred & 4,210 & 2,132 (1.99 / 99.5\%) & 1,210 (3.51 / 87.7\%) & 0,850 (4.99 / 62.4\%) & 0,750 (5.66 / 47.1\%) \\
+        \texttt{dyn} & 16             & 4,238 & 2,128 (1.99 / 99.7\%) & 1,100 (3.86 / 96.4\%) & 0,710 (5.97 / 74.7\%) & \textbf{0,620 (6.84 / 57.0\%)} \\
+        \texttt{dyn} & 64             & 4,356 & 2,302 (1.84 / 92.1\%) & 1,248 (3.40 / 85.0\%) & 0,852 (4.98 / 62.2\%) & 0,764 (5.55 / 46.3\%) \\
+        \texttt{dyn} & 256            & 4,464 & 2,310 (1.84 / 91.8\%) & 1,286 (3.30 / 82.5\%) & 0,880 (4.82 / 60.3\%) & 0,792 (5.36 / 44.6\%) \\
         \midrule
-        \texttt{guided} & 1              & 4,332 & 2,310 (1.84 / 91.8\%) & 1,248 (3.40 / 85.0\%) & 0,890 (4.77 / 59.6\%) & 0,764 (5.55 / 46.3\%) \\
-        \texttt{guided} & 16             & 4,262 & 2,158 (1.97 / 98.3\%) & 1,114 (3.81 / 95.2\%) & 0,744 (5.70 / 71.3\%) & \textbf{0,612 (6.93 / 57.8\%)} \\
-        \texttt{guided} & 64             & 4,224 & 2,128 (1.99 / 99.7\%) & 1,102 (3.85 / 96.2\%) & 0,750 (5.66 / 70.7\%) & 0,618 (6.86 / 57.2\%) \\
-        \texttt{guided} & 256            & 4,234 & 2,140 (1.98 / 99.1\%) & 1,124 (3.77 / 94.3\%) & 0,752 (5.64 / 70.5\%) & 0,634 (6.69 / 55.8\%) \\
+        \texttt{guid} & 1              & 4,332 & 2,310 (1.84 / 91.8\%) & 1,248 (3.40 / 85.0\%) & 0,890 (4.77 / 59.6\%) & 0,764 (5.55 / 46.3\%) \\
+        \texttt{guid} & 16             & 4,262 & 2,158 (1.97 / 98.3\%) & 1,114 (3.81 / 95.2\%) & 0,744 (5.70 / 71.3\%) & \textbf{0,612 (6.93 / 57.8\%)} \\
+        \texttt{guid} & 64             & 4,224 & 2,128 (1.99 / 99.7\%) & 1,102 (3.85 / 96.2\%) & 0,750 (5.66 / 70.7\%) & 0,618 (6.86 / 57.2\%) \\
+        \texttt{guid} & 256            & 4,234 & 2,140 (1.98 / 99.1\%) & 1,124 (3.77 / 94.3\%) & 0,752 (5.64 / 70.5\%) & 0,634 (6.69 / 55.8\%) \\
         \bottomrule
     \end{tabular}
-    \caption{Tiempos de ejecución, Speed-up y Eficiencia para el bucle \texttt{FOR\_INI} ($T_{\text{sec}} = 4.242\text{ s}$).}
+    \caption{Tiempos de ejecución, Speed-up y Eficiencia para el bucle \texttt{FOR\_INI} ($T_{\text{sec}} = 4.242\text{ s}$). stat = Static, dyn = Dynamic, guid = guided, Pred = Predeterminado}
     \label{tab:scheduling_for_ini}
 \end{table}
 
-\subsection*{Representación Gráfica del Rendimiento}
 
 \begin{figure}[htbp]
     \centering
@@ -980,6 +991,131 @@ En el Cuadro \ref{tab:scheduling_for_ini} se recogen los tiempos medios de ejecu
 Dado que el coste por iteración es uniforme, tanto \texttt{static} (con chunks de 64 a 256) como \texttt{guided, 16} representan las configuraciones óptimas, logrando reducir el tiempo de inicialización de $4.242\text{ s}$ a poco más de $0.61\text{ s}$ con 12 hilos.
 
 
+%%%%SEGUNDA RESPUESTA DE CUESTION 44444444444444444444444444444444444444444444444444444444444444444444444444444444444444444
+
+\subsection*{Bucle fitness} 
+
+A diferencia del bucle homogéneo de inicialización (\texttt{FOR\_INI}), la función \texttt{fitness} presenta un **desbalanceo de carga implícito de tipo triangular**, ya que el bucle interno ejecuta $m - 1 - i$ iteraciones. A continuación se presentan las mediciones de tiempo de ejecución ($T_p$), Speed-up ($S_p = T_{\text{sec}} / T_p$) y Eficiencia ($E_p = S_p / p$) tomando como referencia el tiempo secuencial base de $T_{\text{sec}} = 4.350\text{ s}$.
+
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{llrrrrr}
+        \toprule
+        \textbf{Plan} & \textbf{Size} & \textbf{1 Hilo} & \textbf{2 Hilos ($S_2 / E_2$)} & \textbf{4 Hilos ($S_4 / E_4$)} & \textbf{8 Hilos ($S_8 / E_8$)} & \textbf{12 Hilos ($S_{12} / E_{12}$)} \\
+        \midrule
+        \texttt{stat} & Pred & 4,323 & 3,903 (1.11 / 55.7\%) & 2,420 (1.80 / 44.9\%) & 2,520 (1.73 / 21.6\%) & 4,647 (0.94 / 7.8\%) \\
+        \texttt{stat} & 1              & 5,190 & 2,943 (1.48 / 73.9\%) & 2,023 (2.15 / 53.8\%) & 2,433 (1.79 / 22.4\%) & 2,900 (1.50 / 12.5\%) \\
+        \texttt{stat} & 16             & 4,557 & 2,890 (1.51 / 75.3\%) & 2,040 (2.13 / 53.3\%) & 2,653 (1.64 / 20.5\%) & 2,977 (1.46 / 12.2\%) \\
+        \texttt{stat} & 64             & 5,050 & 3,027 (1.44 / 71.8\%) & 2,253 (1.93 / 48.3\%) & 2,737 (1.59 / 19.9\%) & 3,287 (1.32 / 11.0\%) \\
+        \texttt{stat} & 256            & 4,617 & 3,590 (1.21 / 60.6\%) & 3,570 (1.22 / 30.5\%) & 4,783 (0.91 / 11.4\%) & 5,327 (0.82 / 6.8\%) \\
+        \midrule
+        \texttt{dyn} & Pred & 4,690 & 3,033 (1.43 / 71.7\%) & 2,090 (2.08 / 52.0\%) & 2,360 (1.84 / 23.0\%) & 2,983 (1.46 / 12.2\%) \\
+        \texttt{dyn} & 1              & 4,677 & 3,017 (1.44 / 72.1\%) & 2,113 (2.06 / 51.5\%) & 2,363 (1.84 / 23.0\%) & 2,933 (1.48 / 12.4\%) \\
+        \texttt{dyn} & 16             & 4,567 & \textbf{2,857 (1.52 / 76.1\%)} & \textbf{1,950 (2.23 / 55.8\%)} & \textbf{2,287 (1.90 / 23.8\%)} & \textbf{2,917 (1.49 / 12.4\%)} \\
+        \texttt{dyn} & 64             & 4,557 & 2,903 (1.50 / 74.9\%) & 2,330 (1.87 / 46.7\%) & 2,860 (1.52 / 19.0\%) & 3,507 (1.24 / 10.3\%) \\
+        \texttt{dy} & 256            & 4,710 & 3,600 (1.21 / 60.4\%) & 3,573 (1.22 / 30.4\%) & 4,353 (1.00 / 12.5\%) & 5,520 (0.79 / 6.6\%) \\
+        \midrule
+        \texttt{guid} & Pred & 4,870 & 3,560 (1.22 / 61.1\%) & 2,487 (1.75 / 43.7\%) & 2,647 (1.64 / 20.5\%) & 3,160 (1.38 / 11.5\%) \\
+        \texttt{guid} & 1              & 4,647 & 3,573 (1.22 / 60.9\%) & 2,470 (1.76 / 44.0\%) & 2,660 (1.64 / 20.4\%) & 3,123 (1.39 / 11.6\%) \\
+        \texttt{guid} & 16             & 4,690 & 3,637 (1.20 / 59.8\%) & 2,327 (1.87 / 46.7\%) & 2,827 (1.54 / 19.2\%) & 3,110 (1.40 / 11.7\%) \\
+        \texttt{guid} & 64             & 4,720 & 3,553 (1.22 / 61.2\%) & 2,467 (1.76 / 44.1\%) & 2,737 (1.59 / 19.9\%) & 3,487 (1.25 / 10.4\%) \\
+        \texttt{guid} & 256            & 4,707 & 3,627 (1.20 / 59.9\%) & 3,593 (1.21 / 30.3\%) & 4,380 (0.99 / 12.4\%) & 5,983 (0.73 / 6.1\%) \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tiempos de ejecución y métricas de rendimiento para \texttt{fitness} ($T_{\text{sec}} = 4.350\text{ s}$). stat = Static, dyn = Dynamic, guid = guided, Pred = Predeterminado}
+    \label{tab:scheduling_fitness}
+\end{table}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=7.5cm,
+            xlabel={Número de hilos ($p$)},
+            ylabel={Tiempo de ejecución (s)},
+            xmin=1, xmax=12,
+            ymin=1.5, ymax=6.2,
+            xtick={1,2,4,8,12},
+            legend pos=north west,
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            \addplot[color=red, mark=square*, thick] coordinates {
+                (1,4.323) (2,3.903) (4,2.420) (8,2.520) (12,4.647)
+            };
+            \addlegendentry{\texttt{static} (Predet.)}
+
+            \addplot[color=blue, mark=triangle*, thick] coordinates {
+                (1,5.190) (2,2.943) (4,2.023) (8,2.433) (12,2.900)
+            };
+            \addlegendentry{\texttt{static, 1}}
+
+            \addplot[color=green!60!black, mark=o*, thick] coordinates {
+                (1,4.567) (2,2.857) (4,1.950) (8,2.287) (12,2.917)
+            };
+            \addlegendentry{\texttt{dynamic, 16}}
+
+            \addplot[color=purple, mark=diamond*, thick] coordinates {
+                (1,4.707) (2,3.627) (4,3.593) (8,4.380) (12,5.983)
+            };
+            \addlegendentry{\texttt{guided, 256}}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Comparativa de tiempos de la función \texttt{fitness} según el planificador y el número de hilos.}
+    \label{fig:tiempos_fitness}
+\end{figure}
+
+\begin{enumerate}
+    \item \textbf{Mejor configuración global:} 
+    La política \textbf{\texttt{dynamic, 16}} ha obtenido los mejores tiempos de ejecución en prácticamente todos los recuentos de hilos, marcando el tiempo mínimo absoluto de **$1.950\text{ s}$ con 4 hilos** ($S_4 = 2.23$, $E_4 = 55.8\%$).
+    
+    \item \textbf{Impacto del desbalanceo triangular en \texttt{static} predeterminado:}
+    Como se preveía teóricamente, \texttt{static} por defecto sufre un fuerte desbalanceo de carga. Al llegar a 12 hilos, la asignación de bloques rígidos provoca que unos hilos asuman las iteraciones más pesadas mientras otros quedan ociosos, elevando el tiempo hasta **$4.647\text{ s}$** (peor que en secuencial).
+    
+    \item \textbf{Solución con reparto fino (\texttt{static, 1} y \texttt{static, 16}):}
+    Introducir un reparto cíclico (\texttt{static, 1}) o bloques pequeños (\texttt{static, 16}) corrige la asimetría del bucle triangular repartiendo las iteraciones pesadas entre todos los hilos, reduciendo el tiempo a **$2.023\text{ s}$** con 4 hilos.
+
+    \item \textbf{Degradación con \textit{chunks} muy grandes ($256$):}
+    En todas las políticas (\texttt{static, 256}, \texttt{dynamic, 256} y \texttt{guided, 256}), establecer un *chunk* de 256 destruye la escalabilidad debido a que hay muy pocos bloques para repartir en relación al tamaño del bucle $m$, provocando un severo desbalanceo de carga al final de la ejecución (alcanzando cerca de $6\text{ s}$ a 12 hilos).
+
+    \item \textbf{Comportamiento con hilos altos ($p = 8, 12$):}
+    A partir de 8 hilos los tiempos vuelven a subir moderadamente en todas las configuraciones debido a la contención en el acceso a memoria por parte de la caché al ejecutar la función \texttt{distancia\_ij}.
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -989,6 +1125,154 @@ Dado que el coste por iteración es uniforme, tanto \texttt{static} (con chunks 
 
 
 \item \textbf{Cuestión 5 (2ª Semana).} Paralelizar la función \texttt{cruzar} utilizando secciones. ¿Se podría usar la cláusula \texttt{nowait}? (argumentar la respuesta). Ejecutar el código variando el número de hilos y justificar el rendimiento obtenido.
+
+Paralelizar la función \texttt{cruzar} mediante secciones es bastante sencillo. Podríamos dividir perfectamente la generación de cada hijo ya que ninguno depende del otro, pues cada mitad del hijo corresponde a una mitad del padre en exclusiva (son tareas totalmente independientes).
+
+A continuación se muestra el código adaptado utilizando la directiva \texttt{\#pragma omp sections}:
+
+\begin{lstlisting}[style={EstiloC}]
+void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *hijo2, int n, int m)
+{
+    int corte = 1 + aleatorio(m-1);
+
+    #pragma omp parallel sections shared(padre1, padre2, hijo1, hijo2, n, m, corte)
+    {
+        // Seccion para construir y factibilizar el hijo 1
+        #pragma omp section
+        {
+            for (int i = 0 ; i < corte ; i ++){
+                hijo1->array_int[i] = padre1->array_int[i];
+            }
+            for (int i = corte ; i < m ; i ++){
+                hijo1->array_int[i] = padre2->array_int[i];
+            }
+            for (int i = 0 ; i < corte ; i ++){
+                for(int j = corte ; j < m ; j++){
+                    if(hijo1->array_int[i] == hijo1->array_int[j]){
+                        int nuevo;
+                        do{
+                            nuevo = aleatorio(n);
+                        }while (find_element(hijo1->array_int, m, nuevo));
+                        hijo1->array_int[j] = nuevo;
+                    }
+                }
+            }
+        }
+
+        // Seccion para construir y factibilizar el hijo 2
+        #pragma omp section
+        {
+            for (int i = 0 ; i < corte ; i ++){
+                hijo2->array_int[i] = padre2->array_int[i];
+            }
+            for (int i = corte ; i < m ; i ++){
+                hijo2->array_int[i] = padre1->array_int[i];
+            }
+            for (int i = 0 ; i < corte ; i ++){
+                for(int j = corte ; j < m ; j++){
+                    if(hijo2->array_int[i] == hijo2->array_int[j]){
+                        int nuevo;
+                        do{
+                            nuevo = aleatorio(n);
+                        }while (find_element(hijo2->array_int, m, nuevo));
+                        hijo2->array_int[j] = nuevo;
+                    }
+                }
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+
+La cláusula nowait se podría usar, pero \textbf{no tiene ningún sentido ni beneficio}. Podríamos usarla si estuviésemos en un bloque paralelo más grande y quisiésemos que cuando un hilo termine, continúe ejecutando código sin esperar a los demás. 
+
+El problema que tenemos aquí es que toda la región de \texttt{sections} se ejecuta dentro de una función y después no hay nada más de código por ejecutar dentro de ella, por lo que no aporta absolutamente nada usarla o no usarla. Además, necesitamos que ambos hijos estén totalmente generados y corregidos antes de volver al programa principal para evitar problemas con los datos.
+
+
+No tiene sentido ejecutar esta parte con más de dos hilos, pues **solo contamos con dos secciones y en cada sección entra a ejecutar exactamente 1 hilo**. Si lanzamos el programa con 4, 8 o 12 hilos, el resto de hilos simplemente se quedan esperando en la barrera implícita sin hacer nada. 
+
+Lo único que conseguimos al ejecutarlo con varios hilos es empeorar el rendimiento global debido a la sobrecarga que supone crear y gestionar las regiones paralelas constantemente para un trozo de código tan pequeño.
+
+
+
+
+Para medir de manera aislada el tiempo dedicado a la fase de cruce, se ha tomado el tiempo acumulado inmediatamente antes y después del bucle de cruce dentro de la función \texttt{aplicar\_mh}. Los datos mostrados corresponden a la media de \textbf{5 ejecuciones} tomando como entrada de referencia $T_{\text{sec}} = 0.190\text{ s}$ (tiempo secuencial del código original sin la modificación de secciones).
+
+
+En el Cuadro \ref{tab:cuestion5_secciones} se recogen los tiempos medios de ejecución en segundos, el Speed-up y la Eficiencia.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{ccccc}
+        \toprule
+        \textbf{Nº de Hilos ($p$)} & \textbf{Tiempo $T_p$ (s)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} & \textbf{Observaciones} \\
+        \midrule
+        \textit{Secuencial (original)} & 0,190 & 1,00 & 100,0\% & Versión sin modificación \\
+        1 Hilo  & 0,150 & 1,27 & 126,7\% & Mismo hilo ejecuta ambas secciones \\
+        2 Hilos & \textbf{0,090} & \textbf{2,11} & \textbf{105,6\%} & Óptimo (1 hilo por sección) \\
+        4 Hilos & 0,090 & 2,11 & 52,8\%  & 2 hilos ociosos en la barrera \\
+        8 Hilos & 0,120 & 1,58 & 19,8\%  & Degradación por sobrecarga \\
+        12 Hilos & 0,150 & 1,27 & 10,6\%  & Elevado overhead de gestión \\
+        \bottomrule
+    \end{tabular}
+    \caption{Resultados experimentales de la función \texttt{cruzar} paralela mediante secciones.}
+    \label{tab:cuestion5_secciones}
+\end{table}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=7.5cm,
+            xlabel={Número de hilos ($p$)},
+            ylabel={Tiempo de ejecución (s)},
+            xmin=1, xmax=12,
+            ymin=0.05, ymax=0.22,
+            xtick={1,2,4,8,12},
+            legend pos=north east,
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            % Línea de referencia secuencial
+            \addplot[color=gray, dashed, thick] coordinates {
+                (1,0.190) (12,0.190)
+            };
+            \addlegendentry{Secuencial ($0.190\text{ s}$)}
+
+            % Tiempos con secciones
+            \addplot[color=blue, mark=sq*, thick] coordinates {
+                (1,0.150) (2,0.090) (4,0.090) (8,0.120) (12,0.150)
+            };
+            \addlegendentry{\texttt{sections} (\texttt{cruzar})}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Evolución del tiempo de ejecución de la función \texttt{cruzar} según el número de hilos.}
+    \label{fig:grafica_cuestion5}
+\end{figure}
+
+
+\begin{enumerate}
+    \item \textbf{Mejoría a 1 y 2 hilos:}
+    \begin{itemize}
+        \item Con **1 hilo**, el tiempo baja de $0,190\text{ s}$ a $0,150\text{ s}$ debido únicamente a la reestructuración del código interno de la función.
+        \item Con **2 hilos**, el tiempo se reduce prácticamente a la mitad (**$0,090\text{ s}$**, logrando un $S_2 = 2,11$). Esto se debe a que cada una de las 2 secciones independientes (\texttt{hijo1} e \texttt{hijo2}) es ejecutada por un hilo dedicado, aprovechando el paralelismo real de la función al máximo.
+    \end{itemize}
+
+    \item \textbf{Estancamiento y degradación a partir de 4 hilos:}
+    \begin{itemize}
+        \item Con **4 hilos**, el tiempo se mantiene en $0,090\text{ s}$ porque la función solo define **2 secciones**. Por tanto, únicamente 2 hilos realizan el trabajo de creación de hijos mientras los otros 2 hilos se quedan ociosos esperando en la barrera implícita de sincronización.
+        \item Con **8 y 12 hilos**, el tiempo empeora notablemente ($0,120\text{ s}$ y $0,150\text{ s}$, respectivamente). La creación, gestión y reserva innecesaria de tantos hilos extra para ejecutar únicamente 2 secciones genera una sobrecarga (*overhead*) de recursos que destruye la eficiencia del algoritmo.
+    \end{itemize}
+\end{enumerate}
+
+
+
+
+
 
 \item \textbf{Cuestión 6.} Reemplazar las llamadas a la función \texttt{qsort} por la función \texttt{mergeSort} que se muestra, para ordenar la población por \texttt{fitness}, no para ordenar los elementos de cada individuo. A continuación, paralelizar dicha rutina mediante el uso de tareas (\texttt{OpenMP tasks}) y ejecutar el código variando el número de hilos. La función \texttt{mezclar} a la que invoca se proporciona en el fichero \texttt{mezclar.c}.
 
@@ -1007,7 +1291,38 @@ void mergeSort(Individuo **poblacion, int izq, int der)
 
 \item \textbf{Cuestión 7.} Explicar para qué se usan en general, y si es necesario utilizar de forma explícita en alguna zona del código los siguientes constructores: \texttt{barrier}, \texttt{single}, \texttt{master}, \texttt{ordered}. Considerar también su posible uso en un código paralelo optimizado (como el requerido en la Cuestión 8).
 
+\texttt{\#pragma omp barrier}
+\begin{itemize}
+    \item \textbf{Uso general:} Establece una barrera y hace de punto de sincronización entre hilos. Aquí todos los hilos deben detenerse hasta que todos los hilos del equipo hayan llegado.
+    \item \textbf{Uso en el código:} \textbf{No es necesario usarlo de forma explícita.} La mayoría de los pragmas de OpenMP (como los bucles \texttt{\#pragma omp for} de cruce, mutación o \textit{fitness}) ya incluyen una barrera implícita al final de su ejecución, por lo que los hilos se van a esperar de forma automática antes de pasar a la siguiente fase.
+\end{itemize}
+
+ \texttt{\#pragma omp single}
+\begin{itemize}
+    \item \textbf{Uso general:} Establece el bloque de código que debe ser ejecutado por un único hilo, siendo este el primero que llegue. Al final del bloque inserta una barrera implícita.
+    \item \textbf{Uso en el código:} \textbf{Sí se utilizaría en el código paralelizándolo de forma global (Cuestión 8).} Si abrimos una región paralela al principio para evitar crear y destruir hilos en cada generación, hay partes secuenciales que solo las debe hacer un hilo, como la ordenación de la población con \texttt{qsort}, la comprobación del criterio de convergencia o la impresión por pantalla.
+\end{itemize}
+
+ \texttt{\#pragma omp master}
+\begin{itemize}
+    \item \textbf{Uso general:} Garantiza que el bloque que encapsula sea ejecutado exclusivamente por el hilo maestro (el hilo 0). A diferencia de \texttt{single}, este no genera una barrera implícita al final.
+    \item \textbf{Uso en el código:} \textbf{No es estrictamente necesario.} Podríamos usarlo como alternativa a \texttt{single} para que el hilo 0 haga las comprobaciones o impresiones, pero como no añade la barrera implícita al terminar, tendríamos que poner un \texttt{\#pragma omp barrier} a mano justo después para que los demás hilos esperen antes de continuar a la siguiente generación.
+\end{itemize}
+
+ \texttt{\#pragma omp ordered}
+\begin{itemize}
+    \item \textbf{Uso general:} Obliga a que la ejecución del bloque de código delimitado dentro de un bucle paralelo siga estrictamente el orden secuencial de las iteraciones.
+    \item \textbf{Uso en el código:} \textbf{No tiene ningún sentido usarlo.} Todas las iteraciones de nuestros bucles (cruce, mutar, \textit{fitness}) son independientes entre sí. Usar \texttt{ordered} rompería el paralelismo, haciendo que el bucle se ejecute como si fuera totalmente secuencial.
+\end{itemize}
+
+
+
 \item \textbf{Cuestión 8.} Paralelizar la totalidad del algoritmo utilizando las directivas OpenMP que se considere mejor para cada función o bucle (y que pueden ser distintas a las usadas para resolver las cuestiones). Justificar las decisiones tomadas. De este modo, se pretende tener un código paralelo óptimo en memoria compartida que se podrá usar posteriormente para comparar con el código paralelo de paso de mensajes e híbrido implementado en las siguientes prácticas.
+
+
+
+
+
 
 \item \textbf{Cuestión 9.} Realizar el informe final incluyendo las conclusiones generales y valoración personal sobre el trabajo realizado.
 \end{enumerate}

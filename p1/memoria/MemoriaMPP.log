@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  12 OCT 2026 21:17
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  14 OCT 2026 00:41
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -936,13 +936,19 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [16]
-Overfull \hbox (15.25807pt too wide) in paragraph at lines 874--875
+<./capturaejecucionvalgrind.png, id=303, 1078.0275pt x 310.15875pt>
+File: ./capturaejecucionvalgrind.png Graphic file (type png)
+<use ./capturaejecucionvalgrind.png>
+Package pdftex.def Info: ./capturaejecucionvalgrind.png  used on input line 870.
+(pdftex.def)             Requested size: 377.62642pt x 108.6471pt.
+<./capturapesos.png, id=304, 1727.45375pt x 695.59875pt>
+File: ./capturapesos.png Graphic file (type png)
+<use ./capturapesos.png>
+Package pdftex.def Info: ./capturapesos.png  used on input line 877.
+(pdftex.def)             Requested size: 377.62642pt x 152.05571pt.
+
+Overfull \hbox (15.25807pt too wide) in paragraph at lines 887--888
 \T1/ptm/m/n/12 se-cuen-cial me-dian-te la he-rra-mien-ta \T1/cmtt/m/n/12 Callgrind \T1/ptm/m/n/12 (\T1/cmtt/m/n/12 Valgrind\T1/ptm/m/n/12 ) y su vi-sua-li-za-ción en \T1/cmtt/m/n/12 KCachegrind\T1/ptm/m/n/12 .
- []
-
-
-Overfull \hbox (155.77977pt too wide) in paragraph at lines 885--906
- [][] 
  []
 
 
@@ -952,7 +958,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[17]
+[17 <./capturaejecucionvalgrind.png> <./capturapesos.png>]
+Overfull \hbox (57.66913pt too wide) in paragraph at lines 897--918
+ [][] 
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -969,6 +979,10 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [19]
+Overfull \hbox (57.6802pt too wide) in paragraph at lines 1004--1027
+ [][] 
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -976,7 +990,55 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[20] (./MemoriaMPP.aux
+[20]
+Overfull \hbox (8.28915pt too wide) in paragraph at lines 1131--1132
+[]\T1/ptm/m/n/12 A con-ti-nua-ción se mues-tra el có-di-go adap-ta-do uti-li-zan-do la di-rec-ti-va \T1/cmtt/m/n/12 #pragma omp sections\T1/ptm/m/n/12 : 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[21]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[22]
+Overfull \hbox (35.64575pt too wide) in paragraph at lines 1208--1220
+ [][] 
+ []
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[23]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[24]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[25] (./MemoriaMPP.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -988,18 +1050,18 @@ Package rerunfilecheck Info: File `MemoriaMPP.out' has not changed.
 (rerunfilecheck)             Checksum: 6D78FB9418EB64E3ED1A042465B046E9;93.
  ) 
 Here is how much of TeX's memory you used:
- 35090 strings out of 474222
- 791786 string characters out of 5748733
- 2371975 words of memory out of 5000000
- 56542 multiletter control sequences out of 15000+600000
- 621896 words of font info for 124 fonts, out of 8000000 for 9000
+ 35218 strings out of 474222
+ 793933 string characters out of 5748733
+ 2546975 words of memory out of 5000000
+ 56596 multiletter control sequences out of 15000+600000
+ 627109 words of font info for 130 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,20n,101p,886b,2372s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfit1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1440.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on MemoriaMPP.pdf (20 pages, 592617 bytes).
+ 99i,20n,101p,886b,2370s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfit1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1440.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on MemoriaMPP.pdf (25 pages, 875440 bytes).
 PDF statistics:
- 444 PDF objects out of 1000 (max. 8388607)
- 390 compressed objects within 4 object streams
- 244 named destinations out of 1000 (max. 500000)
- 36 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 555 PDF objects out of 1000 (max. 8388607)
+ 489 compressed objects within 5 object streams
+ 314 named destinations out of 1000 (max. 500000)
+ 46 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -290,6 +290,66 @@ void mutar(Individuo *actual, int n, int m, double m_rate)
 	}
 }
 
+
+/*
+
+FUNCION CRUZAR MEJORADA
+void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *hijo2, int n, int m)
+{
+    int corte = 1 + aleatorio(m - 1);
+
+    #pragma omp parallel sections shared(padre1, padre2, hijo1, hijo2, n, m, corte)
+    {
+        // parte hijo 1
+        #pragma omp section
+        {
+            for (int i = 0; i < corte; i++) {
+                hijo1->array_int[i] = padre1->array_int[i];
+            }
+            for (int i = corte; i < m; i++) {
+                hijo1->array_int[i] = padre2->array_int[i];
+            }
+            for (int i = 0; i < corte; i++) {
+                for (int j = corte; j < m; j++) {
+                    if (hijo1->array_int[i] == hijo1->array_int[j]) {
+                        int nuevo;
+                        do {
+                            nuevo = aleatorio(n);
+                        } while (find_element(hijo1->array_int, m, nuevo));
+                        hijo1->array_int[j] = nuevo;
+                    }
+                }
+            }
+        }
+
+        // parte hijo 2
+        #pragma omp section
+        {
+            for (int i = 0; i < corte; i++) {
+                hijo2->array_int[i] = padre2->array_int[i];
+            }
+            for (int i = corte; i < m; i++) {
+                hijo2->array_int[i] = padre1->array_int[i];
+            }
+            for (int i = 0; i < corte; i++) {
+                for (int j = corte; j < m; j++) {
+                    if (hijo2->array_int[i] == hijo2->array_int[j]) {
+                        int nuevo;
+                        do {
+                            nuevo = aleatorio(n);
+                        } while (find_element(hijo2->array_int, m, nuevo));
+                        hijo2->array_int[j] = nuevo;
+                    }
+                }
+            }
+        }
+    } // Barrera implícita del sections
+}
+
+
+
+*/
+
 double distancia_ij(const double *d, int i, int j, int n)
 {
     // Devuelve la distancia entre dos elementos i, j de la matriz 'd'
