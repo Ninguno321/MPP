@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  14 OCT 2026 00:41
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  14 OCT 2026 22:59
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -919,6 +919,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [14]
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 763.
+<./capturaejecucionvalgrind.png, id=271, 1078.0275pt x 310.15875pt>
+File: ./capturaejecucionvalgrind.png Graphic file (type png)
+<use ./capturaejecucionvalgrind.png>
+Package pdftex.def Info: ./capturaejecucionvalgrind.png  used on input line 836.
+(pdftex.def)             Requested size: 377.62642pt x 108.6471pt.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -928,26 +933,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [15]
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
-[16]
-<./capturaejecucionvalgrind.png, id=303, 1078.0275pt x 310.15875pt>
-File: ./capturaejecucionvalgrind.png Graphic file (type png)
-<use ./capturaejecucionvalgrind.png>
-Package pdftex.def Info: ./capturaejecucionvalgrind.png  used on input line 870.
-(pdftex.def)             Requested size: 377.62642pt x 108.6471pt.
-<./capturapesos.png, id=304, 1727.45375pt x 695.59875pt>
+<./capturapesos.png, id=299, 1727.45375pt x 695.59875pt>
 File: ./capturapesos.png Graphic file (type png)
 <use ./capturapesos.png>
-Package pdftex.def Info: ./capturapesos.png  used on input line 877.
+Package pdftex.def Info: ./capturapesos.png  used on input line 843.
 (pdftex.def)             Requested size: 377.62642pt x 152.05571pt.
 
-Overfull \hbox (15.25807pt too wide) in paragraph at lines 887--888
+Overfull \hbox (15.25807pt too wide) in paragraph at lines 853--854
 \T1/ptm/m/n/12 se-cuen-cial me-dian-te la he-rra-mien-ta \T1/cmtt/m/n/12 Callgrind \T1/ptm/m/n/12 (\T1/cmtt/m/n/12 Valgrind\T1/ptm/m/n/12 ) y su vi-sua-li-za-ción en \T1/cmtt/m/n/12 KCachegrind\T1/ptm/m/n/12 .
  []
 
@@ -958,11 +950,19 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[17 <./capturaejecucionvalgrind.png> <./capturapesos.png>]
-Overfull \hbox (57.66913pt too wide) in paragraph at lines 897--918
+[16 <./capturaejecucionvalgrind.png> <./capturapesos.png>]
+Overfull \hbox (57.66913pt too wide) in paragraph at lines 863--884
  [][] 
  []
 
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[17]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -971,15 +971,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [18]
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
-[19]
-Overfull \hbox (57.6802pt too wide) in paragraph at lines 1004--1027
+Overfull \hbox (57.6802pt too wide) in paragraph at lines 970--993
  [][] 
  []
 
@@ -990,8 +982,8 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[20]
-Overfull \hbox (8.28915pt too wide) in paragraph at lines 1131--1132
+[19]
+Overfull \hbox (8.28915pt too wide) in paragraph at lines 1097--1098
 []\T1/ptm/m/n/12 A con-ti-nua-ción se mues-tra el có-di-go adap-ta-do uti-li-zan-do la di-rec-ti-va \T1/cmtt/m/n/12 #pragma omp sections\T1/ptm/m/n/12 : 
  []
 
@@ -1002,7 +994,19 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
+[20]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
 [21]
+Overfull \hbox (35.64575pt too wide) in paragraph at lines 1174--1186
+ [][] 
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1011,10 +1015,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [22]
-Overfull \hbox (35.64575pt too wide) in paragraph at lines 1208--1220
- [][] 
- []
-
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1030,15 +1030,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[24]
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
-[25] (./MemoriaMPP.aux
+[24] (./MemoriaMPP.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -1050,18 +1042,18 @@ Package rerunfilecheck Info: File `MemoriaMPP.out' has not changed.
 (rerunfilecheck)             Checksum: 6D78FB9418EB64E3ED1A042465B046E9;93.
  ) 
 Here is how much of TeX's memory you used:
- 35218 strings out of 474222
- 793933 string characters out of 5748733
+ 35217 strings out of 474222
+ 793926 string characters out of 5748733
  2546975 words of memory out of 5000000
  56596 multiletter control sequences out of 15000+600000
  627109 words of font info for 130 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,20n,101p,886b,2370s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 99i,20n,101p,885b,2370s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfit1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1440.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on MemoriaMPP.pdf (25 pages, 875440 bytes).
+Output written on MemoriaMPP.pdf (24 pages, 869657 bytes).
 PDF statistics:
- 555 PDF objects out of 1000 (max. 8388607)
- 489 compressed objects within 5 object streams
- 314 named destinations out of 1000 (max. 500000)
+ 550 PDF objects out of 1000 (max. 8388607)
+ 485 compressed objects within 5 object streams
+ 313 named destinations out of 1000 (max. 500000)
  46 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -831,40 +831,6 @@ el número de accesos protegidos por \texttt{critical} se reduce drásticamente 
 
 
 
-
-%%%AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABDELLAH
-
-
-
-\medskip
-\noindent\textbf{Variables privadas y compartidas}\par
-\smallskip
-
-En las tres versiones, \texttt{i} es privada por ser el índice del \texttt{parallel for}, y \texttt{j} y \texttt{dist} lo son por estar declaradas dentro del bucle.
-
-Medimos el tiempo de ejecución total de \texttt{aplicar\_mh} con \texttt{gettimeofday} (reloj de pared, resolución de 1 ms). El número de hilos se fija con la variable de entorno \texttt{OMP\_NUM\_THREADS}. Parámetros: $n=2000$, $m=200$, \texttt{n\_gen} $=400$, \texttt{tam\_pob} $=4000$ y 
-
-
-\texttt{m\_rate} $=0,15$. Como tiempo secuencial se ha usado el de la versión sin ninguna directiva en \texttt{fitness}, ejecutada con 1 hilo: $T_{sec}=7,16$ s (media de 5 ejecuciones). Las métricas son el \textit{speed-up} $S=T_{sec}/T_p$ y la eficiencia $E=S/p$. Cada tiempo de la tabla es la media de las repeticiones realizadas.
-
-Con \texttt{critical}, el tiempo ya es unas 2,6 veces el secuencial con 1 hilo (18,75 s frente a 7,16 s) y empeora al aumentar los hilos, hasta 128,61 s con 6 (\textit{speed-up} de 0,06). Cada iteración hace muy poco trabajo (una distancia y una suma), y entrar y salir de la zona crítica cuesta mucho más que ese trabajo. Además, con varios hilos todos compiten por un único cerrojo, por lo que pasan la mayor parte del tiempo esperando, y la variable \texttt{fitness} viaja continuamente entre las cachés de los núcleos. Este efecto se aprecia también en el bucle \texttt{FOR\_INI}, donde \texttt{fitness} se llama desde varios hilos que compiten por el mismo cerrojo: su tiempo pasa de 1174 ms con 1 hilo a 8380 ms con 6.
-
-Con \texttt{atomic} los tiempos mejoran respecto a \texttt{critical} (por ejemplo, 77,43 s frente a 128,61 s con 6 hilos), pero siguen siendo peores que el secuencial. \texttt{atomic} no usa un cerrojo ni llama a la biblioteca de OpenMP, sino que el compilador emite instrucciones atómicas del procesador. Para un \texttt{double} no existe una suma atómica directa, así que se implementa con un bucle de lectura, suma y \textit{compare-and-swap} que reintenta si otro hilo modificó la variable mientras tanto. Sigue habiendo contención, porque todos los hilos actualizan la misma posición de memoria, por lo que tampoco escala.
-
-\texttt{reduction} es la mejor de las tres, ya que cada hilo suma en su copia privada sin sincronización y solo se combinan al final. Aun así, los tiempos están en torno al secuencial (entre 6,74 s y 8,25 s) y el \textit{speed-up} máximo es de 1,06 con 2 hilos, por lo que no hay una mejora real. La razón es que el trabajo de cada llamada a \texttt{fitness} es pequeño (unas 20.000 operaciones muy baratas) y la región paralela se crea y se destruye en cada llamada, miles de veces por generación. El coste de coordinar los hilos es comparable al trabajo que se reparte. Las diferencias entre configuraciones están además dentro de la variabilidad entre ejecuciones, ya que el número de generaciones depende de la convergencia y de la semilla aleatoria.
-
-\medskip
-\noindent\textbf{Justificación teórica y optimización de \texttt{critical} y \texttt{atomic}}\par
-\smallskip
-
-Internamente, \texttt{reduction} crea una copia privada de la variable para cada hilo, inicializada a  0. Cada hilo acumula en ella sin ninguna sincronización y, al terminar su parte del bucle, combina su copia con la variable global en un único acceso. Por tanto, el número de accesos sincronizados pasa de $m(m-1)/2$ por llamada a \texttt{fitness} en \texttt{critical} y \texttt{atomic}, a uno por hilo en \texttt{reduction}.
-
-Para optimizar \texttt{critical} y \texttt{atomic} hemos imitado ese comportamiento haciendo que cada hilo acumule en una variable local \texttt{local} y solo al final de su trabajo la suma a \texttt{fitness} dentro de la zona protegida. Para ello separamos \texttt{parallel} y \texttt{for}, de modo que \texttt{local} se declare dentro de la región paralela (y sea privada), y usamos \texttt{nowait} para que los hilos no esperen en el bucle antes de combinar.
-
-
-
-%%%AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABDELLAH
-
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.8\textwidth]{./capturaejecucionvalgrind.png}
