@@ -1255,6 +1255,844 @@ void mergeSort(Individuo **poblacion, int izq, int der)
 
 ¿Se reduce el tiempo de ejecución? Si no es así, explica las posibles causas. Estudia si para los tamaños de población que manejamos (usualmente $\le 2000$ individuos) pueden mejorar el rendimiento del algoritmo paralelo: (a) la optimización del código de la función \texttt{mezclar} respecto a la gestión de la memoria, o (b) el uso de condicionales en las directivas \texttt{task} para generar tareas hasta un cierto umbral de tamaño de la población.
 
+
+\subsection*{Planteamiento y organización del código}
+ 
+La población se ordenaba con \texttt{qsort} en dos puntos de \texttt{aplicar\_mh}: justo después de generar la población inicial (bucle FOR\_INI) y al final de cada generación. Ambas llamadas se sustituyen por una única función, \texttt{ordenar\_poblacion}, que contiene las distintas implementaciones de \texttt{mergeSort} pedidas. El tercer \texttt{qsort} del código, el que ordena \texttt{poblacion[0]->array\_int}, no se modifica, ya que ordena los elementos de la solución y no la población.
+ 
+\begin{lstlisting}[style=EstiloC]
+// qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
+ordenar_poblacion(poblacion, tam_pob);
+\end{lstlisting}
+ 
+Todas las versiones se encuentran en un único fichero fuente, \texttt{mergesort.c}, con su cabecera \texttt{mergesort.h}. La versión que se compila se selecciona mediante compilación condicional con la opción \texttt{-DVERSION=n}. El umbral de las versiones con corte se fija con \texttt{-DUMBRAL=n}. De esta forma cualquier experimento se puede reproducir sin modificar el código:
+ 
+\begin{lstlisting}[style=EstiloValgrind]
+make sec VERSION=5 UMBRAL=256     # compila una version concreta
+make versiones                    # genera sec_v0 ... sec_v5
+./run.sh 2000 200 400 2000 0.15   # todas las versiones y barrido de umbral
+\end{lstlisting}
+ 
+En el Cuadro \ref{tab:c6_versiones} se resumen las versiones implementadas.
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{cl}
+        \toprule
+        \textbf{Versión} & \textbf{Descripción} \\
+        \midrule
+        V0 & \texttt{qsort} original (referencia secuencial) \\
+        V1 & \texttt{mergeSort} secuencial con el \texttt{mezclar} proporcionado \\
+        V2 & \texttt{mergeSort} con tareas OpenMP y el \texttt{mezclar} proporcionado \\
+        V3 & Tareas + \texttt{mezclar} optimizado en memoria \hfill (apartado a) \\
+        V4 & Tareas con cláusula \texttt{if(tamaño > UMBRAL)} \hfill (apartado b) \\
+        V5 & Versión final: (a) + (b) con corte manual y una tarea por nivel \\
+        \bottomrule
+    \end{tabular}
+    \caption{Versiones implementadas en la Cuestión 6.}
+    \label{tab:c6_versiones}
+\end{table}
+ 
+El criterio de orden debe coincidir con el de \texttt{comp\_fitness}, que deja en primer lugar el individuo con mayor \textit{fitness} (el MDP es un problema de maximización). Por ello en la mezcla se utiliza la comparación \texttt{>}, definida en una macro:
+ 
+\begin{lstlisting}[style=EstiloC]
+#define ANTES(a, b) ((a)->fitness > (b)->fitness)
+\end{lstlisting}
+ 
+\subsection*{Versión 1: \texttt{mergeSort} secuencial y \texttt{mezclar} completado}
+ 
+La función \texttt{mergeSort} es la del enunciado. En \texttt{mezclar}, cada comentario \texttt{// copiar} del fichero proporcionado se completa copiando el \texttt{struct} completo con \texttt{memmove}:
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mezclar(Individuo **poblacion, int izq, int med, int der)
+{
+    int i, j, k;
+ 
+    Individuo **pob = (Individuo **) malloc((der - izq) * sizeof(Individuo *));
+    assert(pob);
+    for (i = 0; i < (der - izq); i++) {
+        pob[i] = (Individuo *) malloc(sizeof(Individuo));
+        assert(pob[i]);
+    }
+ 
+    k = 0;
+    i = izq;
+    j = med;
+    while ((i < med) && (j < der)) {
+        if (ANTES(poblacion[i], poblacion[j])) {
+            memmove(pob[k++], poblacion[i++], sizeof(Individuo));
+        }
+        else {
+            memmove(pob[k++], poblacion[j++], sizeof(Individuo));
+        }
+    }
+    for (; i < med; i++) {      // restos de la mitad izquierda
+        memmove(pob[k++], poblacion[i], sizeof(Individuo));
+    }
+    for (; j < der; j++) {      // restos de la mitad derecha
+        memmove(pob[k++], poblacion[j], sizeof(Individuo));
+    }
+ 
+    // copiar el resultado ordenado de vuelta y liberar
+    i = 0;
+    while (i < (der - izq)) {
+        memmove(poblacion[i + izq], pob[i], sizeof(Individuo));
+        free(pob[i]);
+        i++;
+    }
+    free(pob);
+}
+\end{lstlisting}
+ 
+Copiar el \texttt{struct} es correcto aunque \texttt{Individuo} contenga un puntero: al copiarlo, el puntero \texttt{array\_int} se desplaza junto con su \textit{fitness}, de modo que ningún array de elementos se pierde ni se duplica; solo cambia en qué \texttt{struct} de la población queda almacenado. El inconveniente de esta implementación es su coste de memoria: cada llamada realiza \texttt{der - izq} reservas y liberaciones, lo que supone del orden de $n \log_2 n \approx 22\,000$ parejas \texttt{malloc}/\texttt{free} por ordenación con 2000 individuos.
+ 
+\subsection*{Versión 2: paralelización mediante tareas}
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mergeSort_tareas(Individuo **poblacion, int izq, int der)
+{
+    int med = (izq + der) / 2;
+    if ((der - izq) < 2) { return; }
+ 
+    #pragma omp task default(none) firstprivate(poblacion, izq, med)
+    mergeSort_tareas(poblacion, izq, med);
+ 
+    #pragma omp task default(none) firstprivate(poblacion, med, der)
+    mergeSort_tareas(poblacion, med, der);
+ 
+    #pragma omp taskwait
+    mezclar(poblacion, izq, med, der);
+}
+\end{lstlisting}
+ 
+Las decisiones tomadas son las siguientes:
+ 
+\begin{itemize}
+    \item \textbf{Uso de tareas.} \texttt{mergeSort} es un algoritmo recursivo que genera el trabajo de forma dinámica, por lo que no puede expresarse como un bucle (\texttt{for}) ni con un número fijo de bloques (\texttt{sections}). El modelo adecuado es el de tareas (\textit{task centric}).
+    \item \textbf{Independencia de las mitades.} Cada llamada recursiva trabaja sobre un rango disjunto del vector ($[izq, med)$ y $[med, der)$), por lo que ambas pueden ejecutarse en paralelo sin condiciones de carrera.
+    \item \textbf{\texttt{taskwait}.} La mezcla solo puede realizarse cuando las dos mitades estén ordenadas. \texttt{taskwait} espera únicamente a las tareas hijas de la tarea actual.
+    \item \textbf{\texttt{firstprivate}.} Una tarea puede ejecutarse más tarde, cuando la función que la creó ya ha terminado. Cada tarea necesita por tanto su propia copia de \texttt{izq}, \texttt{med} y \texttt{der}. \texttt{poblacion} también es \texttt{firstprivate}, pero al ser un puntero todas las copias apuntan al mismo vector, que es compartido.
+    \item \textbf{\texttt{default(none)}.} Obliga a declarar explícitamente el ámbito de cada variable y evita errores.
+\end{itemize}
+ 
+Las tareas necesitan un equipo de hilos que las ejecute, por lo que la recursión se lanza dentro de una región paralela en la que un único hilo genera las tareas:
+ 
+\begin{lstlisting}[style=EstiloC]
+#pragma omp parallel default(none) shared(poblacion, tam_pob)
+#pragma omp single
+mergeSort_tareas(poblacion, 0, tam_pob);
+\end{lstlisting}
+ 
+El hilo que entra en el \texttt{single} inicia la recursión; el resto llega a la barrera implícita del \texttt{single} y, mientras espera, ejecuta las tareas pendientes.
+ 
+\subsection*{Versión 3: apartado (a), optimización de la gestión de memoria}
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mezclar_opt(Individuo **poblacion, Individuo **aux, int izq, int med, int der)
+{
+    int i = izq, j = med, k = izq;
+ 
+    while ((i < med) && (j < der)) {
+        if (ANTES(poblacion[i], poblacion[j])) {
+            aux[k++] = poblacion[i++];
+        }
+        else {
+            aux[k++] = poblacion[j++];
+        }
+    }
+    while (i < med) aux[k++] = poblacion[i++];
+    while (j < der) aux[k++] = poblacion[j++];
+ 
+    memcpy(&poblacion[izq], &aux[izq], (der - izq) * sizeof(Individuo *));
+}
+\end{lstlisting}
+ 
+Los cambios respecto a la función original son:
+ 
+\begin{enumerate}
+    \item \textbf{Solo se mueven punteros.} La población es un vector de punteros a \texttt{Individuo}, por lo que basta con reordenar los punteros (8 bytes) en lugar de copiar cada \texttt{struct} dos veces. Es lo mismo que hace internamente \texttt{qsort}.
+    \item \textbf{Ninguna reserva durante la recursión.} Se utiliza un único vector auxiliar del tamaño de la población, reservado una sola vez en \texttt{ordenar\_poblacion} antes de ordenar y liberado al terminar. Se pasa de unas $22\,000$ parejas \texttt{malloc}/\texttt{free} por ordenación a una sola.
+    \item \textbf{Sin condiciones de carrera.} Cada llamada solo escribe en su zona \texttt{aux[izq..der)}. Como las tareas hermanas trabajan sobre rangos disjuntos, nunca acceden a la misma posición del vector auxiliar.
+\end{enumerate}
+ 
+La recursión con tareas es idéntica a la de la Versión 2, pero llamando a \texttt{mezclar\_opt} y pasando el vector \texttt{aux} como \texttt{firstprivate}.
+ 
+\subsection*{Versión 4: apartado (b), condicional en las tareas}
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mergeSort_tareas_if(Individuo **poblacion, int izq, int der)
+{
+    int med = (izq + der) / 2;
+    if ((der - izq) < 2) { return; }
+ 
+    #pragma omp task default(none) firstprivate(poblacion, izq, med) if((der - izq) > UMBRAL)
+    mergeSort_tareas_if(poblacion, izq, med);
+ 
+    #pragma omp task default(none) firstprivate(poblacion, med, der) if((der - izq) > UMBRAL)
+    mergeSort_tareas_if(poblacion, med, der);
+ 
+    #pragma omp taskwait
+    mezclar(poblacion, izq, med, der);
+}
+\end{lstlisting}
+ 
+Cuando la condición del \texttt{if} es falsa, la tarea es \textit{undeferred}: no se encola, sino que la ejecuta inmediatamente el hilo que la encuentra. Así solo se reparten entre hilos los fragmentos grandes, que son los que tienen trabajo suficiente para compensar el coste de crear una tarea. Su limitación es que, aunque no se encole, el \textit{runtime} sigue creando la estructura de la tarea, por lo que la sobrecarga solo se reduce en parte. Esta versión conserva el \texttt{mezclar} original para poder medir por separado el efecto del apartado (b).
+ 
+\subsection*{Versión 5: versión final, combinación de (a) y (b)}
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mergeSort_final(Individuo **poblacion, Individuo **aux, int izq, int der)
+{
+    int med = (izq + der) / 2;
+ 
+    // (b) corte manual: trozo pequeno -> secuencial, sin OpenMP
+    if ((der - izq) <= UMBRAL) {
+        mergeSort_seq_opt(poblacion, aux, izq, der);
+        return;
+    }
+ 
+    // una mitad como tarea
+    #pragma omp task default(none) firstprivate(poblacion, aux, izq, med)
+    mergeSort_final(poblacion, aux, izq, med);
+ 
+    // la otra mitad la ordena este mismo hilo
+    mergeSort_final(poblacion, aux, med, der);
+ 
+    #pragma omp taskwait
+    mezclar_opt(poblacion, aux, izq, med, der);   // (a)
+}
+\end{lstlisting}
+ 
+Respecto a las versiones anteriores, se introducen tres mejoras:
+ 
+\begin{enumerate}
+    \item \textbf{Corte manual en lugar de \texttt{if}.} Por debajo del umbral se llama a una función totalmente secuencial (\texttt{mergeSort\_seq\_opt}), que no crea ninguna tarea. A diferencia de la cláusula \texttt{if}, la sobrecarga de OpenMP en los fragmentos pequeños es nula.
+    \item \textbf{Una sola tarea por nivel.} Solo la mitad izquierda se lanza como tarea; la derecha la ordena el propio hilo. Se crean la mitad de tareas y el hilo no queda ocioso en el \texttt{taskwait} mientras trabajan sus dos hijas.
+    \item \textbf{Mezcla optimizada}, sin reservas de memoria y moviendo solo punteros.
+\end{enumerate}
+ 
+\subsection*{Medición de tiempos}
+ 
+El tiempo se mide dentro de \texttt{ordenar\_poblacion} con \texttt{omp\_get\_wtime()}, ya que la función \texttt{mseconds()} del código solo tiene resolución de milisegundos y una ordenación dura décimas de milisegundo. Se acumula el tiempo de todas las ordenaciones de la ejecución y se divide entre su número:
+ 
+\begin{lstlisting}[style=EstiloC]
+void ordenar_poblacion(Individuo **poblacion, int tam_pob)
+{
+    double t0 = omp_get_wtime();
+    ...                                   // version seleccionada
+    t_ordenacion += omp_get_wtime() - t0;
+}
+\end{lstlisting}
+ 
+Se utiliza el tiempo medio por ordenación porque el criterio de convergencia puede detener el algoritmo en un número distinto de generaciones en cada ejecución. En los experimentos realizados todas las ejecuciones convergieron en 15 generaciones (16 ordenaciones), por lo que también los totales son comparables.
+ 
+\subsection*{Resultados experimentales}
+ 
+Los experimentos se han realizado con $n = 2000$, $m = 200$, $n\_gen = 400$, $tam\_pob = 2000$ y $m\_rate = 0,15$, tomando la media de \textbf{5 ejecuciones} para cada configuración. Como tiempo secuencial de referencia para el \textit{speed-up} se toma el \texttt{qsort} original con 1 hilo (V0), $T_{\text{sec}} = 0,1167\text{ ms}$ por ordenación.
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Versión} & \textbf{1 hilo} & \textbf{2 hilos} & \textbf{4 hilos} & \textbf{6 hilos} \\
+        \midrule
+        V0 -- \texttt{qsort}                 & \textbf{0,117} & 0,173 & 0,384 & 0,394 \\
+        V1 -- \texttt{mergeSort} secuencial  & 0,359 & 0,681 & 1,909 & 2,002 \\
+        V2 -- tareas                         & 0,551 & 2,221 & 5,563 & 7,661 \\
+        V3 -- tareas + (a)                   & 0,338 & 1,276 & 5,369 & 7,577 \\
+        V4 -- tareas + (b), umbral 64        & 0,543 & 0,711 & 0,940 & 1,024 \\
+        V5 -- (a) + (b), umbral 64           & 0,131 & 0,224 & 0,365 & \textbf{0,270} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tiempo medio por ordenación (ms). $n = 2000$, $m = 200$, $n\_gen = 400$, $tam\_pob = 2000$, $m\_rate = 0,15$.}
+    \label{tab:c6_tiempos}
+\end{table}
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Versión} & \textbf{$S_1$} & \textbf{$S_2$} & \textbf{$S_4$} & \textbf{$S_6$} & \textbf{$E_6$} \\
+        \midrule
+        V0 & 1,00 & 0,68 & 0,30 & 0,30 & 4,9\% \\
+        V1 & 0,33 & 0,17 & 0,06 & 0,06 & 1,0\% \\
+        V2 & 0,21 & 0,05 & 0,02 & 0,02 & 0,3\% \\
+        V3 & 0,35 & 0,09 & 0,02 & 0,02 & 0,3\% \\
+        V4 & 0,22 & 0,16 & 0,12 & 0,11 & 1,9\% \\
+        V5 & 0,89 & 0,52 & 0,32 & 0,43 & 7,2\% \\
+        \bottomrule
+    \end{tabular}
+    \caption{\textit{Speed-up} y eficiencia de cada versión respecto al \texttt{qsort} con 1 hilo.}
+    \label{tab:c6_speedup}
+\end{table}
+ 
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=8.5cm,
+            xlabel={Número de hilos ($p$)},
+            ylabel={Tiempo por ordenación (ms, escala log.)},
+            ymode=log,
+            xmin=1, xmax=6,
+            xtick={1,2,4,6},
+            legend style={font=\footnotesize, at={(0.5,-0.18)}, anchor=north, legend columns=3},
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            \addplot[color=gray, dashed, thick, mark=*] coordinates {
+                (1,0.117) (2,0.173) (4,0.384) (6,0.394)
+            };
+            \addlegendentry{V0 \texttt{qsort}}
+ 
+            \addplot[color=black, mark=square*, thick] coordinates {
+                (1,0.359) (2,0.681) (4,1.909) (6,2.002)
+            };
+            \addlegendentry{V1 secuencial}
+ 
+            \addplot[color=danger, mark=triangle*, thick] coordinates {
+                (1,0.551) (2,2.221) (4,5.563) (6,7.661)
+            };
+            \addlegendentry{V2 tareas}
+ 
+            \addplot[color=orange, mark=diamond*, thick] coordinates {
+                (1,0.338) (2,1.276) (4,5.369) (6,7.577)
+            };
+            \addlegendentry{V3 tareas + (a)}
+ 
+            \addplot[color=secondary, mark=pentagon*, thick] coordinates {
+                (1,0.543) (2,0.711) (4,0.940) (6,1.024)
+            };
+            \addlegendentry{V4 tareas + (b)}
+ 
+            \addplot[color=primary, mark=otimes*, very thick] coordinates {
+                (1,0.131) (2,0.224) (4,0.365) (6,0.270)
+            };
+            \addlegendentry{V5 (a) + (b)}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Evolución del tiempo medio por ordenación según el número de hilos.}
+    \label{fig:c6_tiempos}
+\end{figure}
+ 
+Para el apartado (b) se ha realizado además un barrido del umbral con 6 hilos para las dos versiones que lo utilizan (Cuadro \ref{tab:c6_umbral} y Figura \ref{fig:c6_umbral}).
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lcccccc}
+        \toprule
+        \textbf{Umbral} & \textbf{16} & \textbf{32} & \textbf{64} & \textbf{128} & \textbf{256} & \textbf{512} \\
+        \midrule
+        V4 (\texttt{if})   & 1,114 & 0,964 & 0,911 & 0,886 & \textbf{0,818} & 0,864 \\
+        V5 (final)         & 0,430 & 0,318 & 0,287 & 0,268 & 0,242 & \textbf{0,238} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tiempo medio por ordenación (ms) según el umbral, con 6 hilos. Mismos parámetros que el Cuadro \ref{tab:c6_tiempos}.}
+    \label{tab:c6_umbral}
+\end{table}
+ 
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=7cm,
+            xlabel={Umbral (nº de individuos)},
+            ylabel={Tiempo por ordenación (ms)},
+            xmode=log, log basis x=2,
+            xtick={16,32,64,128,256,512},
+            xticklabels={16,32,64,128,256,512},
+            ymin=0, ymax=1.6,
+            legend pos=north east,
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            \addplot[color=gray, dashed, thick] coordinates {
+                (16,0.117) (512,0.117)
+            };
+            \addlegendentry{\texttt{qsort}, 1 hilo}
+ 
+            \addplot[color=secondary, mark=pentagon*, thick] coordinates {
+                (16,1.114) (32,0.964) (64,0.911) (128,0.886) (256,0.818) (512,0.864)
+            };
+            \addlegendentry{V4 tareas + \texttt{if}}
+ 
+            \addplot[color=primary, mark=otimes*, thick] coordinates {
+                (16,0.430) (32,0.318) (64,0.287) (128,0.268) (256,0.242) (512,0.238)
+            };
+            \addlegendentry{V5 (a) + (b)}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Efecto del umbral en el tiempo de ordenación con 6 hilos.}
+    \label{fig:c6_umbral}
+\end{figure}
+ 
+\subsection*{Análisis de resultados}
+ 
+\begin{enumerate}
+    \item \textbf{Sustituir \texttt{qsort} por \texttt{mergeSort} ya empeora antes de paralelizar.} V1 tarda tres veces más que \texttt{qsort} con un hilo ($0,359$ frente a $0,117$ ms). Ambos algoritmos son $O(n \log n)$, por lo que la diferencia no se debe al algoritmo sino a la gestión de memoria del \texttt{mezclar} proporcionado: unas $22\,000$ parejas \texttt{malloc}/\texttt{free} por ordenación y dos copias de cada \texttt{struct}. \texttt{qsort} solo intercambia punteros dentro del vector y no reserva memoria.
+ 
+    \item \textbf{Paralelizar con tareas sin control empeora mucho (V2).} Con 6 hilos tarda $7,66$ ms, 14 veces más que la misma versión con un hilo. Se deben a dos causas:
+    \begin{itemize}
+        \item \textbf{Granularidad demasiado fina.} Con 2000 individuos se crean unas 4000 tareas por ordenación, la mayoría de las cuales ordenan uno o dos elementos. El coste de crear, encolar, repartir y sincronizar cada tarea (del orden de microsegundos) es muy superior al trabajo útil que realiza.
+        \item \textbf{Contención en \texttt{malloc}.} Varios hilos reservan y liberan memoria a la vez y compiten por los cerrojos del gestor de memoria de glibc; además, un bloque reservado por un hilo puede ser liberado por otro. Por eso el tiempo crece con cada hilo añadido.
+    \end{itemize}
+    Con 2 hilos hay una ejecución anómala de $4,88$ ms; la mediana ($1,51$ ms) es más representativa, aunque no cambia la conclusión.
+ 
+    \item \textbf{Apartado (a): optimizar \texttt{mezclar} mejora la versión secuencial, pero no el paralelismo.} Con un hilo, V3 baja de $0,551$ a $0,338$ ms al eliminar las reservas de memoria. Con más hilos se comporta igual que V2 ($7,58$ ms con 6 hilos): al quitar el trabajo de memoria cada tarea hace todavía menos, y la sobrecarga de las 4000 tareas pesa aún más en proporción. La optimización ataca el coste de memoria, pero no el problema de granularidad.
+ 
+    \item \textbf{Apartado (b): el umbral es lo que evita que el paralelismo empeore.} V4 conserva el \texttt{mezclar} original, pero con la cláusula \texttt{if} pasa de $7,66$ a $1,02$ ms con 6 hilos (7,5 veces mejor que V2), ya que los fragmentos pequeños dejan de encolarse. No llega a mejorar a V1 porque con \texttt{if(false)} el \textit{runtime} sigue creando la tarea y las reservas de memoria siguen presentes.
+ 
+    \item \textbf{La combinación de (a) y (b), V5, es la mejor versión.} Con un hilo queda a un 12\% del \texttt{qsort} ($0,131$ frente a $0,117$ ms) y es la que mejor se comporta al aumentar los hilos; con 6 hilos ($0,270$ ms) es incluso más rápida que el \texttt{qsort} ejecutado con 6 hilos ($0,394$ ms), comparación que se matiza en el punto 7. Esto se consigue gracias al corte secuencial sin sobrecarga, a la generación de una sola tarea por nivel y a la eliminación de las reservas de memoria.
+ 
+    \item \textbf{El barrido del umbral confirma el diagnóstico.} En V5 el tiempo disminuye de forma continua al aumentar el umbral, de $0,430$ ms con 16 a $0,238$ ms con 512. Con umbral 512 y 2000 individuos solo se generan unas 3 tareas, es decir, prácticamente no hay paralelismo, y aun así es la mejor configuración. Para este tamaño de población, \textbf{cuanto menos paralelismo, mejor}. En V4 el mejor umbral es 256, aunque la diferencia con 512 entra dentro de la variabilidad de las medidas.
+ 
+    \item \textbf{V0 y V1 también empeoran con más hilos, aunque son secuenciales.} El \texttt{qsort} pasa de $0,117$ a $0,394$ ms y V1 de $0,36$ a $2,0$ ms sin contener ninguna directiva OpenMP. El aumento no se debe a la ordenación, sino al entorno en el que se ejecuta:
+    \begin{itemize}
+        \item Justo antes de cada ordenación se ejecutan las regiones paralelas de \texttt{fitness}. Al terminarlas, los hilos del equipo permanecen un tiempo en espera activa (\textit{spin-wait}, comportamiento por defecto de GOMP), consumiendo CPU.
+        \item Con más núcleos activos disminuye la frecuencia \textit{turbo} del procesador, incluida la del hilo que ordena.
+        \item Si el procesador dispone de \textit{hyperthreading} o de núcleos híbridos, el hilo principal puede compartir núcleo con hilos en espera activa o ejecutarse en un núcleo más lento.
+    \end{itemize}
+    Por este motivo, la comparación justa es contra el \texttt{qsort} con un hilo, que es la utilizada en el Cuadro \ref{tab:c6_speedup}.
+ 
+    \item \textbf{La ordenación no influye en el tiempo total.} Ordenar supone unos $1,9$ ms en una ejecución de unos $3,5$ s, aproximadamente un $0,05\%$. El tiempo total de las distintas versiones varía entre 3 y 5 s por ruido, sin relación con la versión. Aunque la ordenación fuese instantánea, el algoritmo no se aceleraría de forma apreciable: el coste está en el cálculo del \textit{fitness}.
+\end{enumerate}
+ 
+\subsection*{Conclusiones}
+ 
+\begin{itemize}
+    \item \textbf{¿Se reduce el tiempo de ejecución?} No. Para poblaciones de hasta 2000 individuos, ordenar es una operación muy corta (unos $0,1$ ms) y la sobrecarga de las tareas (creación, sincronización y contención en \texttt{malloc}) supera cualquier ganancia. La mejor versión paralela (V5) queda prácticamente igual que el \texttt{qsort} secuencial.
+    \item \textbf{Apartado (a).} Sí mejora, pero sobre todo porque elimina trabajo, no por el paralelismo. Es imprescindible para que \texttt{mergeSort} pueda competir con \texttt{qsort}.
+    \item \textbf{Apartado (b).} Sí mejora, y es la medida clave en la versión paralela, ya que evita generar miles de tareas diminutas. Los mejores resultados se obtienen con umbrales altos (256--512), lo que confirma que el problema es demasiado pequeño para paralelizarse con beneficio.
+    \item \textbf{Combinación (a) + (b).} Es la mejor versión. La paralelización de la ordenación solo compensaría con poblaciones mucho mayores, en las que cada tarea tuviese trabajo suficiente.
+    \item \textbf{Decisión para la Cuestión 8.} Dado que la ordenación supone un $0,05\%$ del tiempo total, en el código final se utilizará V5 con un umbral alto (o directamente \texttt{qsort}), y el esfuerzo de paralelización se centrará en el cálculo del \textit{fitness}.
+\end{itemize}
+ 
+\subsection*{Planteamiento y organización del código}
+ 
+La población se ordenaba con \texttt{qsort} en dos puntos de \texttt{aplicar\_mh}: justo después de generar la población inicial (bucle FOR\_INI) y al final de cada generación. Ambas llamadas se sustituyen por una única función, \texttt{ordenar\_poblacion}, que contiene las distintas implementaciones de \texttt{mergeSort} pedidas. El tercer \texttt{qsort} del código, el que ordena \texttt{poblacion[0]->array\_int}, no se modifica, ya que ordena los elementos de la solución y no la población.
+ 
+\begin{lstlisting}[style=EstiloC]
+// qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
+ordenar_poblacion(poblacion, tam_pob);
+\end{lstlisting}
+ 
+Todas las versiones se encuentran en un único fichero fuente, \texttt{mergesort.c}, con su cabecera \texttt{mergesort.h}. La versión que se compila se selecciona mediante compilación condicional con la opción \texttt{-DVERSION=n}. El umbral de las versiones con corte se fija con \texttt{-DUMBRAL=n}. De esta forma cualquier experimento se puede reproducir sin modificar el código:
+ 
+\begin{lstlisting}[style=EstiloValgrind]
+make sec VERSION=5 UMBRAL=256     # compila una version concreta
+make versiones                    # genera sec_v0 ... sec_v5
+./run.sh 2000 200 400 2000 0.15   # todas las versiones y barrido de umbral
+\end{lstlisting}
+ 
+En el Cuadro \ref{tab:c6_versiones} se resumen las versiones implementadas.
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{cl}
+        \toprule
+        \textbf{Versión} & \textbf{Descripción} \\
+        \midrule
+        V0 & \texttt{qsort} original (referencia secuencial) \\
+        V1 & \texttt{mergeSort} secuencial con el \texttt{mezclar} proporcionado \\
+        V2 & \texttt{mergeSort} con tareas OpenMP y el \texttt{mezclar} proporcionado \\
+        V3 & Tareas + \texttt{mezclar} optimizado en memoria \hfill (apartado a) \\
+        V4 & Tareas con cláusula \texttt{if(tamaño > UMBRAL)} \hfill (apartado b) \\
+        V5 & Versión final: (a) + (b) con corte manual y una tarea por nivel \\
+        \bottomrule
+    \end{tabular}
+    \caption{Versiones implementadas en la Cuestión 6.}
+    \label{tab:c6_versiones}
+\end{table}
+ 
+El criterio de orden debe coincidir con el de \texttt{comp\_fitness}, que deja en primer lugar el individuo con mayor \textit{fitness} (el MDP es un problema de maximización). Por ello en la mezcla se utiliza la comparación \texttt{>}, definida en una macro:
+ 
+\begin{lstlisting}[style=EstiloC]
+#define ANTES(a, b) ((a)->fitness > (b)->fitness)
+\end{lstlisting}
+ 
+\subsection*{Versión 1: \texttt{mergeSort} secuencial y \texttt{mezclar} completado}
+ 
+La función \texttt{mergeSort} es la del enunciado. En \texttt{mezclar}, cada comentario \texttt{// copiar} del fichero proporcionado se completa copiando el \texttt{struct} completo con \texttt{memmove}:
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mezclar(Individuo **poblacion, int izq, int med, int der)
+{
+    int i, j, k;
+ 
+    Individuo **pob = (Individuo **) malloc((der - izq) * sizeof(Individuo *));
+    assert(pob);
+    for (i = 0; i < (der - izq); i++) {
+        pob[i] = (Individuo *) malloc(sizeof(Individuo));
+        assert(pob[i]);
+    }
+ 
+    k = 0;
+    i = izq;
+    j = med;
+    while ((i < med) && (j < der)) {
+        if (ANTES(poblacion[i], poblacion[j])) {
+            memmove(pob[k++], poblacion[i++], sizeof(Individuo));
+        }
+        else {
+            memmove(pob[k++], poblacion[j++], sizeof(Individuo));
+        }
+    }
+    for (; i < med; i++) {      // restos de la mitad izquierda
+        memmove(pob[k++], poblacion[i], sizeof(Individuo));
+    }
+    for (; j < der; j++) {      // restos de la mitad derecha
+        memmove(pob[k++], poblacion[j], sizeof(Individuo));
+    }
+ 
+    // copiar el resultado ordenado de vuelta y liberar
+    i = 0;
+    while (i < (der - izq)) {
+        memmove(poblacion[i + izq], pob[i], sizeof(Individuo));
+        free(pob[i]);
+        i++;
+    }
+    free(pob);
+}
+\end{lstlisting}
+ 
+Copiar el \texttt{struct} es correcto aunque \texttt{Individuo} contenga un puntero: al copiarlo, el puntero \texttt{array\_int} se desplaza junto con su \textit{fitness}, de modo que ningún array de elementos se pierde ni se duplica; solo cambia en qué \texttt{struct} de la población queda almacenado. El inconveniente de esta implementación es su coste de memoria: cada llamada realiza \texttt{der - izq} reservas y liberaciones, lo que supone del orden de $n \log_2 n \approx 22\,000$ parejas \texttt{malloc}/\texttt{free} por ordenación con 2000 individuos.
+ 
+\subsection*{Versión 2: paralelización mediante tareas}
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mergeSort_tareas(Individuo **poblacion, int izq, int der)
+{
+    int med = (izq + der) / 2;
+    if ((der - izq) < 2) { return; }
+ 
+    #pragma omp task default(none) firstprivate(poblacion, izq, med)
+    mergeSort_tareas(poblacion, izq, med);
+ 
+    #pragma omp task default(none) firstprivate(poblacion, med, der)
+    mergeSort_tareas(poblacion, med, der);
+ 
+    #pragma omp taskwait
+    mezclar(poblacion, izq, med, der);
+}
+\end{lstlisting}
+ 
+Las decisiones tomadas son las siguientes:
+ 
+\begin{itemize}
+    \item \textbf{Uso de tareas.} \texttt{mergeSort} es un algoritmo recursivo que genera el trabajo de forma dinámica, por lo que no puede expresarse como un bucle (\texttt{for}) ni con un número fijo de bloques (\texttt{sections}). El modelo adecuado es el de tareas (\textit{task centric}).
+    \item \textbf{Independencia de las mitades.} Cada llamada recursiva trabaja sobre un rango disjunto del vector ($[izq, med)$ y $[med, der)$), por lo que ambas pueden ejecutarse en paralelo sin condiciones de carrera.
+    \item \textbf{\texttt{taskwait}.} La mezcla solo puede realizarse cuando las dos mitades estén ordenadas. \texttt{taskwait} espera únicamente a las tareas hijas de la tarea actual.
+    \item \textbf{\texttt{firstprivate}.} Una tarea puede ejecutarse más tarde, cuando la función que la creó ya ha terminado. Cada tarea necesita por tanto su propia copia de \texttt{izq}, \texttt{med} y \texttt{der}. \texttt{poblacion} también es \texttt{firstprivate}, pero al ser un puntero todas las copias apuntan al mismo vector, que es compartido.
+    \item \textbf{\texttt{default(none)}.} Obliga a declarar explícitamente el ámbito de cada variable y evita errores.
+\end{itemize}
+ 
+Las tareas necesitan un equipo de hilos que las ejecute, por lo que la recursión se lanza dentro de una región paralela en la que un único hilo genera las tareas:
+ 
+\begin{lstlisting}[style=EstiloC]
+#pragma omp parallel default(none) shared(poblacion, tam_pob)
+#pragma omp single
+mergeSort_tareas(poblacion, 0, tam_pob);
+\end{lstlisting}
+ 
+El hilo que entra en el \texttt{single} inicia la recursión; el resto llega a la barrera implícita del \texttt{single} y, mientras espera, ejecuta las tareas pendientes.
+ 
+\subsection*{Versión 3: apartado (a), optimización de la gestión de memoria}
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mezclar_opt(Individuo **poblacion, Individuo **aux, int izq, int med, int der)
+{
+    int i = izq, j = med, k = izq;
+ 
+    while ((i < med) && (j < der)) {
+        if (ANTES(poblacion[i], poblacion[j])) {
+            aux[k++] = poblacion[i++];
+        }
+        else {
+            aux[k++] = poblacion[j++];
+        }
+    }
+    while (i < med) aux[k++] = poblacion[i++];
+    while (j < der) aux[k++] = poblacion[j++];
+ 
+    memcpy(&poblacion[izq], &aux[izq], (der - izq) * sizeof(Individuo *));
+}
+\end{lstlisting}
+ 
+Los cambios respecto a la función original son:
+ 
+\begin{enumerate}
+    \item \textbf{Solo se mueven punteros.} La población es un vector de punteros a \texttt{Individuo}, por lo que basta con reordenar los punteros (8 bytes) en lugar de copiar cada \texttt{struct} dos veces. Es lo mismo que hace internamente \texttt{qsort}.
+    \item \textbf{Ninguna reserva durante la recursión.} Se utiliza un único vector auxiliar del tamaño de la población, reservado una sola vez en \texttt{ordenar\_poblacion} antes de ordenar y liberado al terminar. Se pasa de unas $22\,000$ parejas \texttt{malloc}/\texttt{free} por ordenación a una sola.
+    \item \textbf{Sin condiciones de carrera.} Cada llamada solo escribe en su zona \texttt{aux[izq..der)}. Como las tareas hermanas trabajan sobre rangos disjuntos, nunca acceden a la misma posición del vector auxiliar.
+\end{enumerate}
+ 
+La recursión con tareas es idéntica a la de la Versión 2, pero llamando a \texttt{mezclar\_opt} y pasando el vector \texttt{aux} como \texttt{firstprivate}.
+ 
+\subsection*{Versión 4: apartado (b), condicional en las tareas}
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mergeSort_tareas_if(Individuo **poblacion, int izq, int der)
+{
+    int med = (izq + der) / 2;
+    if ((der - izq) < 2) { return; }
+ 
+    #pragma omp task default(none) firstprivate(poblacion, izq, med) if((der - izq) > UMBRAL)
+    mergeSort_tareas_if(poblacion, izq, med);
+ 
+    #pragma omp task default(none) firstprivate(poblacion, med, der) if((der - izq) > UMBRAL)
+    mergeSort_tareas_if(poblacion, med, der);
+ 
+    #pragma omp taskwait
+    mezclar(poblacion, izq, med, der);
+}
+\end{lstlisting}
+ 
+Cuando la condición del \texttt{if} es falsa, la tarea es \textit{undeferred}: no se encola, sino que la ejecuta inmediatamente el hilo que la encuentra. Así solo se reparten entre hilos los fragmentos grandes, que son los que tienen trabajo suficiente para compensar el coste de crear una tarea. Su limitación es que, aunque no se encole, el \textit{runtime} sigue creando la estructura de la tarea, por lo que la sobrecarga solo se reduce en parte. Esta versión conserva el \texttt{mezclar} original para poder medir por separado el efecto del apartado (b).
+ 
+\subsection*{Versión 5: versión final, combinación de (a) y (b)}
+ 
+\begin{lstlisting}[style=EstiloC]
+static void mergeSort_final(Individuo **poblacion, Individuo **aux, int izq, int der)
+{
+    int med = (izq + der) / 2;
+ 
+    // (b) corte manual: trozo pequeno -> secuencial, sin OpenMP
+    if ((der - izq) <= UMBRAL) {
+        mergeSort_seq_opt(poblacion, aux, izq, der);
+        return;
+    }
+ 
+    // una mitad como tarea
+    #pragma omp task default(none) firstprivate(poblacion, aux, izq, med)
+    mergeSort_final(poblacion, aux, izq, med);
+ 
+    // la otra mitad la ordena este mismo hilo
+    mergeSort_final(poblacion, aux, med, der);
+ 
+    #pragma omp taskwait
+    mezclar_opt(poblacion, aux, izq, med, der);   // (a)
+}
+\end{lstlisting}
+ 
+Respecto a las versiones anteriores, se introducen tres mejoras:
+ 
+\begin{enumerate}
+    \item \textbf{Corte manual en lugar de \texttt{if}.} Por debajo del umbral se llama a una función totalmente secuencial (\texttt{mergeSort\_seq\_opt}), que no crea ninguna tarea. A diferencia de la cláusula \texttt{if}, la sobrecarga de OpenMP en los fragmentos pequeños es nula.
+    \item \textbf{Una sola tarea por nivel.} Solo la mitad izquierda se lanza como tarea; la derecha la ordena el propio hilo. Se crean la mitad de tareas y el hilo no queda ocioso en el \texttt{taskwait} mientras trabajan sus dos hijas.
+    \item \textbf{Mezcla optimizada}, sin reservas de memoria y moviendo solo punteros.
+\end{enumerate}
+ 
+\subsection*{Medición de tiempos}
+ 
+El tiempo se mide dentro de \texttt{ordenar\_poblacion} con \texttt{omp\_get\_wtime()}, ya que la función \texttt{mseconds()} del código solo tiene resolución de milisegundos y una ordenación dura décimas de milisegundo. Se acumula el tiempo de todas las ordenaciones de la ejecución y se divide entre su número:
+ 
+\begin{lstlisting}[style=EstiloC]
+void ordenar_poblacion(Individuo **poblacion, int tam_pob)
+{
+    double t0 = omp_get_wtime();
+    ...                                   // version seleccionada
+    t_ordenacion += omp_get_wtime() - t0;
+}
+\end{lstlisting}
+ 
+Se utiliza el tiempo medio por ordenación porque el criterio de convergencia puede detener el algoritmo en un número distinto de generaciones en cada ejecución. En los experimentos realizados todas las ejecuciones convergieron en 15 generaciones (16 ordenaciones), por lo que también los totales son comparables.
+ 
+\subsection*{Resultados experimentales}
+ 
+Los experimentos se han realizado con $n = 2000$, $m = 200$, $n\_gen = 400$, $tam\_pob = 2000$ y $m\_rate = 0,15$, tomando la media de \textbf{5 ejecuciones} para cada configuración. Como tiempo secuencial de referencia para el \textit{speed-up} se toma el \texttt{qsort} original con 1 hilo (V0), $T_{\text{sec}} = 0,1167\text{ ms}$ por ordenación.
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lcccc}
+        \toprule
+        \textbf{Versión} & \textbf{1 hilo} & \textbf{2 hilos} & \textbf{4 hilos} & \textbf{6 hilos} \\
+        \midrule
+        V0 -- \texttt{qsort}                 & \textbf{0,117} & 0,173 & 0,384 & 0,394 \\
+        V1 -- \texttt{mergeSort} secuencial  & 0,359 & 0,681 & 1,909 & 2,002 \\
+        V2 -- tareas                         & 0,551 & 2,221 & 5,563 & 7,661 \\
+        V3 -- tareas + (a)                   & 0,338 & 1,276 & 5,369 & 7,577 \\
+        V4 -- tareas + (b), umbral 64        & 0,543 & 0,711 & 0,940 & 1,024 \\
+        V5 -- (a) + (b), umbral 64           & 0,131 & 0,224 & 0,365 & \textbf{0,270} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tiempo medio por ordenación (ms). $n = 2000$, $m = 200$, $n\_gen = 400$, $tam\_pob = 2000$, $m\_rate = 0,15$.}
+    \label{tab:c6_tiempos}
+\end{table}
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Versión} & \textbf{$S_1$} & \textbf{$S_2$} & \textbf{$S_4$} & \textbf{$S_6$} & \textbf{$E_6$} \\
+        \midrule
+        V0 & 1,00 & 0,68 & 0,30 & 0,30 & 4,9\% \\
+        V1 & 0,33 & 0,17 & 0,06 & 0,06 & 1,0\% \\
+        V2 & 0,21 & 0,05 & 0,02 & 0,02 & 0,3\% \\
+        V3 & 0,35 & 0,09 & 0,02 & 0,02 & 0,3\% \\
+        V4 & 0,22 & 0,16 & 0,12 & 0,11 & 1,9\% \\
+        V5 & 0,89 & 0,52 & 0,32 & 0,43 & 7,2\% \\
+        \bottomrule
+    \end{tabular}
+    \caption{\textit{Speed-up} y eficiencia de cada versión respecto al \texttt{qsort} con 1 hilo.}
+    \label{tab:c6_speedup}
+\end{table}
+ 
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=8.5cm,
+            xlabel={Número de hilos ($p$)},
+            ylabel={Tiempo por ordenación (ms, escala log.)},
+            ymode=log,
+            xmin=1, xmax=6,
+            xtick={1,2,4,6},
+            legend style={font=\footnotesize, at={(0.5,-0.18)}, anchor=north, legend columns=3},
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            \addplot[color=gray, dashed, thick, mark=*] coordinates {
+                (1,0.117) (2,0.173) (4,0.384) (6,0.394)
+            };
+            \addlegendentry{V0 \texttt{qsort}}
+ 
+            \addplot[color=black, mark=square*, thick] coordinates {
+                (1,0.359) (2,0.681) (4,1.909) (6,2.002)
+            };
+            \addlegendentry{V1 secuencial}
+ 
+            \addplot[color=danger, mark=triangle*, thick] coordinates {
+                (1,0.551) (2,2.221) (4,5.563) (6,7.661)
+            };
+            \addlegendentry{V2 tareas}
+ 
+            \addplot[color=orange, mark=diamond*, thick] coordinates {
+                (1,0.338) (2,1.276) (4,5.369) (6,7.577)
+            };
+            \addlegendentry{V3 tareas + (a)}
+ 
+            \addplot[color=secondary, mark=pentagon*, thick] coordinates {
+                (1,0.543) (2,0.711) (4,0.940) (6,1.024)
+            };
+            \addlegendentry{V4 tareas + (b)}
+ 
+            \addplot[color=primary, mark=otimes*, very thick] coordinates {
+                (1,0.131) (2,0.224) (4,0.365) (6,0.270)
+            };
+            \addlegendentry{V5 (a) + (b)}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Evolución del tiempo medio por ordenación según el número de hilos.}
+    \label{fig:c6_tiempos}
+\end{figure}
+ 
+Para el apartado (b) se ha realizado además un barrido del umbral con 6 hilos para las dos versiones que lo utilizan (Cuadro \ref{tab:c6_umbral} y Figura \ref{fig:c6_umbral}).
+ 
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{lcccccc}
+        \toprule
+        \textbf{Umbral} & \textbf{16} & \textbf{32} & \textbf{64} & \textbf{128} & \textbf{256} & \textbf{512} \\
+        \midrule
+        V4 (\texttt{if})   & 1,114 & 0,964 & 0,911 & 0,886 & \textbf{0,818} & 0,864 \\
+        V5 (final)         & 0,430 & 0,318 & 0,287 & 0,268 & 0,242 & \textbf{0,238} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Tiempo medio por ordenación (ms) según el umbral, con 6 hilos. Mismos parámetros que el Cuadro \ref{tab:c6_tiempos}.}
+    \label{tab:c6_umbral}
+\end{table}
+ 
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=7cm,
+            xlabel={Umbral (nº de individuos)},
+            ylabel={Tiempo por ordenación (ms)},
+            xmode=log, log basis x=2,
+            xtick={16,32,64,128,256,512},
+            xticklabels={16,32,64,128,256,512},
+            ymin=0, ymax=1.6,
+            legend pos=north east,
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            \addplot[color=gray, dashed, thick] coordinates {
+                (16,0.117) (512,0.117)
+            };
+            \addlegendentry{\texttt{qsort}, 1 hilo}
+ 
+            \addplot[color=secondary, mark=pentagon*, thick] coordinates {
+                (16,1.114) (32,0.964) (64,0.911) (128,0.886) (256,0.818) (512,0.864)
+            };
+            \addlegendentry{V4 tareas + \texttt{if}}
+ 
+            \addplot[color=primary, mark=otimes*, thick] coordinates {
+                (16,0.430) (32,0.318) (64,0.287) (128,0.268) (256,0.242) (512,0.238)
+            };
+            \addlegendentry{V5 (a) + (b)}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Efecto del umbral en el tiempo de ordenación con 6 hilos.}
+    \label{fig:c6_umbral}
+\end{figure}
+ 
+\subsection*{Análisis de resultados}
+ 
+\begin{enumerate}
+    \item \textbf{Sustituir \texttt{qsort} por \texttt{mergeSort} ya empeora antes de paralelizar.} V1 tarda tres veces más que \texttt{qsort} con un hilo ($0,359$ frente a $0,117$ ms). Ambos algoritmos son $O(n \log n)$, por lo que la diferencia no se debe al algoritmo sino a la gestión de memoria del \texttt{mezclar} proporcionado: unas $22\,000$ parejas \texttt{malloc}/\texttt{free} por ordenación y dos copias de cada \texttt{struct}. \texttt{qsort} solo intercambia punteros dentro del vector y no reserva memoria.
+ 
+    \item \textbf{Paralelizar con tareas sin control empeora mucho (V2).} Con 6 hilos tarda $7,66$ ms, 14 veces más que la misma versión con un hilo. Se deben a dos causas:
+    \begin{itemize}
+        \item \textbf{Granularidad demasiado fina.} Con 2000 individuos se crean unas 4000 tareas por ordenación, la mayoría de las cuales ordenan uno o dos elementos. El coste de crear, encolar, repartir y sincronizar cada tarea (del orden de microsegundos) es muy superior al trabajo útil que realiza.
+        \item \textbf{Contención en \texttt{malloc}.} Varios hilos reservan y liberan memoria a la vez y compiten por los cerrojos del gestor de memoria de glibc; además, un bloque reservado por un hilo puede ser liberado por otro. Por eso el tiempo crece con cada hilo añadido.
+    \end{itemize}
+    Con 2 hilos hay una ejecución anómala de $4,88$ ms; la mediana ($1,51$ ms) es más representativa, aunque no cambia la conclusión.
+ 
+    \item \textbf{Apartado (a): optimizar \texttt{mezclar} mejora la versión secuencial, pero no el paralelismo.} Con un hilo, V3 baja de $0,551$ a $0,338$ ms al eliminar las reservas de memoria. Con más hilos se comporta igual que V2 ($7,58$ ms con 6 hilos): al quitar el trabajo de memoria cada tarea hace todavía menos, y la sobrecarga de las 4000 tareas pesa aún más en proporción. La optimización ataca el coste de memoria, pero no el problema de granularidad.
+ 
+    \item \textbf{Apartado (b): el umbral es lo que evita que el paralelismo empeore.} V4 conserva el \texttt{mezclar} original, pero con la cláusula \texttt{if} pasa de $7,66$ a $1,02$ ms con 6 hilos (7,5 veces mejor que V2), ya que los fragmentos pequeños dejan de encolarse. No llega a mejorar a V1 porque con \texttt{if(false)} el \textit{runtime} sigue creando la tarea y las reservas de memoria siguen presentes.
+ 
+    \item \textbf{La combinación de (a) y (b), V5, es la mejor versión.} Con un hilo queda a un 12\% del \texttt{qsort} ($0,131$ frente a $0,117$ ms) y es la que mejor se comporta al aumentar los hilos; con 6 hilos ($0,270$ ms) es incluso más rápida que el \texttt{qsort} ejecutado con 6 hilos ($0,394$ ms), comparación que se matiza en el punto 7. Esto se consigue gracias al corte secuencial sin sobrecarga, a la generación de una sola tarea por nivel y a la eliminación de las reservas de memoria.
+ 
+    \item \textbf{El barrido del umbral confirma el diagnóstico.} En V5 el tiempo disminuye de forma continua al aumentar el umbral, de $0,430$ ms con 16 a $0,238$ ms con 512. Con umbral 512 y 2000 individuos solo se generan unas 3 tareas, es decir, prácticamente no hay paralelismo, y aun así es la mejor configuración. Para este tamaño de población, \textbf{cuanto menos paralelismo, mejor}. En V4 el mejor umbral es 256, aunque la diferencia con 512 entra dentro de la variabilidad de las medidas.
+ 
+    \item \textbf{V0 y V1 también empeoran con más hilos, aunque son secuenciales.} El \texttt{qsort} pasa de $0,117$ a $0,394$ ms y V1 de $0,36$ a $2,0$ ms sin contener ninguna directiva OpenMP. El aumento no se debe a la ordenación, sino al entorno en el que se ejecuta:
+    \begin{itemize}
+        \item Justo antes de cada ordenación se ejecutan las regiones paralelas de \texttt{fitness}. Al terminarlas, los hilos del equipo permanecen un tiempo en espera activa (\textit{spin-wait}, comportamiento por defecto de GOMP), consumiendo CPU.
+        \item Con más núcleos activos disminuye la frecuencia \textit{turbo} del procesador, incluida la del hilo que ordena.
+        \item Si el procesador dispone de \textit{hyperthreading} o de núcleos híbridos, el hilo principal puede compartir núcleo con hilos en espera activa o ejecutarse en un núcleo más lento.
+    \end{itemize}
+    Por este motivo, la comparación justa es contra el \texttt{qsort} con un hilo, que es la utilizada en el Cuadro \ref{tab:c6_speedup}.
+ 
+    \item \textbf{La ordenación no influye en el tiempo total.} Ordenar supone unos $1,9$ ms en una ejecución de unos $3,5$ s, aproximadamente un $0,05\%$. El tiempo total de las distintas versiones varía entre 3 y 5 s por ruido, sin relación con la versión. Aunque la ordenación fuese instantánea, el algoritmo no se aceleraría de forma apreciable: el coste está en el cálculo del \textit{fitness}.
+\end{enumerate}
+ 
+\subsection*{Conclusiones}
+ 
+\begin{itemize}
+    \item \textbf{¿Se reduce el tiempo de ejecución?} No. Para poblaciones de hasta 2000 individuos, ordenar es una operación muy corta (unos $0,1$ ms) y la sobrecarga de las tareas (creación, sincronización y contención en \texttt{malloc}) supera cualquier ganancia. La mejor versión paralela (V5) queda prácticamente igual que el \texttt{qsort} secuencial.
+    \item \textbf{Apartado (a).} Sí mejora, pero sobre todo porque elimina trabajo, no por el paralelismo. Es imprescindible para que \texttt{mergeSort} pueda competir con \texttt{qsort}.
+    \item \textbf{Apartado (b).} Sí mejora, y es la medida clave en la versión paralela, ya que evita generar miles de tareas diminutas. Los mejores resultados se obtienen con umbrales altos (256--512), lo que confirma que el problema es demasiado pequeño para paralelizarse con beneficio.
+    \item \textbf{Combinación (a) + (b).} Es la mejor versión. La paralelización de la ordenación solo compensaría con poblaciones mucho mayores, en las que cada tarea tuviese trabajo suficiente.
+    \item \textbf{Decisión para la Cuestión 8.} Dado que la ordenación supone un $0,05\%$ del tiempo total, en el código final se utilizará V5 con un umbral alto (o directamente \texttt{qsort}), y el esfuerzo de paralelización se centrará en el cálculo del \textit{fitness}.
+\end{itemize}
+ 
+
+
+
 \item \textbf{Cuestión 7.} Explicar para qué se usan en general, y si es necesario utilizar de forma explícita en alguna zona del código los siguientes constructores: \texttt{barrier}, \texttt{single}, \texttt{master}, \texttt{ordered}. Considerar también su posible uso en un código paralelo optimizado (como el requerido en la Cuestión 8).
 
 \texttt{\#pragma omp barrier}
