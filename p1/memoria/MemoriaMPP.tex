@@ -2698,6 +2698,31 @@ Para el apartado (b) se ha realizado además un barrido del umbral con 6 hilos p
 
 
 
+Para la realización de este ejercicio, se ha paralelizado el código utilizando únicamente las directivas \texttt{parallel}, \texttt{for} (con \texttt{schedule} y \texttt{nowait}), \texttt{single} y \texttt{threadprivate}. A continuación describimos los cambios realizados y su justificación.
+
+\paragraph{Generación de números aleatorios.}
+La función \texttt{rand()} no es \textit{thread safe}: al compartir un único estado interno, o bien los hilos generan la misma secuencia (replicando la computación), o bien el sistema serializa las llamadas y se pierde paralelismo. Por ello se ha sustituido por \texttt{rand\_r(\&semilla)}, donde \texttt{semilla} se declara \texttt{static} y \texttt{threadprivate}, de modo que cada hilo tiene su propia copia. Cada hilo la inicializa al entrar en la región paralela con \texttt{time(NULL) + getpid() + 7919 * omp\_get\_thread\_num()}, lo que garantiza secuencias distintas por hilo. Esto sustituye a la llamada a \texttt{srand} del código secuencial y permite mantener la cabecera de \texttt{aleatorio} sin cambios.
+
+\paragraph{Una única región paralela.}
+Todo el algoritmo se encierra en una sola región \texttt{\#pragma omp parallel}, de forma que el equipo de hilos se crea una vez (lo que sería el fork) y se sincroniza al final (el join), en lugar de crear y destruir hilos en cada generación. Se usa \texttt{default(none)} para declarar explícitamente el alcance de cada variable: los datos del problema, la población y las variables de control (\texttt{fitness\_modelo}, \texttt{ngeneracion}, \texttt{value}) son compartidas, mientras que los índices de los bucles se declaran dentro de cada \texttt{for}, por lo que son privados.
+
+\paragraph{Creación de la población inicial.}
+Se reparte con \texttt{\#pragma omp for schedule(dynamic)}. Las iteraciones son independientes, ya que cada una solo escribe en \texttt{poblacion[i]}, pero su coste es variable porque \texttt{crear\_individuo} descarta aleatoriamente los valores repetidos. El reparto dinámico equilibra mejor la carga.
+
+\paragraph{Bucle de generaciones.}
+Este bucle no puede repartirse entre hilos, puesto que cada generación depende de la anterior. Lo ejecutan todos los hilos y se paraleliza el trabajo de dentro de cada generación:
+\begin{itemize}
+	\item \textbf{Cruce:} \texttt{\#pragma omp for schedule(dynamic)}. Cada iteración lee dos padres de la primera mitad y escribe dos hijos distintos de la segunda mitad, por lo que no hay dependencias. Se usa reparto dinámico porque la reparación de genes duplicados tiene un coste aleatorio. La barrera implícita al final es necesaria: la mutación modifica individuos del rango $[tam\_pob/4,\ tam\_pob/2)$, que actúan como padres en el cruce, y no pueden mutarse hasta que todos los cruces hayan terminado de leerlos.
+	\item \textbf{Mutación y fitness:} se han fusionado en un único bucle con \texttt{\#pragma omp for schedule(static)}, mutando solo cuando $i \geq tam\_pob/4$. El fitness de un individuo depende únicamente de su propia mutación, por lo que no es necesario esperar a que termine toda la mutación, y se ahorra una barrera por generación. Elegimos un reparto estático porque el coste lo domina el cálculo del fitness e igual para todos los individuos, y así se evita la sobrecarga del reparto dinámico.
+	\item \textbf{Ordenación y convergencia:} el \texttt{qsort}, la actualización de \texttt{fitness\_modelo} y \texttt{ngeneracion} y la impresión opcional se realizan dentro de un \texttt{\#pragma omp single}, ya que son operaciones secuenciales sobre toda la población. La barrera implícita al final del \texttt{single} garantiza que todos los hilos leen el mismo valor de \texttt{ngeneracion} en la condición del bucle, de modo que todos terminan en la misma generación.
+\end{itemize}
+
+\paragraph{Solución y liberación de memoria.}
+La ordenación del mejor individuo, su copia en \texttt{sol} y el almacenamiento del fitness final se hacen en un \texttt{single}, cuya barrera impide liberar la memoria antes de haber copiado la solución. La liberación de los individuos se reparte con \texttt{\#pragma omp for schedule(static) nowait}: cada iteración libera un individuo distinto, y se omite la barrera porque la del final de la región paralela ya sincroniza. Por último, \texttt{free(poblacion)} se ejecuta fuera de la región.
+
+\paragraph{Funciones auxiliares.}
+Las funciones \texttt{cruzar}, \texttt{mutar}, \texttt{distancia\_ij} y \texttt{fitness} no se han modificado ni contienen directivas. Ya se invocan desde bucles paralelos sobre la población y, como el tamaño de la población suele ser mucho mayor que el número de hilos, paralelizarlas internamente supondría un paralelismo anidado de grano muy fino cuya sobrecarga superaría la ganancia. Son seguras para ejecutarse en paralelo porque solo usan variables locales, escriben únicamente en sus propios individuos y generan aleatorios con la semilla de su hilo.
+
 
 
 

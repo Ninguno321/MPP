@@ -1,2 +1,8 @@
 \babel@toc {spanish}{}\relax 
 \contentsline {section}{\numberline {1}Ejercicios}{3}{section.1}%
+\contentsline {paragraph}{Generación de números aleatorios.}{54}{paragraph*.1}%
+\contentsline {paragraph}{Una única región paralela.}{54}{paragraph*.2}%
+\contentsline {paragraph}{Creación de la población inicial.}{54}{paragraph*.3}%
+\contentsline {paragraph}{Bucle de generaciones.}{54}{paragraph*.4}%
+\contentsline {paragraph}{Solución y liberación de memoria.}{55}{paragraph*.5}%
+\contentsline {paragraph}{Funciones auxiliares.}{55}{paragraph*.6}%
