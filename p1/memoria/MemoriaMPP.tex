@@ -1380,7 +1380,7 @@ make versiones                    # genera sec_v0 ... sec_v5
 ./run.sh 2000 200 400 2000 0.15   # todas las versiones y barrido de umbral
 \end{lstlisting}
  
-En el Cuadro \ref{tab:c6_versiones} se resumen las versiones implementadas.
+En el Cuadro \ref{tab:c6_versiondses} se resumen las versiones implementadas.
  
 \begin{table}[htbp]
     \centering
@@ -1686,7 +1686,7 @@ Los experimentos se han realizado con $n = 2000$, $m = 200$, $n\_gen = 400$, $ta
     \label{fig:c6_tiempossdad}
 \end{figure}
  
-Para el apartado (b) se ha realizado además un barrido del umbral con 6 hilos para las dos versiones que lo utilizan (Cuadro \ref{tab:c6_umbral} y Figura \ref{fig:c6_umbral}).
+Para el apartado (b) se ha realizado además un barrido del umbral con 6 hilos para las dos versiones que lo utilizan (Cuadro \ref{tab:c6_umdsabral} y Figura \ref{fig:c6_umbradsdl}).
  
 \begin{table}[htbp]
     \centering
@@ -1882,6 +1882,7 @@ muy superior al trabajo útil que realiza.
 
 
 
+\newpage
 
 
 
@@ -1913,6 +1914,8 @@ muy superior al trabajo útil que realiza.
 
 
 
+\newpage
+
 \item \textbf{Cuestión 8.} Paralelizar la totalidad del algoritmo utilizando las directivas OpenMP que se considere mejor para cada función o bucle (y que pueden ser distintas a las usadas para resolver las cuestiones). Justificar las decisiones tomadas. De este modo, se pretende tener un código paralelo óptimo en memoria compartida que se podrá usar posteriormente para comparar con el código paralelo de paso de mensajes e híbrido implementado en las siguientes prácticas.
 
 
@@ -1940,13 +1943,570 @@ Este bucle no puede repartirse entre hilos, puesto que cada generación depende 
 La ordenación del mejor individuo, su copia en \texttt{sol} y el almacenamiento del fitness final se hacen en un \texttt{single}, cuya barrera impide liberar la memoria antes de haber copiado la solución. La liberación de los individuos se reparte con \texttt{\#pragma omp for schedule(static) nowait}: cada iteración libera un individuo distinto, y se omite la barrera porque la del final de la región paralela ya sincroniza. Por último, \texttt{free(poblacion)} se ejecuta fuera de la región.
 
 \paragraph{Funciones auxiliares.}
-Las funciones \texttt{cruzar}, \texttt{mutar}, \texttt{distancia\_ij} y \texttt{fitness} no se han modificado ni contienen directivas. Ya se invocan desde bucles paralelos sobre la población y, como el tamaño de la población suele ser mucho mayor que el número de hilos, paralelizarlas internamente supondría un paralelismo anidado de grano muy fino cuya sobrecarga superaría la ganancia. Son seguras para ejecutarse en paralelo porque solo usan variables locales, escriben únicamente en sus propios individuos y generan aleatorios con la semilla de su hilo.
+Las funciones \texttt{cruzar}, \texttt{mutar}, \texttt{distancia\_ij} y \texttt{fitness} no se han modificado (en distancia hemos eliminado una comprobación que ralentizaba el algoritmo) ni contienen directivas. Ya se invocan desde bucles paralelos sobre la población y, como el tamaño de la población suele ser mucho mayor que el número de hilos, paralelizarlas internamente supondría un paralelismo anidado de grano muy fino cuya sobrecarga superaría la ganancia. Son seguras para ejecutarse en paralelo porque solo usan variables locales, escriben únicamente en sus propios individuos y generan aleatorios con la semilla de su hilo.
 
 
 
+\paragraph{Optimización en el acceso a matriz de distancias.}
+Se eliminó la comprobación interna de límites e inconsistencias en la función \texttt{distancia\_ij}. Dado que la matriz de distancias de entrada es estática y se asume correcta, esta verificación añadía una sobrecarga en el bucle interno de evaluación que degradaba severamente el rendimiento. Con esta optimización, el tiempo medio de ejecución paralela con 6 hilos se redujo de 27,41 s a 10,72 s para 14 generaciones.
+
+\paragraph{Variante en la función de mutación y análisis de escalabilidad.}
+Durante el estudio de rendimiento se detectó el uso de una variante en la lógica de la función \texttt{mutar}. Aunque añade un incremento constante de aproximadamente 5 segundos en los tiempos absolutos respecto a la versión base, esta modificación no altera la independencia de datos ni la estrategia de paralelización descrita, por lo que las conclusiones de escalabilidad y las métricas de \textit{speedup} se mantienen intactas.
+\textbf{Valores de entrada de los experimentos:} $n = 2000$, $m = 500$, $n\_gen = 500$, $tam\_pob = 20000$, $m\_rate = 0.15$.
+
+
+\begin{table}[htbp]
+\centering
+\caption{Tiempos de ejecución, \textit{speedup} y eficiencia para la versión optimizada en función del número de hilos.}
+\label{tab:tiempos_openmp}
+\begin{tabular}{cccc}
+\toprule
+\textbf{Hilos ($p$)} & \textbf{Tiempo (s)} & \textbf{\textit{Speedup} ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
+\midrule
+1 (Secuencial) & 61.69 & 1.00 & 100.0\% \\
+1 (Paralelo)   & 63.48 & 0.97 & 97.2\%  \\
+2              & 28.85 & 2.14 & 106.9\% \\
+4              & 15.61 & 3.95 & 98.8\%  \\
+6              & 10.60 & 5.82 & 97.0\%  \\
+8              & 11.01 & 5.60 & 70.0\%  \\
+12             & 9.34  & 6.61 & 55.0\%  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ==========================================
+% GRÁFICO DE ESCALABILIDAD (pgfplots)
+% ==========================================
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    title={Escalabilidad de la versión paralela (Speedup)},
+    xlabel={Número de hilos ($p$)},
+    ylabel={\textit{Speedup} ($S_p$)},
+    xmin=0, xmax=13,
+    ymin=0, ymax=13,
+    xtick={1, 2, 4, 6, 8, 12},
+    ytick={0, 2, 4, 6, 8, 10, 12},
+    legend pos=north west,
+    ymajorgrids=true,
+    xmajorgrids=true,
+    grid style=dashed,
+    width=0.85\textwidth,
+    height=0.55\textwidth
+]
+
+% Speedup Ideal (Línea diagonal)
+\addplot[
+    color=gray,
+    dashed,
+    thick
+    ]
+    coordinates {
+    (1,1)(2,2)(4,4)(6,6)(8,8)(12,12)
+    };
+    \addlegendentry{Speedup Ideal}
+
+% Speedup Real
+\addplot[
+    color=blue,
+    mark=square*,
+    thick
+    ]
+    coordinates {
+    (1,0.97)(2,2.14)(4,3.95)(6,5.82)(8,5.60)(12,6.61)
+    };
+    \addlegendentry{Speedup Obtención Real}
+
+\end{axis}
+\end{tikzpicture}
+\caption{Comparación entre el \textit{speedup} teórico ideal y el \textit{speedup} experimental obtenido. Se observa una aceleración casi lineal hasta los 6 hilos. }
+\label{fig:speedup_openmp}
+\end{figure}
+
+
+
+\newpage
 
 \item \textbf{Cuestión 9.} Realizar el informe final incluyendo las conclusiones generales y valoración personal sobre el trabajo realizado.
+
+
+El sistema de pruebas dispone de 6 núcleos físicos con SMT (12 hilos lógicos), 
+un dato que condiciona la interpretación de las eficiencias con 8 y 12 hilos.
+ En el Cuadro \ref{tab:c9_resumen} se recoge el mejor resultado de cada estudio.
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{@{}c p{0.28\linewidth} p{0.50\linewidth}@{}}
+        \toprule
+        \textbf{Cuestión} & \textbf{Estudio} & \textbf{Mejor resultado medido} \\
+        \midrule
+        2 & Generador aleatorio en \texttt{FOR\_INI} ($m = 200$) & \texttt{rand\_r} con semilla \texttt{threadprivate}: $S_{12} = 6{,}60$ ($84$ ms). Con \texttt{rand}: $S_{12} = 0{,}98$ ($574$ ms). \\
+        3 & Sincronización en \texttt{fitness} & \texttt{reduction}: $S_6 = 2{,}09$ ($2{,}023$ s). \texttt{critical} y \texttt{atomic}: $S_{12} = 0{,}012$ y $0{,}018$. \\
+        4 & Reparto de iteraciones en \texttt{FOR\_INI} & \texttt{guided,16} con 12 hilos: $S_{12} = 6{,}93$ ($0{,}612$ s). \\
+        4 & Reparto de iteraciones en \texttt{fitness} & \texttt{dynamic,16} con 4 hilos: $S_4 = 2{,}23$ ($1{,}950$ s). \\
+        5 & Secciones en \texttt{cruzar} & 2 hilos: $S_2 = 2{,}11$ ($0{,}090$ s). Sin mejora con más hilos. \\
+        6 & \texttt{mergeSort} con tareas & V5 con 6 hilos: $0{,}070$ ms por ordenación ($S_6 = 2{,}28$ respecto a \texttt{qsort}). V2 sin umbral: $S_6 = 0{,}12$. \\
+        8 & Tiempo global mínimo alcanzado con 12 hilos $9{,}34$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Mejor resultado de cada estudio. Cada \textit{speed-up} se calcula respecto a la referencia secuencial de su cuestión.}
+    \label{tab:c9_resumen}
+\end{table}
+
+% Si se añade una medición del programa completo en la Cuestión 8, incluirla como fila del cuadro anterior.
+
+\subsection*{Conclusiones generales}
+
+\begin{enumerate}
+    \item \textbf{La granularidad es lo que más condiciona el \textit{speed-up}.} 
+    Repartir el bucle externo sobre la población (\texttt{FOR\_INI}) llega, con la
+     mejor configuración de cada caso, a $S_6 = 5{,}81$ ($E_6 = 96{,}9\%$) y $S_{12} = 6{,}93$, 
+     mientras que paralelizar los bucles internos, a priori da mejores resultados, en conjunto, no es buena idea. 
+     Cada llamada a \texttt{fitness} 
+      supone solo unos $0{,}22$ ms de trabajo por lo que de verdad afecta al rendimiento es el coste de crear 
+      y sincronizar el equipo de hilos en cada ejecución. Por eso la versión final no paralelizamos \texttt{fitness} 
+      ni \texttt{cruzar} por dentro.
+
+
+    \item \textbf{El generador de números aleatorios puede anular el paralelismo.} Con
+     \texttt{rand()} el tiempo deja de mejorar a partir de 2 hilos y con 12 hilos es 
+     igual de lento que con uno ($S_{12} = 0{,}98$). Con \texttt{rand\_r} y una semilla
+      \texttt{threadprivate} se obtiene $S_{12} = 6{,}60$. La diferencia es aún mayor 
+      cuando el coste por individuo es bajo ($m = 1$: $S_{12} = 0{,}65$ frente a $5{,}92$).
+
+    \item \textbf{El reparto de iteraciones debe adaptarse a la carga del bucle.} 
+    
+
+    En \texttt{FOR\_INI}, cuyo coste por iteración es uniforme, \texttt{static}
+    
+    sin tamaño de bloque, \texttt{dynamic,16} y \texttt{guided,16} quedan 
+    prácticamente empatadas con 12 hilos ($0{,}612$--$0{,}626$ s), mientras
+     que los repartos con bloque 1 pierden ($0{,}750$ s con \texttt{dynamic} 
+     y $0{,}808$ s con \texttt{static,1}). En \texttt{fitness}, de carga triangular, 
+     el reparto estático por defecto llega a $4{,}647$ s con 12 hilos (peor que el 
+     secuencial) y el mejor es \texttt{dynamic,16}. Los bloques de 256 degradan las 
+     tres políticas porque quedan muy pocos bloques que repartir en las ulimas iteraciones.
+
+
+    \item \textbf{El \textit{hardware} limita la eficiencia.} Con 6 núcleos físicos y SMT, 
+    la mejor configuración de \texttt{FOR\_INI} pasa de $E_6 = 96{,}9\%$ a $E_{12} = 57{,}8\%$, 
+    pero su \textit{speed-up} sigue creciendo de $5{,}81$ a $6{,}93$ ($+19\%$). Los hilos 
+    lógicos adicionales aportan algo de rendimiento, aunque mucho menos que núcleos adicionales, 
+    y la eficiencia calculada sobre 12 hilos lógicos infravalora el aprovechamiento de los 6 núcleos físicos, además 
+    le agrega sobrecarga a los núcleos haciendo que vayan más lentos.
+
+    \item \textbf{La parte secuencial acota el \textit{speed-up} global.} Los 
+    valores anteriores corresponden a bucles aislados. Aun suponiendo que todo 
+    \texttt{aplicar\_mh} ($f = 0{,}9141$ según \texttt{Callgrind}) fuese paralelizable,
+    existe una cota superior impuesta por la parte secuencial del algoritmo.
+
 \end{enumerate}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=7.5cm,
+            xlabel={Número de hilos ($p$)},
+            ylabel={\textit{Speed-up} ($S_p$)},
+            xmin=1, xmax=12,
+            ymin=0, ymax=12,
+            xtick={1,2,4,6,8,12},
+            legend pos=north west,
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            \addplot[color=gray, dashed, thick] coordinates {
+                (1,1) (12,12)
+            };
+            \addlegendentry{Ideal}
+
+            \addplot[color=red, mark=square*, thick] coordinates {
+                (1,1.01) (2,2.00) (4,3.86) (6,5.81) (8,5.97) (12,6.93)
+            };
+            \addlegendentry{\texttt{FOR\_INI} (bucle sobre la población)}
+
+            \addplot[color=blue, mark=triangle*, thick] coordinates {
+                (1,1.01) (2,1.52) (4,2.23) (6,1.85) (8,1.90) (12,1.50)
+            };
+            \addlegendentry{\texttt{fitness} (bucle interno)}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Mejor \textit{speed-up} alcanzado con cada granularidad de paralelización, respecto a su referencia secuencial.}
+    \label{fig:c9_speedup}
+\end{figure}
+
+\subsection*{Valoración personal}
+
+Consideramos que la práctica cumple su objetivo, que no es tanto añadir 
+directivas como entender por qué una paralelización funciona o no. Los 
+resultados más instructivos fueron los contraintuitivos: que \texttt{critical} 
+resultara más de 80 veces más lenta que el código secuencial con 12 hilos, que 
+\texttt{rand()} anulara por completo el paralelismo o que un \texttt{mergeSort} 
+con tareas fuera unas 8 veces más lento que \texttt{qsort}. Todos tienen en común
+ que el rendimiento depende de la granularidad, de la sincronización y del 
+ \textit{hardware} más que del número de hilos, y que solo se descubren midiendo, probando y modificando 
+ el código repetidamente.
+
+
+Las principales dificultades fueron la variabilidad de las mediciones, que obliga 
+a repetir y promediar cada configuración, y la elección de una referencia secuencial 
+coherente en cada estudio (el propio código paralelo con 1 hilo en la Cuestión 2, una
+ ejecución secuencial en las Cuestiones 3 a 5 y \texttt{qsort} en la Cuestión 6). 
+
+Es importante analizar los problemas de manera global, tener en cuenta el paralelismo, la sobrecarga de las funciones, dónde es importante 
+tener en cuenta una posible mejora, dónde es mejor no dificultar el códio etc. A pesar de que al medir las funciones por separado, nos hayan salido los mejores resultados,
+la realidad es que muchas de esas configuraciones no se han podido utilizar de la mejor forma posible ya que en conjunto, supondría una pérdida de rendimiento mas que 
+una mejora.
+
+
+\end{enumerate}
+
+
+
+\newpage
+
+\section{Código final: }
+
+\begin{lstlisting}[style=EstiloC]
+    #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+#include <time.h>
+#include <unistd.h>
+
+#if defined (_OPENMP)
+#include <omp.h>
+#endif
+
+#include "../include/mh.h"
+
+#define PRINT 0
+#define PCT_CONVER 0.02   // valor porcentual de mejora esperado (2%)
+#define NGENERACIONES_ATRAS 15      // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
+
+static unsigned int semilla = 1;
+#pragma omp threadprivate(semilla)
+
+
+int aleatorio(int n) {
+    return (rand_r(&semilla) % n);  // genera un numero aleatorio entre 0 y n-1
+}
+
+int find_element(int *array, int end, int element)
+{
+    int i=0;
+    int found=0;
+
+    // comprueba que un elemento no esta incluido en el individuo (el cual no admite enteros repetidos)
+    while((i < end) && ! found) {
+        if(array[i] == element) {
+            found = 1;
+        }
+        i++;
+    }
+    return found;
+}
+
+int *crear_individuo(int n, int m)
+{
+    int i=0, value;
+    int *individuo = (int *) malloc(m * sizeof(int));
+
+    // inicializa array de elementos
+    memset(individuo, -1, m * sizeof(int));
+
+    while(i < m) {
+        value = aleatorio(n);
+        // si el nuevo elemento no esta en el array...
+        if(!find_element(individuo, i, value)) {
+            individuo[i] = value;  // lo incluimos
+            i++;
+        }
+    }
+    return individuo;
+}
+
+int comp_array_int(const void *a, const void *b) {
+    return (*(int *)a - *(int *)b);
+}
+
+int comp_fitness(const void *a, const void *b) {
+    /* qsort pasa un puntero al elemento que esta ordenando */
+    return (*(Individuo **)b)->fitness - (*(Individuo **)a)->fitness;
+}
+
+double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double m_rate, int *sol)
+{
+    // crea poblacion inicial (array de individuos)
+    Individuo **poblacion = (Individuo **) malloc(tam_pob * sizeof(Individuo *));
+    assert(poblacion);
+
+    // Variables que leen/escriben todos los hilos, es decir, compartidas.
+    // Solo se modifican dentro de single y la barrera implicita al final del
+    // single garantiza que todos los hilos ven el mismo valor despues.
+    double fitness_modelo = 0.0;   // para saber cuando mejora una generacion
+    int ngeneracion = 0;           // generaciones seguidas sin mejora suficiente
+    double value = 0.0;            // mejor fitness obtenido (valor devuelto)
+
+    // Usamos una sola region paralela para todo el algoritmo.
+    // Asi los hilos se crean una vez (fork) y se sincronizan al final (join),
+    // en lugar de crear y destruir el conjunto de hilos en cada generacion.
+    // default(none) obliga a declarar el alcance de cada variable y evita
+    // comparticiones accidentales que nos es util.
+    #pragma omp parallel default(none) \
+        shared(d, n, m, n_gen, tam_pob, m_rate, sol, poblacion, fitness_modelo, ngeneracion, value)
+    {
+        // Semilla distinta para cada hilo (si no, todos generarian la misma secuencia)
+        int id = 0;
+#if defined (_OPENMP)
+        id = omp_get_thread_num();
+#endif
+        semilla = (unsigned int) (time(NULL) + getpid() + 7919 * id);
+
+        // crea cada individuo (array de enteros aleatorios) y calcula su fitness.
+        // Las iteraciones son independientes (cada una escribe solo poblacion[i]).
+        // schedule(dynamic): crear_individuo descarta aleatoriamente valores repetidos,
+        // por lo que el coste de cada iteracion es variable.
+        #pragma omp for schedule(dynamic)
+        for(int i = 0; i < tam_pob; i++) {
+            poblacion[i] = (Individuo *) malloc(sizeof(Individuo));
+            poblacion[i]->array_int = crear_individuo(n, m);
+
+            // calcula el fitness del individuo
+            fitness(d, poblacion[i], n, m);
+        }
+        
+
+        // ordena individuos segun la funcion de bondad (mayor "fitness" quiere decir que son mas aptos).
+        // qsort es secuencial y opera sobre todo el array  y lo hace un unico hilo.
+        #pragma omp single
+        {
+            qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
+            fitness_modelo = poblacion[0]->fitness;
+            ngeneracion = 0;
+        }
+        // (barrera implicita del single por lo que todos ven fitness_modelo y ngeneracion)
+
+        // Bucle de generaciones no se puede repartir entre hilos porque cada
+        // generacion depende de la anterior. Lo ejecutan todos los hilos (g es
+        // privada al declararse dentro de la region) y se reparte el trabajo de
+        // dentro de cada generacion. Todos evaluan la condicion con el miso
+        // valor de ngeneracion, asi que todos salen del bucle a la vez.
+        //Mantenemos n_gen como limite para evitar un posible bucle infinito
+        for(int g = 0; g < n_gen && ngeneracion < NGENERACIONES_ATRAS; g++)
+        {
+            // los hijos de los ascendientes mas aptos sustituyen a la ultima mitad de los individuos menos aptos.
+            // Cada iteracion lee dos padres de la primera mitad y escribe dos hijos
+            // distintos de la segunda mitad por lo que son iteraciones independientes.
+            // schedule(dynamic) ya que la reparacion de duplicados en cruzar tiene coste aleatorio.
+            #pragma omp for schedule(dynamic)
+            for(int i = 0; i < (tam_pob/2) - 1; i += 2) {
+                cruzar(poblacion[i], poblacion[i+1], poblacion[tam_pob/2 + i], poblacion[tam_pob/2 + i + 1], n, m);
+            }
+            // (barrera implicita que en este caso es necesaria ya que se mutan individuos del rango
+            //  [tam_pob/4, tam_pob/2) que son padres en el cruce no se pueden
+            //  mutar hasta que todos los cruces hayan terminado de leerlos)
+
+            // Mutacion de 3/4 de la poblacion (a partir de tam_pob/4) y recalculo
+            // del fitness fusionados en un unico bucle: el fitness de poblacion[i]
+            // solo depende de la mutacion de ese mismo individuo, asi que no hace
+            // falta esperar a que termine toda la mutacion por lo que nos ahorramos una
+            // barrera y un reparto de iteraciones por generacion.
+            // schedule(static) el coste lo domina fitness, igual para
+            // todos los individuos, por lo que el reparto estatico equilibra bien y
+            // no tiene la sobrecarga del dinamico.
+            #pragma omp for schedule(static)
+            for(int i = 0; i < tam_pob; i++) {
+                // muta 3/4 partes de la poblacion
+                if (i >= tam_pob/4) {
+                    mutar(poblacion[i], n, m, m_rate);
+                }
+                // recalcula el fitness del individuo
+                fitness(d, poblacion[i], n, m);
+            }
+            // (barrera implicita lo que implica que todos los fitness calculados antes de ordenar)
+
+            // Ordenacion y criterio de convergencia es secuencial, lo hace un hilo.
+            // La barrera implicita al final del single asegura que todos los hilos
+            // leen el ngeneracion actualizado en la condicion del bucle.
+            #pragma omp single
+            {
+                // ordena individuos segun la funcion de bondad (mayor "fitness" equivale a que son mas aptos)
+                qsort(poblacion, tam_pob, sizeof(Individuo *), comp_fitness);
+
+                //Valor de fitness que buscamos, esperamos esta mejora
+                double fitness_esperado = fitness_modelo * (1 + PCT_CONVER);
+                //Si la poblacion actual supera el fitness esperado entonces reiniciamos
+                //el contador para poder seguir avanzando y mirar las siguientes
+                // X generaciones (si X =5 y estamos en la posicion 5 quiere
+                //decir que en las 5 anteriores no se ha conseguido superar
+                //la mejora esperada y por ende converge)
+                if(poblacion[0]->fitness > fitness_esperado){
+                    fitness_modelo = poblacion[0]->fitness;
+                    ngeneracion = 0;
+                }else{
+                    ngeneracion++;
+                }
+
+                if (PRINT) {
+                    printf("Generacion %d - ", g);
+                    printf("Fitness = %.0lf\n", poblacion[0]->fitness);
+                }
+            }
+        }
+
+        // Copia de la solucion secuencial y muy barata realizada por un unico hilo.
+        // La barrera del single impide liberar la memoria antes de haber copiado.
+        #pragma omp single
+        {
+            // ordena el array solucion
+            qsort(poblacion[0]->array_int, m, sizeof(int), comp_array_int);
+
+            // y lo mueve a sol para escribirlo
+            memmove(sol, poblacion[0]->array_int, m*sizeof(int));
+
+            // almacena el mejor valor obtenido para el fitness
+            value = poblacion[0]->fitness;
+        }
+
+        // se libera la memoria reservada. Cada iteracion libera un individuo
+        // distinto por lo que son independientes. nowait: la barrera implicita al final de
+        // la region paralela ya sincroniza, no hace falta otra.
+        #pragma omp for schedule(static) nowait
+        for (int i = 0; i < tam_pob; i++){
+            free(poblacion[i]->array_int);
+            free(poblacion[i]);
+        }
+    } // fin de la region paralela (barrera implicita)
+
+    free(poblacion);
+    // devuelve el valor obtenido para el fitness
+    return value;
+}
+
+// cruzar, mutar, distancia_ij y fitness no tienen directivas internas porque 
+// se llaman ya desde bucles paralelos sobre la poblacion (un individuo o pareja
+// por iteracion). Paralelizar tambien su interior seria paralelismo anidado,
+// con regiones cuya sobrecarga superaria la ganancia, ya que tam_pob es
+// normalmente mucho mayor que el numero de hilos. Son seguras para ejecutarse
+// en paralelo y solo usan variables locales, escriben unicamente en
+// sus individuos y generan aleatorios con rand_r sobre la semilla del hilo.
+
+void cruzar(Individuo *padre1, Individuo *padre2, Individuo *hijo1, Individuo *hijo2, int n, int m)
+{
+    /*Cruzar: para cada par de individuos selecciona un punto aleatorio a partir del que se produce
+    la mezcla y los nuevos descendientes se crean intercambiando los genes de los padres entre
+    si.*/
+
+    //Primer paso, generar el punto de corte. Cruce en un solo punto.
+    //El punto de corte no se incluye como parte de los genes izquierdos.
+    //Esto soluciona el problema de que salga corte = 0 y se copie
+    //directamente el padre2 entero.
+    int corte = 1 + aleatorio(m-1);
+
+    //Copiamos al hijo1 la primera parte de los genes del padre1
+    //al hijo2 lo mismo pero con el padre2
+    for (int i = 0 ; i < corte ; i ++){
+        hijo1->array_int[i] = padre1->array_int[i];
+        hijo2->array_int[i] = padre2->array_int[i];
+    }
+    //Copiamos la parte restante del padre contrario
+    //Es decir, al hijo1 le copiamos la segunda parte del padre2
+    for (int i = corte ; i < m ; i ++){
+        hijo1->array_int[i] = padre2->array_int[i];
+        hijo2->array_int[i] = padre1->array_int[i];
+    }
+
+    //Doble bucle para revisar que no existan genes duplicados
+    //Partimos de que los padres NO tienen repetidos asi podemos
+    //ahorrarnos parte del recorrido y solo comparar los genes de
+    // la parte del padre1 con las del otro.
+    for (int i = 0 ; i < corte ; i ++){
+        for(int j = corte ; j < m ; j++){
+            //Verificamos duplicado
+            if(hijo1->array_int[i] == hijo1->array_int[j]){
+                int nuevo;
+                do{
+                    nuevo = aleatorio(n);
+                }while (find_element(hijo1->array_int, m, nuevo));
+                //Seguimos buscando un numero hasta que no sea uno que ya
+                //este presente. Luego actualizamos
+                hijo1->array_int[j] = nuevo;
+            }
+
+            if(hijo2->array_int[i] == hijo2->array_int[j]){
+                int nuevo;
+                do{
+                    nuevo = aleatorio(n);
+                }while (find_element(hijo2->array_int, m, nuevo));
+                hijo2->array_int[j] = nuevo;
+            }
+        }
+    }
+}
+
+void mutar(Individuo *actual, int n, int m, double m_rate)
+{
+    /*
+    Mutar: produce mutaciones en los descendientes en funcion de una cierta probabilidad
+    (normalmente baja). Esto permite, por un lado, que la poblacion sea diversa y, por otro, evita
+    que el algoritmo converja de forma prematura.
+    */
+    //Mutamos X genes con probabilidad m_rate
+    //Siempre mutan porque solo mutan los ya seleccionados antes.
+    int nmutar = (int)(m_rate * m);
+    //minimo muta una vez, si m_rate no es 0.0
+    if(nmutar < 1 && m_rate > 0.0){
+        nmutar=1;
+    }
+
+    //Para mutar los X genes
+    for(int i = 0; i<nmutar; i++){
+        //posicion aleatoria a mutar
+        int pos = aleatorio(m);
+        int nuevo = 0;
+        //Buscamos otro mientras que sea repetido
+        do{
+            nuevo = aleatorio(n);
+        }while (find_element(actual->array_int, m, nuevo));
+        actual->array_int[pos] = nuevo;
+    }
+}
+
+double distancia_ij(const double *d, int i, int j, int n)
+{
+    // Devuelve la distancia entre dos elementos i, j de la matriz 'd'
+    // La formula solo es valida con i < j; como la distancia es simetrica,
+    // intercambiamos si hace falta.
+    if (i > j) { int t = i; i = j; j = t; }
+    int val = (((n * n)- n)/2)-((((n-i)*(n-i))-(n-i))/2)+j-i-1;
+    return d[val];
+}
+
+
+void fitness(const double *d, Individuo *individuo, int n, int m)
+{
+    // Determina la calidad del individuo calculando la suma de la distancia entre cada par de enteros
+    double fitness = 0.0;
+    //Doble bucle para recorrer todas las posiciones del individuo para calcular su fitness
+    for(int i = 0 ; i < m-1 ; i++){
+        for(int j = i + 1; j < m ; j++){
+            fitness += distancia_ij(d,individuo->array_int[i], individuo->array_int[j], n);
+        }
+    }
+    individuo->fitness = fitness;
+}
+
+
+    
+\end{lstlisting}
+
+
 
 
 

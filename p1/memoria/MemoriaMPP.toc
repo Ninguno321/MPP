@@ -1,8 +1,11 @@
 \babel@toc {spanish}{}\relax 
 \contentsline {section}{\numberline {1}Ejercicios}{3}{section.1}%
-\contentsline {paragraph}{Generación de números aleatorios.}{37}{paragraph*.1}%
-\contentsline {paragraph}{Una única región paralela.}{37}{paragraph*.2}%
-\contentsline {paragraph}{Creación de la población inicial.}{37}{paragraph*.3}%
+\contentsline {paragraph}{Generación de números aleatorios.}{38}{paragraph*.1}%
+\contentsline {paragraph}{Una única región paralela.}{38}{paragraph*.2}%
+\contentsline {paragraph}{Creación de la población inicial.}{38}{paragraph*.3}%
 \contentsline {paragraph}{Bucle de generaciones.}{38}{paragraph*.4}%
-\contentsline {paragraph}{Solución y liberación de memoria.}{38}{paragraph*.5}%
-\contentsline {paragraph}{Funciones auxiliares.}{38}{paragraph*.6}%
+\contentsline {paragraph}{Solución y liberación de memoria.}{39}{paragraph*.5}%
+\contentsline {paragraph}{Funciones auxiliares.}{39}{paragraph*.6}%
+\contentsline {paragraph}{Optimización en el acceso a matriz de distancias.}{39}{paragraph*.7}%
+\contentsline {paragraph}{Variante en la función de mutación y análisis de escalabilidad.}{39}{paragraph*.8}%
+\contentsline {section}{\numberline {2}Código final: }{44}{section.2}%

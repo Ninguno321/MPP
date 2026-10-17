@@ -1,0 +1,102 @@
+1 Hilo
+Generacion 0 - Fitness = 6285485
+Generacion 1 - Fitness = 6285485
+Generacion 2 - Fitness = 6285485
+Generacion 3 - Fitness = 6287141
+Generacion 4 - Fitness = 6288384
+Generacion 5 - Fitness = 6288384
+Generacion 6 - Fitness = 6290436
+Generacion 7 - Fitness = 6292890
+Generacion 8 - Fitness = 6292890
+Generacion 9 - Fitness = 6292890
+Generacion 10 - Fitness = 6292890
+Generacion 11 - Fitness = 6293227
+Generacion 12 - Fitness = 6293227
+Generacion 13 - Fitness = 6293498
+Generacion 14 - Fitness = 6296553
+Execution Time: 63.48 sec
+2 Hilos
+Generacion 0 - Fitness = 6281183
+Generacion 1 - Fitness = 6291470
+Generacion 2 - Fitness = 6291470
+Generacion 3 - Fitness = 6291470
+Generacion 4 - Fitness = 6291470
+Generacion 5 - Fitness = 6291470
+Generacion 6 - Fitness = 6291470
+Generacion 7 - Fitness = 6292048
+Generacion 8 - Fitness = 6292048
+Generacion 9 - Fitness = 6298659
+Generacion 10 - Fitness = 6301270
+Generacion 11 - Fitness = 6301270
+Generacion 12 - Fitness = 6301270
+Generacion 13 - Fitness = 6301270
+Generacion 14 - Fitness = 6301270
+Execution Time: 28.85 sec
+4hilos
+Generacion 0 - Fitness = 6286167
+Generacion 1 - Fitness = 6287906
+Generacion 2 - Fitness = 6287906
+Generacion 3 - Fitness = 6290719
+Generacion 4 - Fitness = 6292573
+Generacion 5 - Fitness = 6292573
+Generacion 6 - Fitness = 6292723
+Generacion 7 - Fitness = 6293902
+Generacion 8 - Fitness = 6293902
+Generacion 9 - Fitness = 6294820
+Generacion 10 - Fitness = 6294820
+Generacion 11 - Fitness = 6294820
+Generacion 12 - Fitness = 6294820
+Generacion 13 - Fitness = 6294820
+Generacion 14 - Fitness = 6294820
+Execution Time: 15.61 sec
+6hilos
+Generacion 0 - Fitness = 6283242
+Generacion 1 - Fitness = 6284646
+Generacion 2 - Fitness = 6285825
+Generacion 3 - Fitness = 6290752
+Generacion 4 - Fitness = 6291821
+Generacion 5 - Fitness = 6291821
+Generacion 6 - Fitness = 6295507
+Generacion 7 - Fitness = 6295507
+Generacion 8 - Fitness = 6295507
+Generacion 9 - Fitness = 6295507
+Generacion 10 - Fitness = 6297518
+Generacion 11 - Fitness = 6297518
+Generacion 12 - Fitness = 6297518
+Generacion 13 - Fitness = 6297518
+Generacion 14 - Fitness = 6297518
+Execution Time: 10.60 sec
+8hilos
+Generacion 0 - Fitness = 6285471
+Generacion 1 - Fitness = 6288613
+Generacion 2 - Fitness = 6288613
+Generacion 3 - Fitness = 6293098
+Generacion 4 - Fitness = 6293098
+Generacion 5 - Fitness = 6293098
+Generacion 6 - Fitness = 6293098
+Generacion 7 - Fitness = 6293098
+Generacion 8 - Fitness = 6298040
+Generacion 9 - Fitness = 6298040
+Generacion 10 - Fitness = 6298040
+Generacion 11 - Fitness = 6298040
+Generacion 12 - Fitness = 6299641
+Generacion 13 - Fitness = 6299641
+Generacion 14 - Fitness = 6299641
+Execution Time: 11.01 sec
+12 hilos
+Generacion 0 - Fitness = 6280493
+Generacion 1 - Fitness = 6284253
+Generacion 2 - Fitness = 6285895
+Generacion 3 - Fitness = 6289316
+Generacion 4 - Fitness = 6290723
+Generacion 5 - Fitness = 6290723
+Generacion 6 - Fitness = 6291467
+Generacion 7 - Fitness = 6292727
+Generacion 8 - Fitness = 6295333
+Generacion 9 - Fitness = 6295333
+Generacion 10 - Fitness = 6295333
+Generacion 11 - Fitness = 6295333
+Generacion 12 - Fitness = 6295333
+Generacion 13 - Fitness = 6295333
+Generacion 14 - Fitness = 6302795
+Execution Time: 9.34 sec
