@@ -409,46 +409,37 @@ Las métricas evaluadas se definen formalmente mediante las siguientes expresion
 \begin{equation}
     \text{Eficiencia } (E_p) = \frac{S_p}{p} = \frac{T_1}{p \cdot T_p}
 \end{equation}
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.85\textwidth,
+            height=7.5cm,
+            xlabel={Número de hilos ($p$)},
+            ylabel={Tiempo de ejecución (ms)},
+            xmin=1, xmax=12,
+            ymin=50, ymax=600,
+            xtick={1,2,4,6,8,12},
+            legend pos=north east,
+            grid=both,
+            grid style={dashed, gray!30}
+        ]
+            % Serie para rand()
+            \addplot[color=red, mark=square*, thick] coordinates {
+                (1,560) (2,320) (4,404) (6,462) (8,526) (12,574)
+            };
+            \addlegendentry{Función no reentrante \texttt{rand()}}
 
-\begin{table}[h!]
-\centering
-\caption{Prestaciones obtenidas utilizando la función estándar \texttt{rand()} ($n=1000, m=200, n\_gen=100, tam\_pob=20000, m\_rate=0.15$).}
-\vspace{2mm}
-\begin{tabular}{cccc}
-\toprule
-\textbf{Nº Hilos ($p$)} & \textbf{Tiempo Ejecución ($T_p$, ms)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
-\midrule
-1  & 560 & 1.00 & 100.0\% \\
-2  & 320 & 1.75 & 87.5\% \\
-4  & 404 & 1.39 & 34.7\% \\
-6  & 462 & 1.21 & 20.2\% \\
-8  & 526 & 1.06 & 13.3\% \\
-12 & 574 & 0.98 & 8.1\% \\
-\bottomrule
-\end{tabular}
-\label{tab:rand}
-\end{table}
-
-
-\begin{table}[h!]
-\centering
-\caption{Prestaciones obtenidas utilizando la función reentrante \texttt{rand\_r()} ($n=1000, m=200, n\_gen=100, tam\_pob=20000, m\_rate=0.15$).}
-\vspace{2mm}
-\begin{tabular}{cccc}
-\toprule
-\textbf{Nº Hilos ($p$)} & \textbf{Tiempo Ejecución ($T_p$, ms)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
-\midrule
-1  & 554 & 1.00 & 100.0\% \\
-2  & 282 & 1.96 & 98.2\% \\
-4  & 148 & 3.74 & 93.6\% \\
-6  & 106 & 5.23 & 87.1\% \\
-8  & 98  & 5.65 & 70.7\% \\
-12 & 84  & 6.60 & 55.0\% \\
-\bottomrule
-\end{tabular}
-\label{tab:rand_r}
-\end{table}
-
+            % Serie para rand_r()
+            \addplot[color=blue, mark=triangle*, thick] coordinates {
+                (1,554) (2,282) (4,148) (6,106) (8,98) (12,84)
+            };
+            \addlegendentry{Función reentrante \texttt{rand\_r()}}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Comparativa del tiempo de ejecución entre \texttt{rand()} y \texttt{rand\_r()} según el número de hilos.}
+    \label{fig:comparativa_rand_vs_rand_r}
+\end{figure}
 La versión con \texttt{rand\_r()} y semilla
 \texttt{threadprivate} demuestra una \textbf{escalabilidad
 paralela} hasta 6 hilos ($E_6 = 87.1\%$),
@@ -552,7 +543,7 @@ del \texttt{fitness} y en las comprobaciones internas es mínimo,
 Usar \texttt{rand\_r()} con una semilla privada por hilo evita por completo la serialización impuesta por \texttt{rand()} y permite una aceleración efectiva al incrementar el número de hilos. La ventaja de la implementación reentrante es especialmente drástica en entornos donde el coste computacional propio de cada individuo es reducido ($m=1$), ya que en estos casos la generación aleatoria constituye el mayor cuello de botella de la región paralela.
 
 
-
+\newpage
 
 \item \textbf{Cuestión 3.} Paralelizar la función \texttt{fitness} utilizando, por un lado, los constructores \texttt{critical} y \texttt{atomic} (de forma independiente) y, por otro, la cláusula \texttt{reduction}, indicando en cada caso qué variables serían privadas y cuáles compartidas. Ejecutar el código variando el número de hilos y comparar los resultados obtenidos respecto a versión secuencial utilizando las métricas de rendimiento.
 
@@ -782,32 +773,102 @@ void fitness(const double *d, Individuo *individuo, int n, int m)
 }
 \end{lstlisting}
 
-En esta estructura optimizada, las variables privadas son \texttt{i}, \texttt{j} y \texttt{local}, mientras que las compartidas son \texttt{fitness}, \texttt{n}, \texttt{m}, \texttt{d} e \texttt{individuo}.
+En esta estructura optimizada, las variables privadas son \texttt{i}, \texttt{j} y \texttt{local},
+ mientras que las compartidas son \texttt{fitness}, \texttt{n}, \texttt{m}, \texttt{d} e \texttt{individuo}.
 
 \begin{table}[htbp]
     \centering
     \small
-    \begin{tabular}{ccrr}
+    \begin{tabular}{crrr}
         \toprule
-        \textbf{Hilos ($p$)} & \textbf{Tiempo (s)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
+        \textbf{Hilos ($p$)} & \textbf{Tiempo medio (s)} & \textbf{Speed-up ($S_p$)} & \textbf{Eficiencia ($E_p$)} \\
         \midrule
-        1  & 0,857 & 4,942 & 494,2\% \\
-        2  & 0,840 & 5,043 & 252,1\% \\
-        4  & 0,900 & 4,707 & 117,7\% \\
-        8  & 1,383 & 3,063 & 38,3\% \\
-        12 & 1,477 & 2,868 & 23,9\% \\
+        1  & 4,265 & 0,993 & 99,3\% \\
+        2  & 3,210 & 1,320 & 66,0\% \\
+        4  & 2,210 & 1,917 & 47,9\% \\
+        6  & 1,880 & 2,253 & 37,6\% \\
+        8  & 2,410 & 1,758 & 22,0\% \\
+        12 & 2,355 & 1,799 & 15,0\% \\
         \bottomrule
     \end{tabular}
-    \caption{Rendimiento de la versión optimizada simulando \texttt{reduction} ($T_{\text{sec}} = 4,236\text{ s}$).}
+    \caption{Rendimiento de la versión optimizada simulando \texttt{reduction}. Se muestra la media de dos ejecuciones por configuración; el speed-up se calcula respecto a la versión secuencial sin modificar, con $T_{\text{sec}} = 4,236\text{ s}$.}
     \label{tab:optimizada_critical}
 \end{table}
 
-\textbf{Conclusión de la optimización:}  
-Al trasladar la acumulación a la variable privada \texttt{local}, 
-el número de accesos protegidos por \texttt{critical} se reduce drásticamente de $m(m-1)/2$ a 1 
-único acceso por hilo. Esto elimina las dependencias de datos y permite al compilador vectorizar el bucle interno, alcanzando tiempos de $0,857\text{ s}$ con 1 hilo y $0,840\text{ s}$ con 2 hilos ($S_2 = 5,043$ respecto a la versión secuencial sin modificar).
+\textbf{Conclusión de la optimización:}
+Al trasladar la acumulación a la variable privada \texttt{local}, el número de accesos 
+protegidos por \texttt{critical} se reduce drásticamente: pasa de $m(m-1)/2$ accesos a 
+un único acceso por hilo. De este modo se reduce la contención entre hilos y se facilita
+ la optimización del bucle interno. El mejor tiempo medio se 
+ obtiene con 6 hilos ($1,880\text{ s}$), con un speed-up de $S_6 = 2,253$ respecto a
+  la versión secuencial sin modificar. Con 8 y 12 hilos el tiempo vuelve a aumentar, 
+  lo que indica que añadir más hilos no aporta una mejora adicional para esta carga de
+   trabajo. La ejecución con 1 hilo tarda $4,265\text{ s}$, ligeramente más que la referencia 
+   de $4,236\text{ s}$ por tanto, la ganancia aparece al ejecutar la versión optimizada con varios hilos (6).
 
+   Como podemos ver en la imagen, esta version optimizada mejora el tiempo respecto a reduction. Esta mejora puede deberse a la facilidad 
+    para repartir las ejecuciones pues no tiene que dividirlo él mismo sino que le ayudamos y restamos una carga notable de trabajo.
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.9\textwidth,
+            height=8cm,
+            xlabel={Número de hilos ($p$)},
+            ylabel={Tiempo medio de ejecución (s)},
+            xmin=0.5, xmax=12.5,
+            ymin=1.5, ymax=4.9,
+            xtick={1,2,4,6,8,12},
+            ytick={1.5,2,2.5,3,3.5,4,4.5},
+            grid=both,
+            grid style={dashed,gray!30},
+            legend style={font=\small, at={(0.5,-0.16)}, anchor=north, legend columns=2},
+            tick label style={font=\small},
+            label style={font=\small},
+            clip=false
+        ]
+            % Tiempos medios de la versión optimizada (medias de dos ejecuciones).
+            \addplot[blue!75!black, thick, mark=*] coordinates {
+                (1,4.265)
+                (2,3.210)
+                (4,2.210)
+                (6,1.880)
+                (8,2.410)
+                (12,2.355)
+            };
+            \addlegendentry{Versión optimizada (\texttt{critical}/local)}
 
+            % Etiquetas de los tiempos de la versión optimizada.
+            \node[blue!75!black, below=3pt, font=\scriptsize] at (axis cs:1,4.265) {4,265};
+            \node[blue!75!black, below=3pt, font=\scriptsize] at (axis cs:2,3.210) {3,210};
+            \node[blue!75!black, below=3pt, font=\scriptsize] at (axis cs:4,2.210) {2,210};
+            \node[blue!75!black, below=3pt, font=\scriptsize] at (axis cs:6,1.880) {1,880};
+            \node[blue!75!black, below=3pt, font=\scriptsize] at (axis cs:8,2.410) {2,410};
+            \node[blue!75!black, below=3pt, font=\scriptsize] at (axis cs:12,2.355) {2,355};
+
+            % Tiempos de la implementación con reduction.
+            \addplot[red!75!black, thick, mark=square*] coordinates {
+                (1,4.462)
+                (2,3.806)
+                (4,2.420)
+                (6,2.023)
+                (8,2.420)
+                (12,2.350)
+            };
+            \addlegendentry{\texttt{reduction}}
+
+            % Etiquetas de los tiempos de reduction.
+            \node[red!75!black, above=3pt, font=\scriptsize] at (axis cs:1,4.462) {4,462};
+            \node[red!75!black, above=3pt, font=\scriptsize] at (axis cs:2,3.806) {3,806};
+            \node[red!75!black, above=3pt, font=\scriptsize] at (axis cs:4,2.420) {2,420};
+            \node[red!75!black, above=3pt, font=\scriptsize] at (axis cs:6,2.023) {2,023};
+            \node[red!75!black, above=3pt, font=\scriptsize] at (axis cs:8,2.420) {2,420};
+            \node[red!75!black, above=3pt, font=\scriptsize] at (axis cs:12,2.350) {2,350};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Comparación del tiempo medio de ejecución de la versión optimizada y de la versión con \texttt{reduction} según el número de hilos. Los tiempos de la versión optimizada son la media de dos ejecuciones por configuración.}
+    \label{fig:comparacion_critical_reduction}
+\end{figure}
 
 
 
@@ -843,6 +904,8 @@ el número de accesos protegidos por \texttt{critical} se reduce drásticamente 
     \label{fig:mi_sdjnsaimagen}
 \end{figure}
 
+
+\newpage
 
 \item \textbf{Cuestión 4.} Probar diferentes formas de reparto de trabajo, \texttt{scheduling} (\texttt{static}, \texttt{dynamic}, \texttt{guided}), variando el tamaño de asignación (\texttt{chunk\_size}) en aquellos bucles en los que se considere necesario. Ejecutar el código variando el número de hilos y justificar los tiempos de ejecución y rendimiento obtenidos con cada política.
 
@@ -1142,7 +1205,7 @@ A diferencia del bucle homogéneo de inicialización (\texttt{FOR\_INI}), la fun
 
 
 
-
+\newpage
 
 \item \textbf{Cuestión 5 (2ª Semana).} Paralelizar la función \texttt{cruzar} utilizando secciones. ¿Se podría usar la cláusula \texttt{nowait}? (argumentar la respuesta). Ejecutar el código variando el número de hilos y justificar el rendimiento obtenido.
 
@@ -1282,6 +1345,7 @@ En el Cuadro \ref{tab:cuestion5_secciones} se recogen los tiempos medios de ejec
 \end{enumerate}
 
 
+\newpage
 
 \item \textbf{Cuestión 6.} Reemplazar las llamadas a la función \texttt{qsort} por la función \texttt{mergeSort} que se muestra, para ordenar la población por \texttt{fitness}, no para ordenar los elementos de cada individuo. A continuación, paralelizar dicha rutina mediante el uso de tareas (\texttt{OpenMP tasks}) y ejecutar el código variando el número de hilos. La función \texttt{mezclar} a la que invoca se proporciona en el fichero \texttt{mezclar.c}.
 

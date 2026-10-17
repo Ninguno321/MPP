@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  17 OCT 2026 00:56
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Debian) (preloaded format=pdflatex 2025.9.27)  17 OCT 2026 12:13
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -824,21 +824,6 @@ Overfull \hbox (53.81027pt too wide) in paragraph at lines 379--380
  []
 
 
-Underfull \hbox (badness 1769) in paragraph at lines 415--415
-[]\T1/ptm/m/n/12 Cuadro 1: []Prestaciones ob-te-ni-das uti-li-zan-do la fun-ción es-tán-dar \T1/cmtt/m/n/12 rand() \T1/ptm/m/n/12 ($\OML/ztmcm/m/it/12 n \OT1/ztmcm/m/n/12 = 1000\OML/ztmcm/m/it/12 ; m \OT1/ztmcm/m/n/12 =
- []
-
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 419.
-(/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
-File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
-)
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
 (fancyhdr)                \setlength{\headheight}{14.49998pt}.
@@ -855,21 +840,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [9]
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 480.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 471.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <8> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 480.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 471.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <6> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 480.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 471.
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 482.
-
-
-LaTeX Warning: `!h' float specifier changed to `!ht'.
-
-
-Overfull \hbox (8.74825pt too wide) in paragraph at lines 557--558
-[]\T1/ptm/b/n/12 Cuestión 3. \T1/ptm/m/n/12 Pa-ra-le-li-zar la fun-ción \T1/cmtt/m/n/12 fitness \T1/ptm/m/n/12 uti-li-zan-do, por un la-do, los cons-truc-to-res \T1/cmtt/m/n/12 critical
- []
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 473.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -887,6 +864,10 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [11]
+Overfull \hbox (8.74825pt too wide) in paragraph at lines 548--549
+[]\T1/ptm/b/n/12 Cuestión 3. \T1/ptm/m/n/12 Pa-ra-le-li-zar la fun-ción \T1/cmtt/m/n/12 fitness \T1/ptm/m/n/12 uti-li-zan-do, por un la-do, los cons-truc-to-res \T1/cmtt/m/n/12 critical
+ []
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -895,7 +876,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [12]
-Overfull \hbox (76.2492pt too wide) in paragraph at lines 652--661
+Overfull \hbox (76.2492pt too wide) in paragraph at lines 643--652
  [][] 
  []
 
@@ -916,8 +897,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [14]
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <14.4> not available
-(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 755.
-Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 761.
+(Font)              Font shape `T1/cmtt/m/n' tried instead on input line 746.
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -927,15 +907,25 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [15]
-<./capturaejecucionvalgrind.png, id=281, 1078.0275pt x 310.15875pt>
+Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on input line 752.
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[16]
+<./capturaejecucionvalgrind.png, id=302, 1078.0275pt x 310.15875pt>
 File: ./capturaejecucionvalgrind.png Graphic file (type png)
 <use ./capturaejecucionvalgrind.png>
-Package pdftex.def Info: ./capturaejecucionvalgrind.png  used on input line 834.
+Package pdftex.def Info: ./capturaejecucionvalgrind.png  used on input line 895.
 (pdftex.def)             Requested size: 377.62642pt x 108.6471pt.
-<./capturapesos.png, id=282, 1727.45375pt x 695.59875pt>
+<./capturapesos.png, id=303, 1727.45375pt x 695.59875pt>
 File: ./capturapesos.png Graphic file (type png)
 <use ./capturapesos.png>
-Package pdftex.def Info: ./capturapesos.png  used on input line 841.
+Package pdftex.def Info: ./capturapesos.png  used on input line 902.
 (pdftex.def)             Requested size: 377.62642pt x 152.05571pt.
 
 
@@ -945,8 +935,8 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[16 <./capturaejecucionvalgrind.png>]
-Overfull \hbox (15.25807pt too wide) in paragraph at lines 851--852
+[17 <./capturaejecucionvalgrind.png>]
+Overfull \hbox (15.25807pt too wide) in paragraph at lines 914--915
 \T1/ptm/m/n/12 se-cuen-cial me-dian-te la he-rra-mien-ta \T1/cmtt/m/n/12 Callgrind \T1/ptm/m/n/12 (\T1/cmtt/m/n/12 Valgrind\T1/ptm/m/n/12 ) y su vi-sua-li-za-ción en \T1/cmtt/m/n/12 KCachegrind\T1/ptm/m/n/12 .
  []
 
@@ -957,15 +947,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[17 <./capturapesos.png>]
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
-[18]
+[18 <./capturapesos.png>]
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -990,7 +972,27 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [21]
-Overfull \hbox (8.28915pt too wide) in paragraph at lines 1151--1152
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[22]
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[23]
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 1210.
+ (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
+File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
+)
+Overfull \hbox (8.28915pt too wide) in paragraph at lines 1214--1215
 []\T1/ptm/m/n/12 A con-ti-nua-ción se mues-tra el có-di-go adap-ta-do uti-li-zan-do la di-rec-ti-va \T1/cmtt/m/n/12 #pragma omp sections\T1/ptm/m/n/12 : 
  []
 
@@ -1001,29 +1003,9 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[22]
-Overfull \hbox (35.64575pt too wide) in paragraph at lines 1228--1241
- [][] 
- []
-
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
-[23]
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
 [24]
-Overfull \hbox (44.72578pt too wide) in paragraph at lines 1304--1305
-\T1/ptm/m/n/12 cio-nes de \T1/cmtt/m/n/12 mergeSort \T1/ptm/m/n/12 pe-di-das. El ter-cer \T1/cmtt/m/n/12 qsort \T1/ptm/m/n/12 del có-di-go, el que or-de-na \T1/cmtt/m/n/12 poblacion[0]->array_int\T1/ptm/m/n/12 ,
+Overfull \hbox (35.64575pt too wide) in paragraph at lines 1291--1304
+ [][] 
  []
 
 
@@ -1035,9 +1017,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 [25]
 
-LaTeX Warning: Reference `tab:c6_versiones' on page 26 undefined on input line 1319.
-
-
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
 (fancyhdr)                \setlength{\headheight}{14.49998pt}.
@@ -1045,6 +1024,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [26]
+Overfull \hbox (44.72578pt too wide) in paragraph at lines 1368--1369
+\T1/ptm/m/n/12 cio-nes de \T1/cmtt/m/n/12 mergeSort \T1/ptm/m/n/12 pe-di-das. El ter-cer \T1/cmtt/m/n/12 qsort \T1/ptm/m/n/12 del có-di-go, el que or-de-na \T1/cmtt/m/n/12 poblacion[0]->array_int\T1/ptm/m/n/12 ,
+ []
+
+
+LaTeX Warning: Reference `tab:c6_versiones' on page 27 undefined on input line 1383.
+
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1077,15 +1063,6 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [30]
-Package pgfplots info on input line 1589: Using 'lua backend=false' for axis: ymode=log unsupported (yet).
-
-
-LaTeX Warning: Reference `tab:c6_umbral' on page 31 undefined on input line 1625.
-
-
-LaTeX Warning: Reference `fig:c6_umbral' on page 31 undefined on input line 1625.
-
-Package pgfplots info on input line 1657: Using 'lua backend=false' for axis: xmode=log unsupported (yet).
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1094,6 +1071,15 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [31]
+Package pgfplots info on input line 1653: Using 'lua backend=false' for axis: ymode=log unsupported (yet).
+
+
+LaTeX Warning: Reference `tab:c6_umbral' on page 32 undefined on input line 1689.
+
+
+LaTeX Warning: Reference `fig:c6_umbral' on page 32 undefined on input line 1689.
+
+Package pgfplots info on input line 1721: Using 'lua backend=false' for axis: xmode=log unsupported (yet).
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
 (fancyhdr)                Make it at least 14.49998pt, for example:
@@ -1126,17 +1112,32 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [35]
-Overfull \hbox (6.54951pt too wide) in paragraph at lines 1865--1866
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[36]
+Overfull \hbox (6.54951pt too wide) in paragraph at lines 1929--1930
 [] []\T1/ptm/b/n/12 Crea-ción de la po-bla-ción ini-cial.[] \T1/ptm/m/n/12 Se re-par-te con \T1/cmtt/m/n/12 #pragma omp for schedule(dynamic)\T1/ptm/m/n/12 .
  []
 
 
-Overfull \hbox (67.88116pt too wide) in paragraph at lines 1871--1872
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller to compensate:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[37]
+Overfull \hbox (67.88116pt too wide) in paragraph at lines 1935--1936
 []\T1/ptm/b/n/12 Mutación y fit-ness: \T1/ptm/m/n/12 se han fu-sio-na-do en un úni-co bu-cle con \T1/cmtt/m/n/12 #pragma omp for schedule(static)\T1/ptm/m/n/12 ,
  []
 
 
-Overfull \hbox (29.43446pt too wide) in paragraph at lines 1872--1873
+Overfull \hbox (29.43446pt too wide) in paragraph at lines 1936--1937
 []\T1/ptm/b/n/12 Ordenación y con-ver-gen-cia: \T1/ptm/m/n/12 el \T1/cmtt/m/n/12 qsort\T1/ptm/m/n/12 , la ac-tua-li-za-ción de \T1/cmtt/m/n/12 fitness_modelo \T1/ptm/m/n/12 y \T1/cmtt/m/n/12 ngeneracion
  []
 
@@ -1147,15 +1148,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller to compensate:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[36]
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller to compensate:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
-[37] (./MemoriaMPP.aux
+[38] (./MemoriaMPP.aux
 LaTeX Info: Redefining \. on input line 11.
 LaTeX Info: Redefining \% on input line 11.
 )
@@ -1171,18 +1164,18 @@ Package rerunfilecheck Info: File `MemoriaMPP.out' has not changed.
 (rerunfilecheck)             Checksum: 6D78FB9418EB64E3ED1A042465B046E9;93.
  ) 
 Here is how much of TeX's memory you used:
- 35566 strings out of 474222
- 799134 string characters out of 5748733
- 2399975 words of memory out of 5000000
- 56773 multiletter control sequences out of 15000+600000
- 628814 words of font info for 133 fonts, out of 8000000 for 9000
+ 35599 strings out of 474222
+ 799760 string characters out of 5748733
+ 2614975 words of memory out of 5000000
+ 56803 multiletter control sequences out of 15000+600000
+ 631088 words of font info for 136 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  99i,20n,101p,910b,2413s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf/fonts/type1/public/cm-super/sfit1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt0800.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1000.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1095.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1200.pfb></usr/share/texmf/fonts/type1/public/cm-super/sftt1440.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on MemoriaMPP.pdf (37 pages, 965455 bytes).
+Output written on MemoriaMPP.pdf (38 pages, 970111 bytes).
 PDF statistics:
- 807 PDF objects out of 1000 (max. 8388607)
- 723 compressed objects within 8 object streams
- 482 named destinations out of 1000 (max. 500000)
+ 811 PDF objects out of 1000 (max. 8388607)
+ 726 compressed objects within 8 object streams
+ 483 named destinations out of 1000 (max. 500000)
  46 words of extra memory for PDF output out of 10000 (max. 10000000)
 

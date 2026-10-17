@@ -1,7 +1,7 @@
 # Fdb version 4
-["pdflatex"] 1792191394.98905 "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/p1/memoria/MemoriaMPP.tex" "MemoriaMPP.pdf" "MemoriaMPP" 1792191397.24451 0
+["pdflatex"] 1792232022.34691 "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/p1/memoria/MemoriaMPP.tex" "MemoriaMPP.pdf" "MemoriaMPP" 1792232024.8675 0
   "/etc/texmf/web2c/texmf.cnf" 1758975172.57738 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/p1/memoria/MemoriaMPP.tex" 1792191392.50897 98828 38d61e6be781e81c8d832fb6cf59239a ""
+  "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/p1/memoria/MemoriaMPP.tex" 1792232024.62193 102700 21cd6f9e5ba77e4cfc82ea534add606f ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/symbol/psyr.tfm" 1136768653 1408 5937f58aa508ea2cea4901c07d10f5fe ""
@@ -241,10 +241,10 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1758976704.7222 5472669 54eaf61a88b6b7896ebd0dac973cb29c ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1758976728 8214834 66938f21b6776074ba61687929f0c78c ""
-  "MemoriaMPP.aux" 1792191397.12806 10586 6a6afbc2a3156995d68791cba85e526b "pdflatex"
-  "MemoriaMPP.out" 1792191397.13006 93 6d78fb9418eb64e3ed1a042465b046e9 "pdflatex"
-  "MemoriaMPP.tex" 1792191392.50897 98828 38d61e6be781e81c8d832fb6cf59239a ""
-  "MemoriaMPP.toc" 1792191397.13166 554 7361d101e57ebf0ebffc4c41c9e96bb2 "pdflatex"
+  "MemoriaMPP.aux" 1792232024.749 11043 b288b689f0ded4f3f85576180b2bac14 "pdflatex"
+  "MemoriaMPP.out" 1792232024.751 93 6d78fb9418eb64e3ed1a042465b046e9 "pdflatex"
+  "MemoriaMPP.tex" 1792232024.62193 102700 21cd6f9e5ba77e4cfc82ea534add606f ""
+  "MemoriaMPP.toc" 1792232024.75198 554 0d5c18e8eb46e26cfbe06540b68af000 "pdflatex"
   "capturaejecucionvalgrind.png" 1791929532.53747 89912 271bb6b08b7dc337fbed569694ff6850 ""
   "capturapesos.png" 1791929532.5511 256444 501617214f0fc86c06c1677a6438fc76 ""
   "image.png" 1791106386.43161 62307 7294f176c35da8bba6a97f786071ce60 ""
