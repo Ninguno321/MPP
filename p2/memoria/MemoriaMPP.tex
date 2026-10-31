@@ -506,6 +506,304 @@ int comp_fitness(const void *a, const void *b) {
 % --- Respuesta de la cuestión 2 ---
 
 
+% --- Respuesta de la cuestión 2 ---
+
+
+Se ha implementado el modelo de islas de la cuestión 1a usando comunicaciones punto a punto síncronas: todos los envíos se hacen con \texttt{MPI\_Ssend} (envío síncrono, que termina cuando el receptor ha empezado a recibir) y las recepciones con \texttt{MPI\_Recv}. Los individuos se envían con el tipo derivado de \texttt{derivados\_mpi.c}, cuya función \texttt{crear\_tipo\_datos} se ha copiado en \texttt{mh.c}. Para compilar y ejecutar se han adaptado el \texttt{Makefile} (con \texttt{mpicc} y \texttt{mpirun}) y el \texttt{run.sh}. A continuación se muestran las partes del código modificadas.
+
+% cambio 1: inicialización de MPI
+
+\medskip
+\noindent\textbf{Inicialización de MPI y parámetros (\texttt{main.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+MPI_Init(&argc, &argv);
+MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+MPI_Comm_size(MPI_COMM_WORLD, &size);
+...
+int NGM = atoi(argv[6]);   // cada cuántas generaciones hay migración
+int NEM = atoi(argv[7]);   // cuántos individuos migran de cada isla
+...
+assert(tam_pob / size >= 4);
+assert(NEM <= tam_pob / size);
+\end{lstlisting}
+
+\textbf{Justificación:} Se arranca MPI y cada proceso obtiene su identificador y el número de procesos, que es lo que permite que cada uno haga una parte distinta. NGM y NEM se pasan como argumentos para poder probar distintos valores sin recompilar, y todos los procesos los leen de la línea de comandos, así que no hace falta enviarlos. Los \texttt{assert} comprueban que cada isla tenga al menos 4 individuos para poder cruzar y que NEM quepa en la isla más pequeña.
+
+\vspace{0.5cm}
+
+% cambio 2: matriz de distancias
+
+\medskip
+\noindent\textbf{Envío de la matriz de distancias (\texttt{main.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+int tam_d = (n*n - n)/2;
+double *d;
+if(rank == 0) {
+	d = read_distances(n);
+	for(int dest = 1; dest < size; dest++) {
+		MPI_Ssend(d, tam_d, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
+	}
+} else {
+	d = (double *) malloc(tam_d * sizeof(double));
+	assert(d);
+	MPI_Recv(d, tam_d, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+}
+\end{lstlisting}
+
+\textbf{Justificación:} Con \texttt{mpirun} la entrada estándar solo le llega al proceso 0, así que solo él lee la matriz y la envía al resto, que la necesitan para calcular el fitness. Se envía entera en un solo mensaje porque es un array contiguo. Solo se hace una vez y queda fuera de la medida de tiempo.
+
+\vspace{0.5cm}
+
+% cambio 3: tiempos
+
+\medskip
+\noindent\textbf{Toma de tiempos (\texttt{main.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+MPI_Barrier(MPI_COMM_WORLD);
+#ifdef TIME
+	double ti = mseconds();
+#endif
+
+double value = aplicar_mh(d, n, m, n_gen, tam_pob, m_rate, sol, NGM, NEM);
+
+MPI_Barrier(MPI_COMM_WORLD);
+#ifdef TIME
+	double tf = mseconds();
+#endif
+\end{lstlisting}
+
+\textbf{Justificación:} Como indica la observación 1, se pone una barrera antes de cada toma de tiempo: la primera para que todos empiecen a la vez y la segunda para medir cuando ha terminado el proceso más lento. Después solo el proceso 0 escribe el tiempo y la solución, y todos terminan con \texttt{MPI\_Finalize}.
+
+\vspace{0.5cm}
+
+% cambio 4: islas
+
+\medskip
+\noindent\textbf{Creación de las islas (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+srand(time(NULL) + getpid() + rank * 1000);
+...
+int tam_local = tam_pob / size;
+if (rank < tam_pob % size)
+	tam_local++;
+
+Individuo *bloque = (Individuo *) malloc(tam_local * sizeof(Individuo));
+...
+for(i = 0; i < tam_local; i++) {
+	poblacion[i] = &bloque[i];
+	crear_individuo(n, m, poblacion[i]->array_int);
+	...
+}
+\end{lstlisting}
+
+\textbf{Justificación:} Cada proceso crea su propia isla con \texttt{tam\_pob/size} individuos, y si no es divisible los primeros procesos tienen uno más, para que la carga quede equilibrada. Cada isla se genera en su proceso en vez de repartirla el 0, así esa parte también se hace en paralelo y no hay que enviar la población inicial. Se suma el \texttt{rank} a la semilla para que todas las islas sean distintas.
+
+\vspace{0.5cm}
+
+% cambio 5: bucle principal
+
+\medskip
+\noindent\textbf{Bucle de evolución (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+while (g < n_gen && continuar)
+{
+	int gen_bloque = 0;
+	for (k = 0; k < NGM && g < n_gen; k++, g++, gen_bloque++)
+	{
+		...
+	}
+
+	// Migración
+	...
+}
+\end{lstlisting}
+
+\textbf{Justificación:} El bucle de la P0 se divide en bloques de NGM generaciones. Dentro de cada bloque cada isla cruza, muta, calcula el fitness y ordena igual que en la P0, pero solo con sus \texttt{tam\_local} individuos y sin comunicarse, que es donde se gana tiempo. Al final de cada bloque se hace la migración. Todos los procesos hacen las mismas generaciones, así que llegan a la migración a la vez sin tener que comunicar \texttt{g}.
+
+\vspace{0.5cm}
+
+% cambio 6: migración
+
+\medskip
+\noindent\textbf{Migración (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+copiar_mejores(poblacion, emigrantes, NEM);
+
+if (rank == 0) {
+	for (i = 0; i < NEM; i++)
+		mezcla[i] = emigrantes[i];
+
+	for (k = 1; k < size; k++) {
+		MPI_Recv(&mezcla[k * NEM], NEM, individuo_type, MPI_ANY_SOURCE, 1,
+				 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	}
+
+	for (i = 0; i < NEM * size; i++)
+		p_mezcla[i] = &mezcla[i];
+	qsort(p_mezcla, NEM * size, sizeof(Individuo *), comp_fitness);
+	copiar_mejores(p_mezcla, inmigrantes, NEM);
+
+	double fitness_esperado = fitness_modelo * (1 + PCT_CONVER);
+	if (p_mezcla[0]->fitness > fitness_esperado) {
+		fitness_modelo = p_mezcla[0]->fitness;
+		ngeneracion = 0;
+	} else {
+		ngeneracion += gen_bloque;
+	}
+	continuar = (ngeneracion < NGENERACIONES_ATRAS);
+	...
+	for (k = 1; k < size; k++) {
+		MPI_Ssend(inmigrantes, NEM, individuo_type, k, 2, MPI_COMM_WORLD);
+		MPI_Ssend(&continuar, 1, MPI_INT, k, 3, MPI_COMM_WORLD);
+	}
+} else {
+	MPI_Ssend(emigrantes, NEM, individuo_type, 0, 1, MPI_COMM_WORLD);
+	MPI_Recv(inmigrantes, NEM, individuo_type, 0, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	MPI_Recv(&continuar, 1, MPI_INT, 0, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+}
+
+reemplazar_peores(poblacion, tam_local, inmigrantes, NEM);
+\end{lstlisting}
+
+\textbf{Justificación:} Cada isla copia sus NEM mejores a un buffer contiguo con \texttt{copiar\_mejores} y los envía al proceso 0 en un solo mensaje. El proceso 0 añade los suyos directamente (no se envía mensajes a sí mismo), ordena la mezcla y devuelve a todas las islas los NEM mejores globales, que sustituyen a sus peores individuos con \texttt{reemplazar\_peores}.
+
+El proceso 0 recibe con \texttt{MPI\_ANY\_SOURCE}, es decir, en el orden en que llegan los mensajes, y guarda cada uno en el siguiente hueco libre de la mezcla. Así no se queda parado esperando a una isla lenta mientras otras ya han enviado, que es lo que pide el enunciado. Como no importa de qué isla viene cada mensaje, no se necesita el \texttt{status} y se usa \texttt{MPI\_STATUS\_IGNORE}.
+
+La convergencia la decide solo el proceso 0, con el mejor fitness global, y la envía al resto en \texttt{continuar}. Si cada isla decidiera por su cuenta, una podría parar mientras las demás le envían mensajes y el programa se bloquearía. Como solo se comprueba en las migraciones, si no hay mejora se suman las generaciones de todo el bloque. Tampoco hay interbloqueo con los envíos síncronos, porque las islas siempre envían antes de recibir y el proceso 0 siempre recibe antes de enviar.
+
+\vspace{0.5cm}
+
+% cambio 7: resultado final
+
+\medskip
+\noindent\textbf{Resultado final (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+Individuo mejor = *poblacion[0];
+if (rank == 0) {
+	Individuo recibido;
+	for (k = 1; k < size; k++) {
+		MPI_Recv(&recibido, 1, individuo_type, MPI_ANY_SOURCE, 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		if (recibido.fitness > mejor.fitness)
+			mejor = recibido;
+	}
+} else {
+	MPI_Ssend(&mejor, 1, individuo_type, 0, 4, MPI_COMM_WORLD);
+}
+\end{lstlisting}
+
+\textbf{Justificación:} Al terminar, cada isla envía su mejor individuo al proceso 0, que se queda con el de mayor fitness como solución. También se usa \texttt{MPI\_ANY\_SOURCE}, porque el orden no importa: solo hay que quedarse con el máximo.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Elección de NGM y NEM}\par
+\smallskip
+
+% >>> DATO: tabla de NGM/NEM. Media de las 3 repeticiones de cada combinación (tiempo y Distance)
+Se han probado NGM $\in \{5, 10, 20, 50\}$ y NEM $\in \{1, 3, 5\}$ con 6 procesos y la instancia \texttt{1000 400 200 100 0.3}, repitiendo cada combinación 3 veces (Tabla~\ref{tab:ngm_nem}).
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|ccc|ccc}
+\toprule
+& \multicolumn{3}{c|}{\textbf{Tiempo medio (s)}} & \multicolumn{3}{c}{\textbf{Fitness medio}} \\
+\textbf{NGM} & NEM=1 & NEM=3 & NEM=5 & NEM=1 & NEM=3 & NEM=5 \\
+\midrule
+5  & 0.150 & 0.147 & 0.143 & 4\,017\,865 & 4\,017\,682 & 4\,017\,575 \\
+10 & 0.193 & 0.193 & 0.197 & 4\,015\,756 & 4\,016\,673 & 4\,018\,129 \\
+20 & 0.190 & 0.193 & 0.187 & 4\,015\,302 & 4\,015\,518 & 4\,016\,630 \\
+50 & 0.457 & 0.443 & 0.450 & 4\,020\,613 & 4\,018\,482 & 4\,020\,628 \\
+\bottomrule
+\end{tabular}
+\caption{Pruebas de NGM y NEM con 6 procesos ($n=1000$, $m=400$, $n\_gen=200$, $tam\_pob=100$, $m\_rate=0.3$). Media de 3 ejecuciones.}
+\label{tab:ngm_nem}
+\end{table}
+
+% >>> DATO: revisar las cifras de este párrafo y los valores elegidos
+El fitness es prácticamente igual en todas las combinaciones (diferencias de alrededor del 0{,}1\,\%, del mismo orden que la variación entre repeticiones) y NEM no influye ni en el tiempo ni en el fitness. El tiempo crece con NGM, pero no por las comunicaciones: como la convergencia solo se comprueba en las migraciones, el algoritmo no puede parar antes de acumular 15 generaciones sin mejora en bloques de NGM (mínimo de 15, 20, 20 y 50 generaciones), y los tiempos son casi proporcionales a esos valores. Es decir, el coste por generación es el mismo y las comunicaciones apenas cuestan. Elegimos \textbf{NGM = 10 y NEM = 3}: NGM = 50 más que duplica el tiempo sin mejorar el fitness de forma apreciable, y entre 5, 10 y 20 tomamos el valor intermedio, que deja evolucionar las islas de forma independiente pero intercambia individuos con frecuencia. NEM = 3 es un valor intermedio que reparte los mejores sin sustituir gran parte de cada isla.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Resultados}\par
+\smallskip
+
+% >>> DATO: máquina, instancia, procesos y repeticiones
+Los experimentos se han realizado en un Intel Core i7-1355U (10 núcleos físicos: 2 de rendimiento y 8 de eficiencia, 12~MiB de caché L3) con la instancia \texttt{2000 800 400 200 0.3}, NGM = 10 y NEM = 3, mediante los scripts \texttt{prestaciones.sh} y \texttt{prestaciones\_fijo.sh}. Se dan dos versiones: la normal, con el criterio de convergencia, y una de trabajo fijo que siempre hace 60 generaciones. Esta segunda se obtiene compilando con \texttt{make mpi\_fijo}, que define \texttt{SIN\_CONVERGENCIA} y hace que en \texttt{mh.c} se use un \texttt{NGENERACIONES\_ATRAS} muy grande, de forma que nunca converge. Es necesaria porque con convergencia el número de generaciones cambia de una ejecución a otra, y así no siempre se compara el mismo trabajo. El tiempo de referencia del speed-up es el del algoritmo paralelo con 1 proceso.
+
+% >>> DATO: copiar de output/prestaciones.txt y output/prestaciones_fijo.txt
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|ccc|ccc}
+\toprule
+& \multicolumn{3}{c|}{\textbf{Con convergencia}} & \multicolumn{3}{c}{\textbf{Trabajo fijo (60 gen.)}} \\
+\textbf{n\_procesos} & t\_ejec (s) & speed-up & eficiencia & t\_ejec (s) & speed-up & eficiencia \\
+\midrule
+1 & 5.364 & 1.00 & 1.00 & 13.300 & 1.00 & 1.00 \\
+2 & 4.048 & 1.33 & 0.66 & 10.580 & 1.26 & 0.63 \\
+4 & 3.758 & 1.43 & 0.36 & 10.363 & 1.28 & 0.32 \\
+6 & 3.382 & 1.59 & 0.26 & 9.820 & 1.35 & 0.23 \\
+8 & 3.466 & 1.55 & 0.19 & 9.407 & 1.41 & 0.18 \\
+\bottomrule
+\end{tabular}
+\caption{Prestaciones con $n=2000$, $m=800$, $tam\_pob=200$, $m\_rate=0.3$, NGM = 10 y NEM = 3. Media de 5 ejecuciones (convergencia) y 3 (trabajo fijo).}
+\label{tab:c2_prestaciones}
+\end{table}
+
+% >>> DATO: cambiar las coordinates (np,valor) con los speed-up de la tabla
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.6\textwidth, height=6cm,
+    xlabel={Número de procesos}, ylabel={Speed-up},
+    xtick={1,2,4,6,8}, ymin=0, ymax=4, grid=major,
+    legend pos=north west, legend style={font=\scriptsize}]
+\addplot[mark=*, color=primary, thick] coordinates {(1,1.00) (2,1.33) (4,1.43) (6,1.59) (8,1.55)};
+\addplot[mark=square*, color=secondary, thick] coordinates {(1,1.00) (2,1.26) (4,1.28) (6,1.35) (8,1.41)};
+\addplot[dashed, color=gray] coordinates {(1,1) (8,8)};
+\legend{Con convergencia, Trabajo fijo, Ideal}
+\end{axis}
+\end{tikzpicture}
+\caption{Speed-up al variar el número de procesos.}
+\label{fig:c2_speedup}
+\end{figure}
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Análisis}\par
+\smallskip
+
+% >>> DATO: revisar las cifras de este apartado con las nuevas tablas
+El tiempo baja al aumentar los procesos, pero mucho menos de lo ideal: el speed-up máximo es de 1.59 (convergencia) y 1.41 (trabajo fijo), y la eficiencia cae por debajo de 0.25 a partir de 6 procesos. A partir de 4 procesos la mejora es mínima.
+
+La causa no son las comunicaciones, ya que solo se envían 3 individuos por isla en cada migración y las pruebas de NGM muestran que el coste por generación no cambia con la frecuencia de migración. Las causas más probables son de la máquina:
+
+\begin{itemize}
+    \item \textbf{Memoria:} cada proceso tiene su copia de la matriz de distancias (unos 16~MB con $n=2000$), que no cabe en la caché L3 de 12~MiB, y los procesos compiten por la caché y el ancho de banda de memoria.
+    \item \textbf{Núcleos heterogéneos:} solo hay 2 núcleos de rendimiento. Como en cada migración todos esperan al proceso más lento, los procesos en núcleos de eficiencia frenan al resto.
+    \item \textbf{Límite de potencia del portátil:} con más núcleos activos baja la frecuencia de cada uno.
+\end{itemize}
+
+% >>> DATO: revisar la recomendación final
+Por tanto, en esta máquina los valores más razonables son 2 o 4 procesos.
+
+
 \newpage
 \item \textbf{Cuestión 3.} Modificar la cuestión anterior para que el envío y la recepción de datos se realice mediante el uso de las funciones \texttt{MPI\_Pack} y \texttt{MPI\_Unpack} para empaquetamiento de datos (o cualquier otro método de envío diferente al uso del tipo derivado \texttt{Individuo}, de forma que se envíe en un mismo mensaje toda la estructura de individuo, no varios mensajes con cada parte). Presentar también resultados de los experimentos realizados.
 

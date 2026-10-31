@@ -507,11 +507,7 @@ int comp_fitness(const void *a, const void *b) {
 \item \textbf{Cuestión 2.} Paralelizar el algoritmo evolutivo utilizando primitivas de comunicación síncrona. Hacer uso de las constantes \texttt{MPI\_ANY\_SOURCE} o \texttt{MPI\_STATUS\_IGNORE}, si se considera conveniente, para evitar que el proceso 0 quede ocioso durante la recepción de mensajes del resto de procesos. Analizar las prestaciones que se obtienen al variar el número de procesos. Tener en cuenta el punto (3) en Observaciones para determinar los valores de NEM y NGM.
 
 % --- Respuesta de la cuestión 2 ---
-% =====================================================================
-% CUESTIÓN 2: pegar justo debajo de la línea
-%   % --- Respuesta de la cuestión 2 ---
-% Los datos de las ejecuciones están marcados con "% >>> DATO" (no salen en el PDF).
-% =====================================================================
+
 
 Se ha implementado el modelo de islas de la cuestión 1a usando comunicaciones punto a punto síncronas: todos los envíos se hacen con \texttt{MPI\_Ssend} (envío síncrono, que termina cuando el receptor ha empezado a recibir) y las recepciones con \texttt{MPI\_Recv}. Los individuos se envían con el tipo derivado de \texttt{derivados\_mpi.c}, cuya función \texttt{crear\_tipo\_datos} se ha copiado en \texttt{mh.c}. Para compilar y ejecutar se han adaptado el \texttt{Makefile} (con \texttt{mpicc} y \texttt{mpirun}) y el \texttt{run.sh}. A continuación se muestran las partes del código modificadas.
 

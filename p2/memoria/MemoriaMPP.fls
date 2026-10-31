@@ -1,6 +1,6 @@
-PWD c:\Users\Abdellah\OneDrive - UNIVERSIDAD DE MURCIA\Escritorio\MPP\p2\memoria
+PWD c:\Users\Abdellah\OneDrive - UNIVERSIDAD DE MURCIA\Escritorio\MPP\MPP\p2\memoria
 INPUT C:\Users\Abdellah\AppData\Local\MiKTeX\miktex\data\le\pdftex\pdflatex.fmt
-INPUT c:\Users\Abdellah\OneDrive - UNIVERSIDAD DE MURCIA\Escritorio\MPP\p2\memoria\MemoriaMPP.tex
+INPUT c:\Users\Abdellah\OneDrive - UNIVERSIDAD DE MURCIA\Escritorio\MPP\MPP\p2\memoria\MemoriaMPP.tex
 OUTPUT MemoriaMPP.log
 INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\tex\latex\base\article.cls
 INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\tex\latex\base\article.cls
@@ -401,6 +401,27 @@ INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\tex\latex\listings\lstmisc
 INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ectt1000.tfm
 INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmr8t.tfm
 INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\jknappen\ec\ecit1000.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\vf\adobe\times\ptmr8t.vf
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmr8r.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7t.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7t.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7t.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7m.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7m.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7m.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7y.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7y.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7y.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7v.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7v.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\zptmcm7v.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmb7t.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmb7t.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmb7t.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmri7t.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmri7t.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmri7t.tfm
+INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmr8t.tfm
 INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\vf\adobe\times\ptmr8t.vf
 INPUT C:\Users\Abdellah\AppData\Local\Programs\MiKTeX\fonts\tfm\adobe\times\ptmr8r.tfm
 INPUT MemoriaMPP.aux
