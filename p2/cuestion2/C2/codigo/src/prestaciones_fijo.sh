@@ -1,4 +1,5 @@
 #!/bin/bash
+make mpi_fijo
 export LC_ALL=C
 ARGS="2000 800 60 200 0.3"
 NGM=10; NEM=3

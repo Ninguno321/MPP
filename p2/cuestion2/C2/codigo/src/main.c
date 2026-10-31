@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	if(rank == 0) {
 		#ifdef TIME
 			printf("Processes: %d  NGM: %d  NEM: %d\n", size, NGM, NEM);
-			printf("Execution Time: %.2lf sec\n", (tf - ti)/1000);
+			printf("Execution Time: %.3lf sec\n", (tf - ti)/1000);
 		#endif
 
 		#ifdef DEBUG

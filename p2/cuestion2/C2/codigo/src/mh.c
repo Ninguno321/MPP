@@ -11,8 +11,14 @@
 
 #define PRINT 0
 #define PCT_CONVER 0.02   // valor porcentual de mejora esperado (2%)
+#ifdef SIN_CONVERGENCIA
+// CUESTIÓN 2: versión de trabajo fijo para medir prestaciones (se compila con -DSIN_CONVERGENCIA).
+// Con un valor tan grande nunca se cumple el criterio de convergencia y todas las ejecuciones
+// hacen n_gen generaciones, sea cual sea el número de procesos.
+#define NGENERACIONES_ATRAS 1000000
+#else
 #define NGENERACIONES_ATRAS 15      // se compara con el mejor fitness de hace X generaciones y esto es porque a lo mejor puede haber una generacion sin mejora pero luego otra que si mejora
-
+#endif
 
 int aleatorio(int n) {
 	return (rand() % n);  // genera un numero aleatorio entre 0 y n-1
