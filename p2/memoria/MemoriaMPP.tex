@@ -506,9 +506,6 @@ int comp_fitness(const void *a, const void *b) {
 % --- Respuesta de la cuestión 2 ---
 
 
-% --- Respuesta de la cuestión 2 ---
-
-
 Se ha implementado el modelo de islas de la cuestión 1a usando comunicaciones punto a punto síncronas: todos los envíos se hacen con \texttt{MPI\_Ssend} (envío síncrono, que termina cuando el receptor ha empezado a recibir) y las recepciones con \texttt{MPI\_Recv}. Los individuos se envían con el tipo derivado de \texttt{derivados\_mpi.c}, cuya función \texttt{crear\_tipo\_datos} se ha copiado en \texttt{mh.c}. Para compilar y ejecutar se han adaptado el \texttt{Makefile} (con \texttt{mpicc} y \texttt{mpirun}) y el \texttt{run.sh}. A continuación se muestran las partes del código modificadas.
 
 % cambio 1: inicialización de MPI
@@ -808,6 +805,193 @@ Por tanto, en esta máquina los valores más razonables son 2 o 4 procesos.
 \item \textbf{Cuestión 3.} Modificar la cuestión anterior para que el envío y la recepción de datos se realice mediante el uso de las funciones \texttt{MPI\_Pack} y \texttt{MPI\_Unpack} para empaquetamiento de datos (o cualquier otro método de envío diferente al uso del tipo derivado \texttt{Individuo}, de forma que se envíe en un mismo mensaje toda la estructura de individuo, no varios mensajes con cada parte). Presentar también resultados de los experimentos realizados.
 
 % --- Respuesta de la cuestión 3 ---
+% =====================================================================
+% CUESTIÓN 3: pegar justo debajo de la línea
+%   % --- Respuesta de la cuestión 3 ---
+% Los datos de las ejecuciones están marcados con "% >>> DATO" (no salen en el PDF).
+% =====================================================================
+
+Hemos partido del código de la cuestión 2, con el mismo algoritmo y las mismas comunicaciones síncronas (\texttt{MPI\_Ssend} y \texttt{MPI\_Recv} con \texttt{MPI\_ANY\_SOURCE}), y solo se hemos cambiado la forma de enviar los individuos: en lugar del tipo derivado, cada individuo se empaqueta entero (sus $m$ genes y su fitness) con \texttt{MPI\_Pack} en un buffer de bytes, que se envía en un único mensaje de tipo \texttt{MPI\_PACKED} y se desempaqueta con \texttt{MPI\_Unpack} en el mismo orden. Por tanto, hemos eliminado la función \texttt{crear\_tipo\_datos}. \texttt{main.c}. A continuación se muestran las partes del código modificadas.
+
+% cambio 1: funciones de empaquetado
+
+\medskip
+\noindent\textbf{Funciones de empaquetado (\texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+int tam_paquete(int m, int k)
+{
+	int t_genes, t_fitness, t_int;
+	MPI_Pack_size(m, MPI_INT, MPI_COMM_WORLD, &t_genes);
+	MPI_Pack_size(1, MPI_DOUBLE, MPI_COMM_WORLD, &t_fitness);
+	MPI_Pack_size(1, MPI_INT, MPI_COMM_WORLD, &t_int);
+	return k * (t_genes + t_fitness) + t_int;
+}
+
+void empaquetar_individuos(Individuo **ind, int k, int m, char *buffer, int tam, int *position)
+{
+	for (int i = 0; i < k; i++) {
+		MPI_Pack(ind[i]->array_int, m, MPI_INT, buffer, tam, position, MPI_COMM_WORLD);
+		MPI_Pack(&ind[i]->fitness, 1, MPI_DOUBLE, buffer, tam, position, MPI_COMM_WORLD);
+	}
+}
+
+void desempaquetar_individuos(char *buffer, int tam, int *position, Individuo *ind, int k, int m)
+{
+	for (int i = 0; i < k; i++) {
+		MPI_Unpack(buffer, tam, position, ind[i].array_int, m, MPI_INT, MPI_COMM_WORLD);
+		MPI_Unpack(buffer, tam, position, &ind[i].fitness, 1, MPI_DOUBLE, MPI_COMM_WORLD);
+	}
+}
+\end{lstlisting}
+
+\textbf{Justificación:} Hemos creado tres funciones para no repetir el mismo código en cada envío. \texttt{tam\_paquete} calcula el tamaño del buffer en bytes para $k$ individuos más un entero (la variable \texttt{continuar}) con \texttt{MPI\_Pack\_size}, que devuelve lo que ocupa realmente cada dato empaquetado; así no hay que calcularlo a mano ni añadir un margen. \texttt{empaquetar\_individuos} empaqueta, uno detrás de otro, los genes y el fitness de cada individuo, y \texttt{desempaquetar\_individuos} los saca en el mismo orden, que es lo que exige \texttt{MPI\_Unpack}. La función de empaquetar recibe punteros: como \texttt{MPI\_Pack} copia los datos al buffer, los individuos no tienen que estar contiguos en memoria, y se puede empaquetar directamente desde la población ordenada.
+
+\vspace{0.5cm}
+
+% cambio 2: buffer
+
+\medskip
+\noindent\textbf{Buffer de los mensajes (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+int tam_buffer = tam_paquete(m, NEM);
+char *buffer = (char *) malloc(tam_buffer);
+int position;
+Individuo *inmigrantes = (Individuo *) malloc(NEM * sizeof(Individuo));
+assert(buffer && inmigrantes);
+\end{lstlisting}
+
+\textbf{Justificación:} Reservamos un único buffer de bytes con espacio para NEM individuos y \texttt{continuar}, que se reutiliza en todos los mensajes, incluido el del resultado final. Desaparece el buffer \texttt{emigrantes} de la cuestión 2, en el que copiabamos los mejores para tenerlos contiguos, porque ya no hace falta: cada isla empaqueta sus NEM mejores directamente desde \texttt{poblacion}.
+
+\vspace{0.5cm}
+
+% cambio 3: migración
+
+\medskip
+\noindent\textbf{Migración (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+if (rank == 0) {
+	for (i = 0; i < NEM; i++)
+		mezcla[i] = *poblacion[i];
+
+	for (k = 1; k < size; k++) {
+		MPI_Recv(buffer, tam_buffer, MPI_PACKED, MPI_ANY_SOURCE, 1,
+				 MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		position = 0;
+		desempaquetar_individuos(buffer, tam_buffer, &position, &mezcla[k * NEM], NEM, m);
+	}
+	...
+	position = 0;
+	empaquetar_individuos(p_mezcla, NEM, m, buffer, tam_buffer, &position);
+	MPI_Pack(&continuar, 1, MPI_INT, buffer, tam_buffer, &position, MPI_COMM_WORLD);
+	for (k = 1; k < size; k++) {
+		MPI_Ssend(buffer, position, MPI_PACKED, k, 2, MPI_COMM_WORLD);
+	}
+} else {
+	position = 0;
+	empaquetar_individuos(poblacion, NEM, m, buffer, tam_buffer, &position);
+	MPI_Ssend(buffer, position, MPI_PACKED, 0, 1, MPI_COMM_WORLD);
+
+	MPI_Recv(buffer, tam_buffer, MPI_PACKED, 0, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+	position = 0;
+	desempaquetar_individuos(buffer, tam_buffer, &position, inmigrantes, NEM, m);
+	MPI_Unpack(buffer, tam_buffer, &position, &continuar, 1, MPI_INT, MPI_COMM_WORLD);
+}
+\end{lstlisting}
+
+\textbf{Justificación:} Cada isla empaqueta sus NEM mejores en un solo paquete y lo envía al proceso 0. Al enviar se indica como tamaño \texttt{position}, que son los bytes ocupados, y al recibir el tamaño total del buffer. El proceso 0 sigue recibiendo con \texttt{MPI\_ANY\_SOURCE}, como en la cuestión 2, y desempaqueta cada paquete en el siguiente hueco libre de la mezcla, reiniciando \texttt{position} a 0 en cada mensaje. La mezcla, la ordenación y la convergencia no cambian.
+
+La diferencia principal está en la vuelta: el proceso 0 empaqueta los NEM mejores globales y la variable \texttt{continuar} en el mismo paquete, una sola vez, y lo envía a todas las islas, que lo desempaquetan en el mismo orden. En la cuestión 2 se enviaban dos mensajes a cada isla (individuos y \texttt{continuar}, porque eran de tipos distintos), y ahora uno, así que en cada migración se pasa de $3(p-1)$ a $2(p-1)$ mensajes.
+
+\vspace{0.5cm}
+
+% cambio 4: resultado final
+
+\medskip
+\noindent\textbf{Resultado final (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+if (rank == 0) {
+	Individuo recibido;
+	for (k = 1; k < size; k++) {
+		MPI_Recv(buffer, tam_buffer, MPI_PACKED, MPI_ANY_SOURCE, 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		position = 0;
+		desempaquetar_individuos(buffer, tam_buffer, &position, &recibido, 1, m);
+		if (recibido.fitness > mejor.fitness)
+			mejor = recibido;
+	}
+} else {
+	Individuo *p_mejor = &mejor;
+	position = 0;
+	empaquetar_individuos(&p_mejor, 1, m, buffer, tam_buffer, &position);
+	MPI_Ssend(buffer, position, MPI_PACKED, 0, 4, MPI_COMM_WORLD);
+}
+\end{lstlisting}
+
+\textbf{Justificación:} El envío del mejor individuo de cada isla al final se hace igual, con un paquete de un solo individuo. Como la función de empaquetar recibe un array de punteros, se le pasa la dirección de un puntero al mejor individuo.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Resultados}\par
+\smallskip
+
+% >>> DATO: copiar de output/prestaciones.txt y output/prestaciones_fijo.txt de la cuestión 3
+Los experimentos se han realizado en la misma máquina y con los mismos parámetros que en la cuestión 2 (instancia \texttt{2000 800 400 200 0.3}, NGM = 10 y NEM = 3, scripts \texttt{prestaciones.sh} y \texttt{prestaciones\_fijo.sh}), para poder comparar las dos formas de envío. El tiempo de referencia del speed-up es el del algoritmo paralelo con 1 proceso.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|ccc|ccc}
+\toprule
+& \multicolumn{3}{c|}{\textbf{Con convergencia}} & \multicolumn{3}{c}{\textbf{Trabajo fijo (60 gen.)}} \\
+\textbf{n\_procesos} & t\_ejec (s) & speed-up & eficiencia & t\_ejec (s) & speed-up & eficiencia \\
+\midrule
+1 & 5.182 & 1.00 & 1.00 & 14.466 & 1.00 & 1.00 \\
+2 & 3.753 & 1.38 & 0.69 & 10.855 & 1.33 & 0.67 \\
+4 & 3.506 & 1.48 & 0.37 & 10.874 & 1.33 & 0.33 \\
+6 & 3.452 & 1.50 & 0.25 & 9.813 & 1.47 & 0.25 \\
+8 & 3.646 & 1.42 & 0.18 & 9.282 & 1.56 & 0.19 \\
+\bottomrule
+\end{tabular}
+\caption{Prestaciones de la cuestión 3 (\texttt{MPI\_Pack}) con $n=2000$, $m=800$, $tam\_pob=200$, $m\_rate=0.3$, NGM = 10 y NEM = 3. Media de 5 ejecuciones (convergencia) y 3 (trabajo fijo).}
+\label{tab:c3_prestaciones}
+\end{table}
+
+% >>> DATO: tiempos de la cuestión 2 (Tabla de la C2) y de la cuestión 3 (tabla anterior); diferencia = (C3 - C2) / C2
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|ccc|ccc}
+\toprule
+& \multicolumn{3}{c|}{\textbf{Con convergencia (s)}} & \multicolumn{3}{c}{\textbf{Trabajo fijo (s)}} \\
+\textbf{n\_procesos} & Tipo derivado & \texttt{MPI\_Pack} & Dif. & Tipo derivado & \texttt{MPI\_Pack} & Dif. \\
+\midrule
+1 & 5.364 & 5.182 & $-$3.4\,\% & 13.300 & 14.466 & +8.8\,\% \\
+2 & 4.048 & 3.753 & $-$7.3\,\% & 10.580 & 10.855 & +2.6\,\% \\
+4 & 3.758 & 3.506 & $-$6.7\,\% & 10.363 & 10.874 & +4.9\,\% \\
+6 & 3.382 & 3.452 & +2.1\,\% & 9.820 & 9.813 & $-$0.1\,\% \\
+8 & 3.466 & 3.646 & +5.2\,\% & 9.407 & 9.282 & $-$1.3\,\% \\
+\bottomrule
+\end{tabular}
+\caption{Comparación de tiempos entre la cuestión 2 (tipo derivado) y la cuestión 3 (\texttt{MPI\_Pack}).}
+\label{tab:c3_comparacion}
+\end{table}
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Análisis}\par
+\smallskip
+
+% >>> DATO: revisar las cifras de este apartado con las nuevas tablas
+Los tiempos son prácticamente iguales a los de la cuestión 2 (Tabla~\ref{tab:c3_comparacion}): las diferencias van del $-$7\,\% al +9\,\% y no siguen ninguna tendencia, ya que unas veces es más rápida una versión y otras la otra. La prueba de que estas diferencias son variabilidad de la máquina y no se deben al empaquetado es la fila de 1 proceso: con un solo proceso no hay ninguna comunicación, así que el código que se ejecuta es el mismo en las dos cuestiones, y aun así el tiempo varía entre un 3 y un 9\,\%. Por tanto, el speed-up y la eficiencia tienen el mismo comportamiento que en la cuestión 2 y se explican por las mismas causas (memoria, núcleos heterogéneos y límite de potencia).
+
+Que el empaquetado no tenga un coste apreciable es lo esperado. \texttt{MPI\_Pack} y \texttt{MPI\_Unpack} añaden una copia de los datos al buffer en cada envío y recepción, pero en cada migración solo se envían 3 individuos por isla (unos 9.6~KB), una cantidad muy pequeña comparada con el cálculo de NGM generaciones. El ahorro de un mensaje por isla al enviar \texttt{continuar} en el mismo paquete tampoco se nota, por el mismo motivo. En resumen, las dos formas de envío son equivalentes en rendimiento para este problema. \texttt{MPI\_Pack} tiene la ventaja de que no necesita que los datos estén contiguos ni que sean del mismo tipo, mientras que el tipo derivado evita la copia intermedia al buffer, lo que podría notarse con mensajes mucho más grandes.
 
 
 \newpage
@@ -815,6 +999,260 @@ Por tanto, en esta máquina los valores más razonables son 2 o 4 procesos.
 
 % --- Respuesta de la cuestión 4 ---
 
+
+
+Se ha partido del código de la cuestión 2 (tipo derivado \texttt{Individuo}), para que la comparación entre las dos cuestiones mida solo el efecto de pasar de comunicaciones síncronas a asíncronas. Todos los envíos y recepciones se hacen ahora con \texttt{MPI\_Isend} y \texttt{MPI\_Irecv}, que inician la operación y vuelven enseguida, y se completan con \texttt{MPI\_Wait} (espera a que termine) o \texttt{MPI\_Test} (comprueba si ha terminado sin bloquearse). Un buffer usado en una de estas operaciones no se puede modificar ni leer hasta que termina. El objetivo es que las islas no se queden paradas en las migraciones: envían sus mejores individuos y siguen calculando mientras el proceso 0 junta los de todas, y la respuesta se incorpora en cuanto llega. \texttt{io.c}, el \texttt{Makefile} y los scripts no cambian. A continuación se muestran las partes del código modificadas.
+
+% cambio 1: matriz de distancias
+
+\medskip
+\noindent\textbf{Envío de la matriz de distancias (\texttt{main.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+if(rank == 0) {
+	d = read_distances(n);
+	MPI_Request *req = (MPI_Request *) malloc(size * sizeof(MPI_Request));
+	assert(req);
+	for(int dest = 1; dest < size; dest++) {
+		MPI_Isend(d, tam_d, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD, &req[dest]);
+	}
+	for(int dest = 1; dest < size; dest++) {
+		MPI_Wait(&req[dest], MPI_STATUS_IGNORE);
+	}
+	free(req);
+} else {
+	...
+	MPI_Request req;
+	MPI_Irecv(d, tam_d, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, &req);
+	MPI_Wait(&req, MPI_STATUS_IGNORE);
+}
+\end{lstlisting}
+
+\textbf{Justificación:} En la cuestión 2, con \texttt{MPI\_Ssend}, el proceso 0 no empezaba el envío a un proceso hasta que el anterior había empezado a recibir. Ahora inicia todos los envíos a la vez y después espera a que terminen todos, antes de poder liberar o modificar la matriz.
+
+\vspace{0.5cm}
+
+% cambio 2: progresar
+
+\medskip
+\noindent\textbf{Avance de las comunicaciones (\texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+void progresar(MPI_Request *reqs, int n)
+{
+	int terminada;
+	for (int i = 0; i < n; i++)
+		MPI_Test(&reqs[i], &terminada, MPI_STATUS_IGNORE);
+}
+...
+for(i = 0; i < tam_local; i++) {
+	fitness(d, poblacion[i], n, m);
+	...
+	if (rank == 0) {
+		progresar(req_mig, size);
+		progresar(req_resp, 2 * size);
+	} else {
+		progresar(req_isla, 3);
+	}
+}
+\end{lstlisting}
+
+\textbf{Justificación:} Al probar la primera versión, con migración en cada generación (NGM = 1), el programa tardaba el doble que en la cuestión 2. La causa es que los mensajes de individuos ocupan varios KB, y MPI solo los transmite cuando los dos procesos hacen alguna llamada a MPI: si una isla hace \texttt{MPI\_Isend} y sigue calculando sin llamar a MPI, el proceso 0 se queda esperando el mensaje hasta que la isla termina la generación. Para evitarlo, mientras se calcula el fitness, entre individuo e individuo, cada proceso llama a \texttt{MPI\_Test} sobre sus operaciones pendientes. \texttt{MPI\_Test} no bloquea, pero hace que los mensajes avancen. Con este cambio el tiempo con NGM = 1 pasó a ser el mismo que en la cuestión 2. Las peticiones que ya han terminado valen \texttt{MPI\_REQUEST\_NULL} y \texttt{MPI\_Test} sobre ellas no hace nada, por lo que se puede llamar siempre.
+
+\vspace{0.5cm}
+
+% cambio 3: bucle de evolución
+
+\medskip
+\noindent\textbf{Bucle de evolución (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+while (g < n_gen && continuar)
+{
+	if (rank == 0) {
+		for (k = 1; k < size; k++)
+			MPI_Irecv(&mezcla[k * NEM], NEM, individuo_type, MPI_ANY_SOURCE, 1,
+					  MPI_COMM_WORLD, &req_mig[k]);
+	}
+	...
+	for (k = 0; k < NGM && g < n_gen; k++, g++, gen_bloque++)
+	{
+		...
+		if (rank != 0 && pendiente) {
+			int listo_ind, listo_cont;
+			MPI_Test(&req_isla[1], &listo_ind, MPI_STATUS_IGNORE);
+			MPI_Test(&req_isla[2], &listo_cont, MPI_STATUS_IGNORE);
+			if (listo_ind && listo_cont) {
+				pendiente = 0;
+				continuar = continuar_rec;
+				reemplazar_peores(poblacion, tam_local, inmigrantes, NEM);
+				if (!continuar)
+					break;
+			}
+		}
+	}
+
+	if (!continuar)
+		break;
+	...
+}
+\end{lstlisting}
+
+\textbf{Justificación:} El proceso 0 inicia con \texttt{MPI\_Irecv} las recepciones de todas las islas al principio de cada bloque, antes de calcular, para que los individuos de las islas que terminan antes vayan llegando mientras él calcula. Se sigue usando \texttt{MPI\_ANY\_SOURCE}, y cada recepción tiene su propio hueco en la mezcla.
+
+Las islas, al final de cada generación, comprueban con \texttt{MPI\_Test} si ha llegado la respuesta del proceso 0 a su último envío. Si ha llegado, sustituyen sus peores individuos en ese momento, sin esperar a la siguiente migración, y si el 0 ha decidido parar dejan de calcular. Sin esta comprobación, las islas no se enteraban de que había que parar hasta la siguiente migración y hacían un bloque entero de generaciones de más, lo que con convergencia (unas 20 generaciones en total) suponía un 50\,\% más de tiempo. \texttt{continuar} se recibe en una variable aparte, \texttt{continuar\_rec}, porque el bucle la lee mientras la recepción está en marcha.
+
+\vspace{0.5cm}
+
+% cambio 4: migración
+
+\medskip
+\noindent\textbf{Migración (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+if (rank == 0) {
+	...
+	for (k = 1; k < size; k++)
+		MPI_Wait(&req_mig[k], MPI_STATUS_IGNORE);
+	...
+	for (k = 0; k < 2 * size; k++)
+		MPI_Wait(&req_resp[k], MPI_STATUS_IGNORE);
+	copiar_mejores(p_mezcla, inmigrantes, NEM);
+	...
+	for (k = 1; k < size; k++) {
+		MPI_Isend(inmigrantes, NEM, individuo_type, k, 2, MPI_COMM_WORLD, &req_resp[2 * k]);
+		MPI_Isend(&continuar, 1, MPI_INT, k, 3, MPI_COMM_WORLD, &req_resp[2 * k + 1]);
+	}
+	reemplazar_peores(poblacion, tam_local, inmigrantes, NEM);
+} else {
+	if (pendiente) {
+		MPI_Wait(&req_isla[1], MPI_STATUS_IGNORE);
+		MPI_Wait(&req_isla[2], MPI_STATUS_IGNORE);
+		pendiente = 0;
+		continuar = continuar_rec;
+		reemplazar_peores(poblacion, tam_local, inmigrantes, NEM);
+		if (!continuar)
+			break;
+	}
+
+	MPI_Wait(&req_isla[0], MPI_STATUS_IGNORE);
+
+	copiar_mejores(poblacion, emigrantes, NEM);
+	MPI_Isend(emigrantes, NEM, individuo_type, 0, 1, MPI_COMM_WORLD, &req_isla[0]);
+	MPI_Irecv(inmigrantes, NEM, individuo_type, 0, 2, MPI_COMM_WORLD, &req_isla[1]);
+	MPI_Irecv(&continuar_rec, 1, MPI_INT, 0, 3, MPI_COMM_WORLD, &req_isla[2]);
+	pendiente = 1;
+}
+\end{lstlisting}
+
+\textbf{Justificación:} El proceso 0 espera con \texttt{MPI\_Wait} a que lleguen los individuos de todas las islas, ordena la mezcla y decide la convergencia como en la cuestión 2. Antes de sobrescribir \texttt{inmigrantes} y \texttt{continuar} espera a que hayan terminado sus envíos de la migración anterior, y después envía la respuesta a cada isla con \texttt{MPI\_Isend} y sigue con su isla sin esperar.
+
+Las islas ya no esperan la respuesta justo después de enviar. Si la respuesta de la migración anterior no ha llegado durante el cálculo, la esperan aquí y la incorporan; después esperan a que haya terminado su envío anterior para poder reutilizar \texttt{emigrantes}, envían sus nuevos mejores y dejan preparada la recepción de la respuesta, y vuelven a calcular. Por tanto, los inmigrantes llegan a cada isla con algo de retraso respecto a la cuestión 2, lo que es habitual en el modelo de islas asíncrono.
+
+No pueden cruzarse mensajes de migraciones distintas, aunque el proceso 0 reciba con \texttt{MPI\_ANY\_SOURCE}: una isla no envía sus individuos de una migración hasta haber recibido la respuesta de la anterior, y el 0 no envía esa respuesta hasta haber recibido los de todas las islas. Así, en cada migración el proceso 0 recibe exactamente un mensaje de cada isla.
+
+\vspace{0.5cm}
+
+% cambio 5: final
+
+\medskip
+\noindent\textbf{Operaciones pendientes y resultado final (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+if (rank == 0) {
+	for (k = 0; k < 2 * size; k++)
+		MPI_Wait(&req_resp[k], MPI_STATUS_IGNORE);
+} else {
+	if (pendiente) {
+		MPI_Wait(&req_isla[1], MPI_STATUS_IGNORE);
+		MPI_Wait(&req_isla[2], MPI_STATUS_IGNORE);
+		reemplazar_peores(poblacion, tam_local, inmigrantes, NEM);
+	}
+	MPI_Wait(&req_isla[0], MPI_STATUS_IGNORE);
+}
+...
+if (rank == 0) {
+	for (k = 1; k < size; k++)
+		MPI_Irecv(&mezcla[k], 1, individuo_type, MPI_ANY_SOURCE, 4, MPI_COMM_WORLD, &req_mig[k]);
+	for (k = 1; k < size; k++) {
+		MPI_Wait(&req_mig[k], MPI_STATUS_IGNORE);
+		if (mezcla[k].fitness > mejor.fitness)
+			mejor = mezcla[k];
+	}
+} else {
+	MPI_Isend(&mejor, 1, individuo_type, 0, 4, MPI_COMM_WORLD, &req_isla[0]);
+	MPI_Wait(&req_isla[0], MPI_STATUS_IGNORE);
+}
+\end{lstlisting}
+
+\textbf{Justificación:} Al salir del bucle pueden quedar operaciones en marcha (por ejemplo, si se ha llegado a \texttt{n\_gen}, la isla todavía espera la última respuesta del 0). Antes de terminar se completan todas con \texttt{MPI\_Wait}, porque un mensaje sin recibir puede bloquear el programa o hacer que falle al liberar la memoria. Para el resultado final, el proceso 0 inicia a la vez las recepciones del mejor individuo de cada isla y después las espera, guardándolas en la mezcla, que ya no se usa.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Resultados}\par
+\smallskip
+
+% >>> DATO: copiar de output/prestaciones.txt y output/prestaciones_fijo.txt de la cuestión 4
+Los experimentos se han realizado en la misma máquina y con los mismos parámetros que en las cuestiones anteriores (instancia \texttt{2000 800 400 200 0.3}, NGM = 10 y NEM = 3, scripts \texttt{prestaciones.sh} y \texttt{prestaciones\_fijo.sh}). Se ha comprobado además que el programa termina siempre (20 ejecuciones seguidas sin bloqueos) y que funciona con distinto número de procesos, con NGM = 1 y con más procesos que núcleos.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|ccc|ccc}
+\toprule
+& \multicolumn{3}{c|}{\textbf{Con convergencia}} & \multicolumn{3}{c}{\textbf{Trabajo fijo (60 gen.)}} \\
+\textbf{n\_procesos} & t\_ejec (s) & speed-up & eficiencia & t\_ejec (s) & speed-up & eficiencia \\
+\midrule
+1 & 5.269 & 1.00 & 1.00 & 13.955 & 1.00 & 1.00 \\
+2 & 3.873 & 1.36 & 0.68 & 11.332 & 1.23 & 0.62 \\
+4 & 5.341 & 0.99 & 0.25 & 10.786 & 1.29 & 0.32 \\
+6 & 3.711 & 1.42 & 0.24 & 10.081 & 1.38 & 0.23 \\
+8 & 3.568 & 1.48 & 0.18 & 9.764 & 1.43 & 0.18 \\
+\bottomrule
+\end{tabular}
+\caption{Prestaciones de la cuestión 4 (comunicación asíncrona) con $n=2000$, $m=800$, $tam\_pob=200$, $m\_rate=0.3$, NGM = 10 y NEM = 3. Media de 5 ejecuciones (convergencia) y 3 (trabajo fijo).}
+\label{tab:c4_prestaciones}
+\end{table}
+
+% >>> DATO: tiempos y speed-up de trabajo fijo de la cuestión 2 y de la cuestión 4
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|cc|cc}
+\toprule
+& \multicolumn{2}{c|}{\textbf{t\_ejec (s)}} & \multicolumn{2}{c}{\textbf{speed-up}} \\
+\textbf{n\_procesos} & Síncrona (C2) & Asíncrona (C4) & Síncrona (C2) & Asíncrona (C4) \\
+\midrule
+1 & 13.300 & 13.955 & 1.00 & 1.00 \\
+2 & 10.580 & 11.332 & 1.26 & 1.23 \\
+4 & 10.363 & 10.786 & 1.28 & 1.29 \\
+6 & 9.820 & 10.081 & 1.35 & 1.38 \\
+8 & 9.407 & 9.764 & 1.41 & 1.43 \\
+\bottomrule
+\end{tabular}
+\caption{Comparación entre la cuestión 2 (síncrona) y la cuestión 4 (asíncrona) con la versión de trabajo fijo.}
+\label{tab:c4_comparacion}
+\end{table}
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Análisis}\par
+\smallskip
+
+% >>> DATO: revisar las cifras de este apartado con las nuevas tablas
+Para comparar con la cuestión 2 nos fijamos en la versión de trabajo fijo (Tabla~\ref{tab:c4_comparacion}). Los tiempos de la cuestión 4 son entre un 3 y un 7\,\% mayores, pero con 1 proceso, donde no hay ninguna comunicación y el código que se ejecuta es el mismo, también son un 5\,\% mayores, lo que indica que la máquina iba algo más lenta en esa sesión. Si se compara el speed-up, que no depende de ese efecto, las dos versiones son prácticamente iguales (diferencias de $\pm 0.03$). Es decir, la comunicación asíncrona no mejora las prestaciones en este caso.
+
+El motivo es que el tiempo que se pierde en las migraciones no se debe a la comunicación en sí, sino a que los procesos van a distinta velocidad (la máquina tiene núcleos de rendimiento y de eficiencia). Con comunicación asíncrona una isla rápida puede adelantarse, pero como mucho un bloque: para enviar los individuos de una migración necesita la respuesta de la anterior, y el proceso 0 no la envía hasta tener los de todas las islas, incluida la más lenta. Por tanto, el ritmo de todo el programa lo sigue marcando el proceso más lento, igual que con comunicación síncrona. La asincronía permite solapar comunicación y cálculo, pero aquí las comunicaciones son muy pequeñas (3 individuos por isla en cada migración) y no había casi nada que ocultar. Además, añade algo de trabajo: las llamadas a \texttt{MPI\_Test} durante el cálculo y las esperas para poder reutilizar los buffers.
+
+% >>> DATO: repetición de la configuración con 4 procesos y convergencia (5 tandas de 5 ejecuciones)
+En la versión con convergencia, el tiempo con 4 procesos (5.341 s) se sale de la tendencia: es incluso mayor que con 1 proceso (5.269 s). Para comprobarlo, hemos repetido esa configuración 25 veces (5 tandas de 5 ejecuciones seguidas): todos los tiempos están entre 3.67 y 4.34 s, con una media de 4.09 s (speed-up 1.29), coherente con el resto de la tabla y sin ninguna ejecución anómala. Por tanto, el valor de la tabla se debe a una perturbación puntual durante esa medición (otro proceso del sistema, por ejemplo) y no al algoritmo. Estas repeticiones muestran además otro efecto: la media de cada tanda va aumentando (3.76, 4.04, 4.22, 4.16 y 4.24 s), porque al encadenar ejecuciones el portátil se calienta y reduce la frecuencia del procesador. Esto confirma el efecto del límite de potencia comentado en la cuestión 2 y explica por qué los tiempos cambian algo de una sesión de medidas a otra.
+
+En resumen, en esta máquina y con este problema la comunicación asíncrona da el mismo rendimiento que la síncrona, a cambio de un código más complejo. Se notaría una mejora si las comunicaciones fueran más costosas (individuos mucho más grandes, más emigrantes o una red entre varios ordenadores) o si los procesos fueran a la misma velocidad.
 
 \newpage
 \item \textbf{Cuestión 5.} Paralelizar el algoritmo evolutivo utilizando primitivas de comunicación colectiva. Analizar las prestaciones obtenidas al variar el número de procesos.
