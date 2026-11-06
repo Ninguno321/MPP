@@ -1260,11 +1260,232 @@ En resumen, en esta máquina y con este problema la comunicación asíncrona da 
 % --- Respuesta de la cuestión 5 ---
 
 
+
+Hemos partido del código de la cuestión 2 (tipo derivado \texttt{Individuo}), para que la comparación mida solo el efecto de pasar de comunicaciones punto a punto a comunicaciones colectivas. En una comunicación colectiva participan todos los procesos, que llaman a la misma función con los mismos parámetros, y MPI se encarga de mover los datos. Hemos usado dos: \texttt{MPI\_Bcast}, en la que el proceso raíz envía los mismos datos a todos, y \texttt{MPI\_Gather}, en la que el raíz recoge un bloque de datos de cada proceso, colocados por orden de rank. El algoritmo es el mismo, y \texttt{io.c}, el \texttt{Makefile} y los scripts no cambian. A continuación se muestran las partes del código modificadas.
+
+% cambio 1: matriz
+
+\medskip
+\noindent\textbf{Envío de la matriz de distancias (\texttt{main.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+if(rank == 0) {
+	d = read_distances(n);
+} else {
+	d = (double *) malloc(tam_d * sizeof(double));
+	assert(d);
+}
+MPI_Bcast(d, tam_d, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+\end{lstlisting}
+
+\textbf{Justificación:} El bucle de envíos del proceso 0 y la recepción del resto se sustituyen por un único \texttt{MPI\_Bcast}. El proceso 0 lee la matriz y el resto reserva memoria para recibirla, y después todos llaman a \texttt{MPI\_Bcast}: en la raíz (el proceso 0) es un envío y en los demás una recepción en \texttt{d}. Por eso la llamada está fuera del \texttt{if}: si algún proceso no la hiciera, el resto se quedaría bloqueado.
+
+\vspace{0.5cm}
+
+% cambio 2: migración
+
+\medskip
+\noindent\textbf{Migración (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+copiar_mejores(poblacion, emigrantes, NEM);
+
+MPI_Gather(emigrantes, NEM, individuo_type, mezcla, NEM, individuo_type, 0, MPI_COMM_WORLD);
+
+if (rank == 0) {
+	for (i = 0; i < NEM * size; i++)
+		p_mezcla[i] = &mezcla[i];
+	qsort(p_mezcla, NEM * size, sizeof(Individuo *), comp_fitness);
+
+	copiar_mejores(p_mezcla, inmigrantes, NEM);
+	...
+	continuar = (ngeneracion < NGENERACIONES_ATRAS);
+	...
+}
+
+MPI_Bcast(inmigrantes, NEM, individuo_type, 0, MPI_COMM_WORLD);
+MPI_Bcast(&continuar, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+reemplazar_peores(poblacion, tam_local, inmigrantes, NEM);
+\end{lstlisting}
+
+\textbf{Justificación:} Todas las islas, incluida la del proceso 0, copian sus NEM mejores al buffer \texttt{emigrantes} y llaman a \texttt{MPI\_Gather}. El proceso 0 recibe en la mezcla los NEM individuos de cada isla, uno detrás de otro y por orden de rank (los de la isla $k$ quedan en \texttt{mezcla[k*NEM]}), incluidos los suyos. El buffer de recepción solo se usa en la raíz, así que en el resto de procesos \texttt{mezcla} puede ser \texttt{NULL}. Esto sustituye al \texttt{MPI\_Ssend} de las islas y al bucle de \texttt{MPI\_Recv} del proceso 0 de la cuestión 2. Ya no hace falta \texttt{MPI\_ANY\_SOURCE}: \texttt{MPI\_Gather} recibe de todas las islas en una sola llamada y deja cada bloque en su sitio.
+
+El proceso 0 ordena la mezcla, elige los NEM mejores y decide la convergencia igual que antes. Después, con dos \texttt{MPI\_Bcast} (uno para los individuos y otro para \texttt{continuar}, porque son de tipos distintos), envía a todas las islas los mejores globales y si hay que seguir, y todas sustituyen a sus peores. Así desaparecen los bucles de envíos del proceso 0 y el \texttt{if/else} de las islas, ya que todos los procesos ejecutan las mismas llamadas, y el código queda bastante más corto y sencillo.
+
+\vspace{0.5cm}
+
+% cambio 3: resultado final
+
+\medskip
+\noindent\textbf{Resultado final (\texttt{aplicar\_mh})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+Individuo mejor = *poblacion[0];
+MPI_Gather(&mejor, 1, individuo_type, mezcla, 1, individuo_type, 0, MPI_COMM_WORLD);
+if (rank == 0) {
+	for (k = 1; k < size; k++) {
+		if (mezcla[k].fitness > mejor.fitness)
+			mejor = mezcla[k];
+	}
+}
+\end{lstlisting}
+
+\textbf{Justificación:} Cada proceso trae su mejor individuo con \texttt{MPI\_Gather} y el proceso 0 los recibe en la mezcla, que tiene sitio de sobra (\texttt{NEM*size} individuos), y se queda con el de mayor fitness. El suyo ya está en \texttt{mejor}, por eso el bucle empieza en 1.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Resultados}\par
+\smallskip
+
+% >>> DATO: copiar de output/prestaciones.txt y output/prestaciones_fijo.txt de la cuestión 5
+Los experimentos se han realizado en la misma máquina y con los mismos parámetros que en las cuestiones anteriores (instancia \texttt{2000 800 400 200 0.3}, NGM = 10 y NEM = 3, scripts \texttt{prestaciones.sh} y \texttt{prestaciones\_fijo.sh}).
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|ccc|ccc}
+\toprule
+& \multicolumn{3}{c|}{\textbf{Con convergencia}} & \multicolumn{3}{c}{\textbf{Trabajo fijo (60 gen.)}} \\
+\textbf{n\_procesos} & t\_ejec (s) & speed-up & eficiencia & t\_ejec (s) & speed-up & eficiencia \\
+\midrule
+1 & 4.737 & 1.00 & 1.00 & 13.497 & 1.00 & 1.00 \\
+2 & 3.756 & 1.26 & 0.63 & 10.628 & 1.27 & 0.63 \\
+4 & 3.877 & 1.22 & 0.31 & 10.059 & 1.34 & 0.34 \\
+6 & 3.283 & 1.44 & 0.24 & 9.416 & 1.43 & 0.24 \\
+8 & 3.170 & 1.49 & 0.19 & 9.222 & 1.46 & 0.18 \\
+\bottomrule
+\end{tabular}
+\caption{Prestaciones de la cuestión 5 (comunicaciones colectivas) con $n=2000$, $m=800$, $tam\_pob=200$, $m\_rate=0.3$, NGM = 10 y NEM = 3. Media de 5 ejecuciones (convergencia) y 3 (trabajo fijo).}
+\label{tab:c5_prestaciones}
+\end{table}
+
+% >>> DATO: speed-up de trabajo fijo de las cuestiones 2, 3, 4 y 5
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|cccc}
+\toprule
+\textbf{n\_procesos} & \textbf{C2 (síncrona)} & \textbf{C3 (\texttt{MPI\_Pack})} & \textbf{C4 (asíncrona)} & \textbf{C5 (colectivas)} \\
+\midrule
+2 & 1.26 & 1.33 & 1.23 & 1.27 \\
+4 & 1.28 & 1.33 & 1.29 & 1.34 \\
+6 & 1.35 & 1.47 & 1.38 & 1.43 \\
+8 & 1.41 & 1.56 & 1.43 & 1.46 \\
+\bottomrule
+\end{tabular}
+\caption{Speed-up con la versión de trabajo fijo en las cuestiones 2 a 5.}
+\label{tab:c5_comparacion}
+\end{table}
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Análisis}\par
+\smallskip
+
+% >>> DATO: revisar las cifras de este apartado con las nuevas tablas
+Con 1 y 2 procesos los tiempos de trabajo fijo son prácticamente iguales a los de la cuestión 2 (diferencias del 1.5\,\% y 0.5\,\%), mientras que con 4, 6 y 8 procesos la cuestión 5 es algo más rápida (entre un 2 y un 4\,\%), y su speed-up es entre 0.05 y 0.08 mayor. Es la tendencia esperada: en la cuestión 2 el proceso 0 hacía en cada migración $p-1$ recepciones y $2(p-1)$ envíos uno detrás de otro, mientras que las operaciones colectivas pueden implementarse en forma de árbol, en la que los propios procesos reenvían los datos, y se completan en unos $\log_2 p$ pasos en lugar de $p-1$. Además, la implementación de MPI elige el algoritmo más adecuado según el número de procesos y el tamaño de los datos. Aun así, la mejora es pequeña y del orden de la variabilidad entre sesiones de medida, porque con 8 procesos la diferencia entre 7 pasos y 3 es mínima y los mensajes son muy pequeños (3 individuos por isla).
+
+Por lo demás, el comportamiento es el mismo que en las cuestiones anteriores (Tabla~\ref{tab:c5_comparacion}): el speed-up queda por debajo de 1.6 y la eficiencia cae por debajo de 0.25 a partir de 6 procesos, por las limitaciones de la máquina explicadas en la cuestión 2 (memoria, núcleos heterogéneos y límite de potencia). Las colectivas, como las comunicaciones síncronas, obligan a que todos los procesos lleguen a la migración para continuar, por lo que el ritmo lo sigue marcando el proceso más lento. Las diferencias entre las cuatro versiones son pequeñas y, en su mayor parte, debidas a la variabilidad de las medidas.
+
+En resumen, las comunicaciones colectivas dan un rendimiento igual o ligeramente mejor que las punto a punto, con un código mucho más corto y sencillo: desaparecen los bucles de envío y recepción y las diferencias entre el código del proceso 0 y el de las islas. Su ventaja en tiempo se notaría más con muchos más procesos, por ejemplo en un clúster, donde la diferencia entre $p-1$ y $\log_2 p$ pasos sí es importante.
+
 \newpage
 \item \textbf{Cuestión 6.} Elegir la mejor configuración de parámetros y tipo de comunicaciones para paralelizar la totalidad del algoritmo. Justificar las decisiones tomadas. De este modo, se pretende tener un código paralelo óptimo en memoria distribuida que se podrá usar para comparar con el código secuencial, y paralelo en memoria compartida e híbrido.
 
 % --- Respuesta de la cuestión 6 ---
 
+Para elegir la mejor configuración hemos comparado las cuatro implementaciones de las cuestiones anteriores, todas con la misma instancia (\texttt{2000 800 400 200 0.3}), NGM = 10, NEM = 3 y en la misma máquina: comunicaciones síncronas punto a punto con tipo derivado (C2), envío con \texttt{MPI\_Pack} (C3), comunicaciones asíncronas (C4) y comunicaciones colectivas (C5). Las Tablas~\ref{tab:c6_fijo} y \ref{tab:c6_conv} reúnen los tiempos de las cuatro.
+
+% >>> DATO: tiempos de trabajo fijo de las tablas de las cuestiones 2, 3, 4 y 5
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|cccc}
+\toprule
+\textbf{n\_procesos} & \textbf{C2 (síncrona)} & \textbf{C3 (\texttt{MPI\_Pack})} & \textbf{C4 (asíncrona)} & \textbf{C5 (colectivas)} \\
+\midrule
+1 & 13.300 & 14.466 & 13.955 & 13.497 \\
+2 & \textbf{10.580} & 10.855 & 11.332 & 10.628 \\
+4 & 10.363 & 10.874 & 10.786 & \textbf{10.059} \\
+6 & 9.820 & 9.813 & 10.081 & \textbf{9.416} \\
+8 & 9.407 & 9.282 & 9.764 & \textbf{9.222} \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo de ejecución (s) con la versión de trabajo fijo (60 generaciones). En negrita, el menor tiempo para cada número de procesos.}
+\label{tab:c6_fijo}
+\end{table}
+
+% >>> DATO: tiempos con convergencia de las tablas de las cuestiones 2, 3, 4 y 5
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|cccc}
+\toprule
+\textbf{n\_procesos} & \textbf{C2 (síncrona)} & \textbf{C3 (\texttt{MPI\_Pack})} & \textbf{C4 (asíncrona)} & \textbf{C5 (colectivas)} \\
+\midrule
+1 & 5.364 & 5.182 & 5.269 & 4.737 \\
+2 & 4.048 & \textbf{3.753} & 3.873 & 3.756 \\
+4 & 3.758 & \textbf{3.506} & 5.341 & 3.877 \\
+6 & 3.382 & 3.452 & 3.711 & \textbf{3.283} \\
+8 & 3.466 & 3.646 & 3.568 & \textbf{3.170} \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo de ejecución (s) con la versión con criterio de convergencia. En negrita, el menor tiempo para cada número de procesos.}
+\label{tab:c6_conv}
+\end{table}
+
+Hay que tener en cuenta que cada cuestión se midió en una sesión distinta y que, como se vio en la cuestión 4, los tiempos del portátil varían de una sesión a otra y a medida que se calienta (con 1 proceso, que ejecuta el mismo código en las cuatro versiones, el tiempo va de 13.3 a 14.5 s). Por eso las diferencias pequeñas entre versiones no son concluyentes por sí solas, y que para la elección nos hemos basado en qué versión es la más rápida de forma constante, junto con la complejidad del código y su escalabilidad.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Tipo de comunicaciones: colectivas (cuestión 5)}\par
+\smallskip
+
+Elegimos la implementación con \textbf{comunicaciones colectivas} por los siguientes motivos:
+
+\begin{itemize}
+    \item \textbf{Es la más rápida con varios procesos.} Con trabajo fijo tiene el menor tiempo con 4, 6 y 8 procesos, y con convergencia con 6 y 8 procesos. Es la única que queda primera de forma constante a partir de 4 procesos. La media de sus tiempos con trabajo fijo entre 4 y 8 procesos es un 3\,\% menor que la de la cuestión 2.
+    \item \textbf{Es la que mejor escala.} Las operaciones colectivas pueden completarse en unos $\log_2 p$ pasos en lugar de los $p-1$ envíos seguidos que hace el proceso 0 con comunicaciones punto a punto, por lo que su ventaja aumentaría con más procesos, por ejemplo en un clúster.
+    \item \textbf{Es la más sencilla.} No necesita bucles de envío y recepción ni un código distinto para el proceso 0 y para las islas, lo que la hace más fácil de mantener y la mejor base para la versión híbrida, en la que se añadirá paralelismo de memoria compartida dentro de cada proceso.
+\end{itemize}
+
+Las otras opciones las descartamos porque no aportan ventajas en este problema. La comunicación asíncrona (C4) da el mismo rendimiento que la síncrona, ya que el ritmo lo marca el proceso más lento y los mensajes son demasiado pequeños para que solapar comunicación y cálculo se note, y a cambio el código es mucho más complejo (peticiones, esperas y llamadas a \texttt{MPI\_Test} para que avancen los mensajes). El envío con \texttt{MPI\_Pack} (C3) rinde igual que el tipo derivado, pero añade una copia de los datos al buffer en cada envío y recepción; el tipo derivado, que es el que usa la versión elegida, envía los individuos directamente.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Parámetros}\par
+\smallskip
+
+\begin{itemize}
+    \item \textbf{NGM = 10 y NEM = 3.}Mantenemos los valores elegidos en la cuestión 2: el fitness es prácticamente igual con cualquier combinación, NEM no influye y el coste por generación no depende de la frecuencia de migración, por lo que las comunicaciones apenas pesan en el tiempo total. NGM = 10 deja evolucionar las islas de forma independiente durante varias generaciones pero intercambia individuos con frecuencia, y NEM = 3 reparte los mejores sin sustituir una parte grande de cada isla. Además, son los valores con los que se han medido todas las versiones, por lo que la comparación es directa. Si se usa el indicador I = fitness/tiempo propuesto en la observación 6, en las pruebas de la cuestión 2 NGM = 5 sale algo mejor, pero solo porque el algoritmo puede parar antes (la convergencia se comprueba en cada migración), no porque migrar más a menudo sea más eficiente.
+    \item \textbf{Número de procesos: 8.} Es el que da el menor tiempo en todas las versiones, por lo que es el más adecuado si el objetivo es minimizar el tiempo de ejecución. Su eficiencia es baja (0.18), debido a las limitaciones de la máquina explicadas en la cuestión 2 (acceso a memoria, núcleos de rendimiento y de eficiencia y límite de potencia). Si se quisiera aprovechar mejor cada núcleo, la mejor eficiencia se obtiene con 2 procesos (0.63), con un tiempo algo mayor.
+\end{itemize}
+
+% >>> DATO: configuración final
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Elemento} & \textbf{Elección} \\
+\midrule
+Tipo de comunicaciones & Colectivas (\texttt{MPI\_Bcast} y \texttt{MPI\_Gather}) \\
+Envío de individuos & Tipo derivado \texttt{Individuo} \\
+NGM & 10 \\
+NEM & 3 \\
+Número de procesos & 8 \\
+Tiempo (trabajo fijo, 60 gen.) & 9.222 s (speed-up 1.46) \\
+Tiempo (con convergencia) & 3.170 s (speed-up 1.49) \\
+\bottomrule
+\end{tabular}
+\caption{Configuración final elegida para la versión en memoria distribuida.}
+\label{tab:c6_final}
+\end{table}
+
+El código de esta versión es el de la cuestión 5, que se entrega en la carpeta de la cuestión 6 sin cambios. Esta es la versión que se usará para comparar con el código secuencial y con las versiones en memoria compartida e híbrida. Como indica el enunciado, la mejor configuración depende de la instancia, de la implementación y del sistema: en otra máquina, con núcleos iguales o con varios nodos, las diferencias entre los tipos de comunicación podrían ser mayores, y convendría repetir la comparación.
 
 \newpage
 \item \textbf{Cuestión 7.} Realizar el informe final incluyendo las conclusiones generales y valoración personal sobre el trabajo realizado.
