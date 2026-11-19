@@ -1,0 +1,5 @@
+np=1  tiempo=5.269 s  speedup=1.00  eficiencia=1.00
+np=2  tiempo=3.873 s  speedup=1.36  eficiencia=0.68
+np=4  tiempo=5.341 s  speedup=0.99  eficiencia=0.25
+np=6  tiempo=3.711 s  speedup=1.42  eficiencia=0.24
+np=8  tiempo=3.568 s  speedup=1.48  eficiencia=0.18
