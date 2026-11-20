@@ -518,33 +518,205 @@ En resumen, en este sistema la mejor configuración de la versión híbrida es 1
 
 En toda la Parte 2 se ha sustituido el fichero \texttt{io.c} por el proporcionado en \texttt{datos/ejecucion/}, que genera la matriz de distancias directamente en memoria, sin ficheros de entrada.
 
-\item \textbf{Cuestión 3.} Modelo de tiempo en memoria compartida con 1 nivel de paralelismo.
+% =====================================================================
+% CUESTIÓN 3: sustituir todo lo que hay debajo de la línea
+%   % --- Respuesta de la cuestión 3 ---
+% hasta el \newpage de la cuestión 4 por este texto.
+% Los datos están marcados con "% >>> DATO" (no salen en el PDF).
+% =====================================================================
 
-% --- Respuesta de la cuestión 3 ---
+Esta cuestión parte del código de la P1 (OpenMP), con los dos errores corregidos en la cuestión 2, y con el nuevo \texttt{io.c}, que genera la matriz de distancias en memoria. A continuación se muestran las partes del código modificadas.
 
 \medskip
 \noindent\textbf{3.1 Obtención de datos experimentales}\par
 \smallskip
 
-% a) paralelizar FOR_INI (con el fitness dentro)
-% b) nuevos parámetros N_HILOS_INI y N_HILOS_FIT
-% c) medir el tiempo de FOR_INI con h = 1, 2, 4, ..., 20
-% d) n = 30000, m = 28000, NE = 6, n_gen = 0, 5 series
+% cambio 1: parámetros
+
+\medskip
+\noindent\textbf{Nuevos parámetros N\_HILOS\_INI y N\_HILOS\_FIT (\texttt{main.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+if(argc < 7) {
+	fprintf(stderr,"Ayuda:\n");
+	fprintf(stderr,"  ./programa n m nGen tamPob N_HILOS_INI N_HILOS_FIT [m_rate]\n");
+	return(EXIT_FAILURE);
+}
+...
+int n_hilos_ini = atoi(argv[5]);   // hilos del bucle de la población inicial (FOR_INI)
+int n_hilos_fit = atoi(argv[6]);   // hilos del bucle del fitness (FOR_FIT)
+// m_rate pasa a ser opcional (por defecto 0.3) porque el Makefile del profesor no lo pasa
+double m_rate = (argc > 7) ? atof(argv[7]) : 0.3;
+assert(n_hilos_ini >= 1 && n_hilos_fit >= 1);
+...
+double value = aplicar_mh(d, n, m, n_gen, tam_pob, m_rate, sol, n_hilos_ini, n_hilos_fit);
+\end{lstlisting}
+
+\textbf{Justificación:} El programa recibe los parámetros en el orden que indica el enunciado: \texttt{n, m, n\_gen, tam\_pob, N\_HILOS\_INI, N\_HILOS\_FIT}. \texttt{m\_rate} pasa a ser opcional porque el \texttt{Makefile} proporcionado no lo incluye; con \texttt{n\_gen = 0} no se muta, así que su valor no afecta a las medidas.
+
+\vspace{0.5cm}
+
+% cambio 2: FOR_INI
+
+\medskip
+\noindent\textbf{Bucle FOR\_INI con N\_HILOS\_INI hilos y medida de su tiempo (\texttt{aplicar\_mh} en \texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+static int hilos_fit = 1;
+...
+double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double m_rate, int *sol, int n_hilos_ini, int n_hilos_fit)
+{
+    hilos_fit = n_hilos_fit;   // P3 CUESTIÓN 3
+    ...
+#ifdef TIMEGenPobIni
+    double t_ini = omp_get_wtime();
+#endif
+    #pragma omp parallel num_threads(n_hilos_ini) default(none) shared(d, n, m, tam_pob, poblacion)
+    {
+        // semilla distinta para cada hilo
+        int id = 0;
+#if defined (_OPENMP)
+        id = omp_get_thread_num();
+#endif
+        semilla = (unsigned int) (time(NULL) + getpid() + 7919 * id);
+
+        #pragma omp for schedule(dynamic)
+        for(int i = 0; i < tam_pob; i++) {
+            poblacion[i] = (Individuo *) malloc(sizeof(Individuo));
+            poblacion[i]->array_int = crear_individuo(n, m);
+            fitness(d, poblacion[i], n, m);
+        }
+    }
+#ifdef TIMEGenPobIni
+    double t_fin = omp_get_wtime();
+    printf("%.6lf\n", t_fin - t_ini);   // solo el tiempo, en una columna, para el análisis
+#endif
+    ...
+\end{lstlisting}
+
+\textbf{Justificación:} En la P1 este bucle estaba dentro de la región paralela grande, la que engloba todo el algoritmo. Ahí no se le puede poner un número de hilos propio, porque los hilos se deciden al abrir la región. Por eso lo hemos sacado a una región aparte con \texttt{num\_threads(n\_hilos\_ini)}, y el resto del algoritmo se queda igual que en la P1. Mantenemos \texttt{schedule(dynamic)} porque crear un individuo no siempre cuesta lo mismo: depende de cuántos números repetidos salgan y haya que descartar.
+
+El tiempo se mide con \texttt{omp\_get\_wtime} antes de abrir la región y después de cerrarla, para que incluya lo que cuesta crear los hilos, que es el término $k_h \cdot h$ de la ecuación~1. El \texttt{Makefile} del profesor compila con \texttt{-DTIMEGenPobIni}, y en ese caso el programa solo imprime este tiempo. Por último, \texttt{N\_HILOS\_FIT} se guarda en una variable del fichero para usarla en la cuestión 4. Así no hace falta cambiar la cabecera de \texttt{fitness}. En esta cuestión el bucle del fitness todavía no se paraleliza.
+
+\vspace{0.5cm}
+
+En el \texttt{Makefile} se han añadido variables para la instancia, NE, la lista de hilos y el número de series. Así, todos los experimentos de esta cuestión se lanzan sin recompilar (por ejemplo, \texttt{make run\_omp NE=3}). También se ha añadido un objetivo \texttt{resumen}, que calcula la media de las series para cada número de hilos.
+
+% >>> DATO: instancia y tiempo con 1 hilo
+Con $n = 30000$ y $m = 28000$, FOR\_INI tardaba 24.5 s con 1 hilo, más de los 5--10 s que recomienda el enunciado, así que se ha reducido $m$ a 16000. La instancia usada es $n = 30000$, $m = 16000$, $n\_gen = 0$ y $NE = tam\_pob = 6$, con 5 series de ejecuciones para $h = 1, 2, 4, \dots, 20$.
+
+% >>> DATO: si en el ordenador de las ejecuciones finales no hay ejecuciones anómalas, borrar este párrafo
+En algunas ejecuciones con 6 o más hilos el tiempo salía el doble que en el resto (unos 7.5 s frente a 3.5 s), sin relación con el número de hilos. Se trata de interferencias del sistema en este portátil, que tiene núcleos de dos tipos: siguieron apareciendo aunque se fijaran los hilos a los núcleos con \texttt{OMP\_PLACES} y \texttt{OMP\_PROC\_BIND}. Esas ejecuciones se han descartado al calcular la media; en la hoja de cálculo son las celdas que se han dejado vacías.
 
 \medskip
 \noindent\textbf{3.2 Instalación de la rutina con 1 nivel de paralelismo}\par
 \smallskip
 
-% ajuste de ks1 y kh en la hoja "Modelo 1-Nivel Paralelismo" de solver.ods
+Con los tiempos medios se ha completado la hoja ``Modelo 1-Nivel Paralelismo'' de \texttt{solver.ods}, y con el Solucionador de LibreOffice (algoritmo no lineal) se han obtenido las constantes que minimizan la suma de los errores al cuadrado entre el tiempo experimental y el de la ecuación~1.
+
+% >>> DATO: constantes del Solucionador (solver.ods, celdas B9, B10 y G24)
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Constante} & \textbf{Valor} \\
+\midrule
+$k_{s1}$ & 1.2153 s \\
+$k_h$ & 0.2035 s \\
+Suma de errores al cuadrado & 5.117 \\
+\bottomrule
+\end{tabular}
+\caption{Constantes del sistema obtenidas en la instalación del modelo de 1 nivel ($NE = 6$).}
+\label{tab:c3_constantes}
+\end{table}
+
+% >>> DATO: tiempos medios (columna G de solver.ods) y teóricos (columna F)
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.75\textwidth, height=6.5cm,
+    xlabel={Número de hilos ($h$)}, ylabel={Tiempo de FOR\_INI (s)},
+    xtick={1,2,4,6,8,10,12,14,16,18,20}, ymin=0,
+    legend style={font=\footnotesize, at={(0.98,0.98)}, anchor=north east},
+    grid=major]
+\addplot[mark=square*, blue] coordinates {(1,6.93) (2,4.08) (4,3.53) (6,3.46) (8,3.57) (10,3.52) (12,3.44) (14,3.48) (16,3.50) (18,3.48) (20,3.56)};
+\addlegendentry{experimental}
+\addplot[mark=diamond*, red] coordinates {(1,7.50) (2,4.05) (4,2.64) (6,2.44) (8,2.54) (10,2.76) (12,3.05) (14,3.37) (16,3.71) (18,4.07) (20,4.43)};
+\addlegendentry{teórico (ec. 1)}
+\end{axis}
+\end{tikzpicture}
+\caption{Tiempo experimental y teórico de FOR\_INI ($n = 30000$, $m = 16000$, $n\_gen = 0$, $NE = 6$; media de 5 series).}
+\label{fig:c3_ajuste}
+\end{figure}
+
+Como se ve en la Figura~\ref{fig:c3_ajuste}, el modelo sigue bien la bajada del principio, pero no lo que pasa después. A partir de 4 hilos el tiempo real deja de bajar y se queda en unos 3.5 s, mientras que el modelo dibuja una curva en forma de ``U'', con el mínimo en unos 6 hilos, y luego vuelve a subir. Para parecerse lo más posible a esa parte plana, el ajuste le da a $k_h$ un valor muy alto, 0.2 s por hilo, cuando crear un hilo cuesta en realidad muy poco. Por eso $k_h$ no hay que leerlo como el coste de crear un hilo, sino como el coste de todo lo que impide que el programa vaya más rápido al añadir hilos.
 
 \medskip
 \noindent\textbf{3.3 Ejecución}\par
 \smallskip
 
-% a) hopt = sqrt(ks1 * NE / kh)
-% b) y c) predicción y comprobación con h = 3, 5, 7, ...
-% d) y e) hopt con NE = 3 y NE = 10, teórico frente a experimental
+\textbf{a) Número óptimo de hilos.} Despejando $h$ de la ecuación~3:
+\[
+-\frac{k_{s1} \cdot NE}{h^2} + k_h = 0 \quad\Rightarrow\quad h_{opt} = \sqrt{\frac{k_{s1} \cdot NE}{k_h}} = \sqrt{\frac{1.2153 \cdot 6}{0.2035}} \approx 5.99 \;\rightarrow\; 6 \text{ hilos}
+\]
 
+\textbf{b) y c) Predicción y comprobación con otros valores de $h$.} Se ha calculado el tiempo que da el modelo con $h = 3, 5, 7$ y 9, que no se usaron en la instalación, y se ha comparado con la media de 5 ejecuciones con esos hilos (Tabla~\ref{tab:c3_prediccion}).
+
+% >>> DATO: solver.ods, filas 47-50
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|ccc}
+\toprule
+\textbf{$h$} & \textbf{t teórico (s)} & \textbf{t experimental (s)} & \textbf{error} \\
+\midrule
+3 & 3.04 & 4.10 & $-$25.8\,\% \\
+5 & 2.48 & 3.56 & $-$30.4\,\% \\
+7 & 2.47 & 3.39 & $-$27.2\,\% \\
+9 & 2.64 & 3.49 & $-$24.2\,\% \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo de FOR\_INI que predice el modelo y tiempo medido con valores de $h$ no usados en la instalación ($NE = 6$).}
+\label{tab:c3_prediccion}
+\end{table}
+
+El modelo acierta dónde está el mínimo (el tiempo medido más bajo es el de $h = 7$, junto a $h_{opt} = 6$), pero se queda corto en el tiempo: da entre 0.9 y 1.1 s menos en todos los casos, un error de entre el 24 y el 30\,\%.
+
+\textbf{d) y e) Otros tamaños de población.} Con las mismas constantes se ha calculado $h_{opt}$ para $NE = 3$ y $NE = 10$, sin volver a ajustar el modelo, y se ha comprobado midiendo FOR\_INI con $h = 1, 2, 4, \dots, 20$ (5 series de cada uno).
+
+% >>> DATO: tiempos medios de NE = 3 y NE = 10 (make resumen NE=3 / NE=10) y teóricos
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{c|cc|cc|cc}
+\toprule
+ & \multicolumn{2}{c|}{\textbf{NE = 3}} & \multicolumn{2}{c|}{\textbf{NE = 6}} & \multicolumn{2}{c}{\textbf{NE = 10}} \\
+\textbf{$h$} & \textbf{t exp.} & \textbf{t teó.} & \textbf{t exp.} & \textbf{t teó.} & \textbf{t exp.} & \textbf{t teó.} \\
+\midrule
+1 & 3.51 & 3.85 & 6.93 & 7.50 & 10.90 & 12.36 \\
+2 & 2.53 & 2.23 & 4.08 & 4.05 & 6.69 & 6.48 \\
+4 & \textbf{2.02} & \textbf{1.73} & 3.53 & 2.64 & 5.65 & 3.85 \\
+6 & 2.05 & 1.83 & \textbf{3.46} & \textbf{2.44} & 5.77 & 3.25 \\
+8 & 2.06 & 2.08 & 3.57 & 2.54 & 5.49 & \textbf{3.15} \\
+10 & 2.08 & 2.40 & 3.52 & 2.76 & \textbf{5.29} & 3.25 \\
+12 & 2.11 & 2.75 & 3.44 & 3.05 & 5.34 & 3.45 \\
+14 & 2.01 & 3.11 & 3.48 & 3.37 & 5.30 & 3.72 \\
+16 & 2.06 & 3.48 & 3.50 & 3.71 & 5.38 & 4.01 \\
+18 & 2.07 & 3.86 & 3.48 & 4.07 & 5.38 & 4.34 \\
+20 & 2.13 & 4.25 & 3.56 & 4.43 & 5.32 & 4.68 \\
+\midrule
+\textbf{$h_{opt}$} & 4 & 4.23 & 6 & 5.99 & 10 & 7.73 \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo experimental y teórico (s) de FOR\_INI para distintos valores de NE ($n = 30000$, $m = 16000$, $n\_gen = 0$; media de 5 series). En negrita, el número óptimo de hilos de cada columna.}
+\label{tab:c3_ne}
+\end{table}
+
+El número de hilos óptimo que calcula el modelo se parece al que hemos medido: 4.23 frente a 4 con $NE = 3$, y 7.73 frente a 8--10 con $NE = 10$. Además, a partir de ese número el tiempo real casi no cambia. Con $NE = 3$, por ejemplo, el tiempo más bajo es el de 14 hilos, pero solo por una centésima respecto al de 4 hilos (2.01 s frente a 2.02 s). Así que equivocarse en uno o dos hilos apenas se nota. Lo que el modelo no acierta son los tiempos: con muchos hilos da tiempos más altos de los reales con $NE = 3$ y más bajos con $NE = 10$. En resumen, el modelo sirve para lo que se busca, que es elegir el número de hilos sin tener que volver a medir, pero no para saber cuánto va a tardar el programa.
+
+El problema es que la ecuación~1 supone que, con el doble de hilos, el trabajo se hace en la mitad de tiempo, y en este ordenador no pasa. En los tres casos, con muchos hilos el tiempo se queda más o menos en la mitad del tiempo con 1 hilo (2.02 frente a 3.51, 3.46 frente a 6.93 y 5.29 frente a 10.90). Si el límite fuera que no hay individuos para todos los hilos, cada hilo haría un individuo y el tiempo sería el mismo para cualquier NE, pero no es así: sigue creciendo con NE. Lo que limita es la memoria. Para calcular el fitness de un individuo hay que leer unos 128 millones de distancias de una matriz de 3.6 GB, saltando de una posición a otra. Esos datos casi nunca están en la caché, así que hay que ir a buscarlos a la memoria principal, y a partir de unos 4 hilos la memoria no da abasto para atender a más. Además, en un portátil el procesador baja la frecuencia cuando trabajan todos los núcleos a la vez. El modelo no tiene en cuenta nada de esto, como ya avisa el enunciado, y con una sola constante $k_h$ no puede reproducirlo.
 
 \newpage
 \item \textbf{Cuestión 4.} Modelo de tiempo en memoria compartida con 2 niveles de paralelismo.
