@@ -28,7 +28,7 @@ mpi_fijo: $(C_FILES)
 
 # CUESTIÓN 2: se ejecuta con mpirun. --oversubscribe permite lanzar más procesos que
 # núcleos físicos (observación 4 del enunciado); con menos procesos no tiene efecto
-# P3 CUESTIÓN 2: --bind-to none. Por defecto OpenMPI ata cada proceso a un único núcleo y
+# P3 CUESTIÓN 2: --bind-to none. Pporque por defecto OpenMPI ata cada proceso a un único núcleo y
 # todos sus hilos OpenMP tendrían que compartirlo y  así el sistema reparte los hilos
 test_mpi:
 	mpirun --oversubscribe --bind-to none -np $(NP) ./$(EXEC) $(N) $(M) $(N_GEN) $(T_POB) $(M_RATE) $(NGM) $(NEM) $(NHILOS) >> $(OUTFILE)_$(N)_$(M)_$(N_GEN)_$(T_POB)_$(M_RATE)_np$(NP)_h$(NHILOS)_ngm$(NGM)_nem$(NEM).txt
