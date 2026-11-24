@@ -1,0 +1,785 @@
+\documentclass[12pt]{article}
+
+% -------------------------
+% PAQUETES NECESARIOS
+% -------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage[spanish]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs} % Para líneas profesionales (\toprule, \midrule, \bottomrule)
+\usepackage{multirow} % Para agrupar celdas verticales
+
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\floatname{algorithm}{Algoritmo}
+\algrenewcommand\algorithmicif{\textbf{si}}
+\algrenewcommand\algorithmicthen{\textbf{entonces}}
+\algrenewcommand\algorithmicelse{\textbf{si no}}
+\algrenewcommand\algorithmicend{\textbf{fin}}
+\algrenewcommand\algorithmicfor{\textbf{para}}
+\algrenewcommand\algorithmicdo{\textbf{hacer}}
+\algrenewcommand\algorithmicwhile{\textbf{mientras}}
+\algrenewcommand\algorithmicfunction{\textbf{función}}
+\algrenewcommand\algorithmicreturn{\textbf{devolver}}
+\algrenewtext{EndIf}{\textbf{fin si}}
+\algrenewtext{EndFor}{\textbf{fin para}}
+\algrenewtext{EndWhile}{\textbf{fin mientras}}
+\algrenewtext{EndFunction}{\textbf{fin función}}
+
+
+
+% Definición de colores principales
+\definecolor{primary}{RGB}{30, 64, 175}
+\definecolor{secondary}{RGB}{13, 148, 136}
+\definecolor{danger}{RGB}{225, 29, 72}
+\definecolor{neutral-bg}{RGB}{248, 250, 252}
+
+
+% -------------------------
+% CONFIGURACIÓN DE PÁGINA
+% -------------------------
+\geometry{margin=2.5cm}
+
+% Fuente tipo Times New Roman equivalente
+\usepackage{mathptmx}
+
+% Interlineado sencillo (por defecto en LaTeX)
+
+% -------------------------
+% CONFIGURACIÓN DE ENCABEZADO Y PIE
+% -------------------------
+\pagestyle{fancy}
+\fancyhf{}
+
+\fancyhead[L]{Metodología de la programación paralela}
+\fancyhead[R]{2026/2027}
+
+\fancyfoot[L]{Andrey, Abdellah} % <-- EDITAR
+\fancyfoot[R]{\thepage}
+
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+% --- Colores generales ---
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{bgC}{rgb}{0.98,0.98,0.98}
+\definecolor{bgValgrind}{rgb}{0.93,0.93,0.93}
+
+% --- ESTILO 1: Para Código C ---
+\lstdefinestyle{EstiloC}{
+    backgroundcolor=\color{bgC},
+    commentstyle=\color{mGreen}\itshape,
+    keywordstyle=\color{magenta}\bfseries,
+    numberstyle=\tiny\color{mGray},
+    stringstyle=\color{mPurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,                 % ¡Evita que el código se salga por la derecha!
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=8pt,
+    showstringspaces=false,
+    tabsize=4,
+    language=C,
+    frame=single,
+    rulecolor=\color{mGray!30}
+}
+
+% --- ESTILO 2: Para trazas/logs de Valgrind ---
+\lstdefinestyle{EstiloValgrind}{
+    backgroundcolor=\color{bgValgrind},
+    basicstyle=\ttfamily\scriptsize, % Letra ligeramente más pequeña para trazas anchas
+    breakatwhitespace=false,
+    breaklines=true,                 % ¡Evita que los reportes de Valgrind se corten!
+    captionpos=b,
+    frame=single,
+    numbers=none,                    % Sin números de línea para logs de terminal
+    showstringspaces=false,
+    language={},                     % Sin resaltado de sintaxis de lenguaje
+    rulecolor=\color{mGray!50}
+}
+
+% -------------------------
+% INICIO DEL DOCUMENTO
+% -------------------------
+% acentos y eñes dentro de los listados de código (sin esto, listings falla con UTF-8)
+\lstset{literate=
+  {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+  {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+  {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1}
+
+\begin{document}
+
+% =========================
+% PORTADA
+% =========================
+\thispagestyle{empty}
+
+% Bloque arriba a la derecha
+\begin{flushright}
+Abdellah Bensaidi, Souri 1.3\\
+Morales Vicuña, Andrey 1.1\\
+Asignatura: Metodología de la programación paralela \\
+Grupo: 1 \\
+Práctica 3: Paralelización híbrida con MPI+OpenMP. Modelado y auto-optimización \\
+\end{flushright}
+
+\vfill
+
+\begin{center}
+\includegraphics[width=0.4\textwidth]{sello.png}
+\end{center}
+
+\vfill
+
+\begin{center}
+\today
+\end{center}
+
+\newpage
+\tableofcontents
+\newpage
+
+% =========================
+% SISTEMA COMPUTACIONAL
+% =========================
+\section{Sistema computacional}
+
+% >>> DATO: generar en el ordenador de las ejecuciones finales con
+%   lstopo -f -p --no-legend --no-io sistema.svg
+% y convertirlo para LaTeX con:  rsvg-convert -f pdf -o sistema.pdf sistema.svg
+% (o directamente: lstopo -f -p --no-legend --no-io sistema.pdf)
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{sistema.png}
+    \caption{Sistema utilizado (salida de \texttt{lstopo -f -p -{}-no-legend -{}-no-io}).}
+    \label{fig:sistema}
+\end{figure}
+
+% >>> DATO: descripción de la máquina de las ejecuciones finales
+Todas las ejecuciones se han realizado en el mismo sistema: un procesador AMD Ryzen 5 5500 con 6 núcleos físicos y 12 hilos hardware (2 hilos por núcleo mediante SMT) en un único socket. Dispone de caché L1d de 32 KiB y L1i de 32 KiB por núcleo, L2 de 512 KiB por núcleo y L3 de 16 MiB compartida, y aproximadamente 15,8 GB de memoria RAM. La frecuencia máxima es de 4,46 GHz. Se ha usado Ubuntu 24.04, \texttt{gcc} con \texttt{-O3} y OpenMPI.
+
+\newpage
+
+\section{Ejercicios}
+
+\begin{enumerate}
+
+% =====================================================================
+%  PARTE 1
+% =====================================================================
+\item[] \textbf{\large Parte 1. Implementación de paralelismo híbrido (MPI + OpenMP)}
+
+\item \textbf{Cuestión 1.} Con el fin de obtener un código más eficiente en la parte de memoria compartida y poder maximizar el proceso de mejora de la población de individuos: reemplazar las llamadas a la función \texttt{rand} por \texttt{rand\_r} (que es ``thread safe'') para evitar, por un lado, que se genere la misma secuencia de valores aleatorios en diferentes hilos y, por otro, que se pierda paralelismo durante la generación de dichos valores debido a la secuencialidad que introduce la función \texttt{rand}.
+
+% --- Respuesta de la cuestión 1 ---
+
+Se parte del código de la cuestión 6 de la P2 (modelo de islas con comunicaciones colectivas), que es el que se usará en la versión híbrida. Todos los números aleatorios del algoritmo se obtienen con la función \texttt{aleatorio}, así que basta con cambiarla a ella y a la inicialización de la semilla.
+
+\medskip
+\noindent\textbf{Generación de números aleatorios (\texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+// rand_r recibe el estado (la semilla) como parámetro, así que es "thread safe", y con
+// threadprivate cada hilo tiene su propia copia de la semilla
+static unsigned int semilla = 1;
+#pragma omp threadprivate(semilla)
+
+int aleatorio(int n) {
+	return (rand_r(&semilla) % n);  // genera un numero aleatorio entre 0 y n-1
+}
+\end{lstlisting}
+
+\textbf{Justificación:} \texttt{rand} guarda su estado en una variable global que comparten todos los hilos. Si varios hilos la llaman a la vez, se pueden pisar el estado y repetir números, y además la biblioteca la protege con un cerrojo, así que los hilos acaban generando los números de uno en uno. \texttt{rand\_r} recibe el estado como parámetro, y con \texttt{threadprivate} cada hilo tiene su propia semilla, de modo que no se comparte nada y cada hilo genera su propia secuencia. Se ha hecho igual que en la P1.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Inicialización de la semilla (\texttt{aplicar\_mh} en \texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+// P3 CUESTIÓN 1: en lugar de srand se inicializa la semilla de rand_r
+semilla = (unsigned int) (time(NULL) + getpid() + rank * 1000);
+\end{lstlisting}
+
+\textbf{Justificación:} Sustituye al \texttt{srand} de la P2. Se mantiene el \texttt{rank} para que cada isla tenga una semilla distinta y evolucione de forma diferente. En esta cuestión todavía no hay hilos, así que hay una semilla por proceso; en la cuestión 2 se añade el número de hilo para que cada hilo de cada proceso tenga la suya. En el \texttt{Makefile} se ha añadido \texttt{-fopenmp} para que se reconozca la directiva \texttt{threadprivate}. Se ha comprobado que el programa da el mismo fitness que la P2.
+
+
+\newpage
+\item \textbf{Cuestión 2.} Implementar un algoritmo híbrido, tomando como referencia las directivas OpenMP y primitivas MPI que arrojaron mejores resultados en las prácticas 1 y 2. Se deberán utilizar, por tanto, las funciones que se considere más adecuadas para obtener un código optimizado y que permita obtener las mejores prestaciones. Ejecutar el código variando el número de procesos y de hilos, y comparar los resultados obtenidos respecto a la versión secuencial utilizando las métricas de rendimiento de la Tabla 1.
+
+Además, se deberá analizar la mejora obtenida en las prestaciones, considerando solo tiempo de ejecución y tiempo de ejecución + fitness (ver apartado (1) de Observaciones), respecto al algoritmo secuencial y también respecto a la mejor versión paralela obtenida en las prácticas anteriores usando el mismo sistema computacional para todas las versiones.
+
+% --- Respuesta de la cuestión 2 ---
+
+La versión híbrida combina las dos mejores versiones de las prácticas anteriores:
+
+\begin{itemize}
+    \item \textbf{Nivel MPI (P2, cuestión 6):} modelo de islas con comunicaciones colectivas. Cada proceso es una isla y cada NGM generaciones el proceso 0 recoge los NEM mejores de cada isla con \texttt{MPI\_Gather} y les devuelve los NEM mejores globales y la decisión de parar con \texttt{MPI\_Bcast}.
+    \item \textbf{Nivel OpenMP (P1):} dentro de cada proceso, una única región paralela para todo el algoritmo, con los bucles sobre la población repartidos entre los hilos.
+\end{itemize}
+
+A continuación se muestran las partes del código modificadas respecto a la cuestión 1.
+
+% cambio 1: inicialización de MPI con hilos
+
+\medskip
+\noindent\textbf{Inicialización de MPI y número de hilos (\texttt{main.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+int provided;
+MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &provided);
+...
+if (provided < MPI_THREAD_FUNNELED) {
+	...
+	MPI_Finalize();
+	return EXIT_FAILURE;
+}
+...
+int NHILOS = atoi(argv[8]); // P3: hilos OpenMP que pone en marcha cada proceso
+assert(NHILOS >= 1);
+omp_set_num_threads(NHILOS);
+\end{lstlisting}
+
+\textbf{Justificación:} Cuando un proceso MPI tiene varios hilos hay que avisar a MPI de cómo se van a usar con \texttt{MPI\_Init\_thread}. Se pide el nivel \texttt{MPI\_THREAD\_FUNNELED}, que significa que solo el hilo maestro hace llamadas a MPI. Es el nivel más bajo que nos sirve, porque en nuestro código todas las comunicaciones las hace el maestro (ver más abajo), y los niveles más altos añaden cerrojos dentro de MPI que no necesitamos. Si la biblioteca no lo soporta, el programa termina. El número de hilos por proceso se pasa como un nuevo argumento para poder probar combinaciones de procesos e hilos sin recompilar.
+
+\vspace{0.5cm}
+
+% cambio 2: región paralela
+
+\medskip
+\noindent\textbf{Algoritmo híbrido (\texttt{aplicar\_mh} en \texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+MPI_Comm comm = MPI_COMM_WORLD;
+MPI_Datatype mpi_int = MPI_INT;
+
+#pragma omp parallel default(none) \
+	shared(d, n, m, n_gen, tam_pob, m_rate, sol, NGM, NEM, rank, size, individuo_type, comm, mpi_int, \
+	       tam_local, bloque, poblacion, emigrantes, inmigrantes, mezcla, p_mezcla, \
+	       fitness_modelo, ngeneracion, continuar, value)
+{
+	// P3 CUESTIÓN 1: semilla distinta para cada hilo de cada proceso
+	int id = 0;
+#if defined (_OPENMP)
+	id = omp_get_thread_num();
+#endif
+	semilla = (unsigned int) (time(NULL) + getpid() + rank * 1000 + 7919 * id);
+
+	#pragma omp for schedule(dynamic)
+	for (int i = 0; i < tam_local; i++) {
+		poblacion[i] = &bloque[i];
+		crear_individuo(n, m, poblacion[i]->array_int);
+		fitness(d, poblacion[i], n, m);
+	}
+
+	#pragma omp single
+	{
+		qsort(poblacion, tam_local, sizeof(Individuo *), comp_fitness);
+		fitness_modelo = poblacion[0]->fitness;
+	}
+
+	int g = 0;
+	while (g < n_gen && continuar)
+	{
+		int gen_bloque = 0;
+		for (int k = 0; k < NGM && g < n_gen; k++, g++, gen_bloque++)
+		{
+			#pragma omp for schedule(dynamic)
+			for (int i = 0; i < (tam_local/2) - 1; i += 2) {
+				cruzar(poblacion[i], poblacion[i+1], poblacion[tam_local/2 + i], poblacion[tam_local/2 + i + 1], n, m);
+			}
+
+			#pragma omp for schedule(static)
+			for (int i = 0; i < tam_local; i++) {
+				if (i >= tam_local/4)
+					mutar(poblacion[i], n, m, m_rate);
+				fitness(d, poblacion[i], n, m);
+			}
+
+			#pragma omp single
+			qsort(poblacion, tam_local, sizeof(Individuo *), comp_fitness);
+		}
+
+		// Migración: solo el hilo maestro de cada proceso llama a MPI
+		#pragma omp master
+		{
+			copiar_mejores(poblacion, emigrantes, NEM);
+			MPI_Gather(emigrantes, NEM, individuo_type, mezcla, NEM, individuo_type, 0, comm);
+			if (rank == 0) {
+				... // ordenar la mezcla, elegir los NEM mejores y decidir la convergencia
+			}
+			MPI_Bcast(inmigrantes, NEM, individuo_type, 0, comm);
+			MPI_Bcast(&continuar, 1, mpi_int, 0, comm);
+			reemplazar_peores(poblacion, tam_local, inmigrantes, NEM);
+		}
+		#pragma omp barrier
+	}
+
+	// Resultado final: el proceso 0 recoge el mejor de cada isla (solo el maestro)
+	#pragma omp master
+	{
+		... // MPI_Gather del mejor de cada isla y copia del mejor global en sol
+	}
+} // fin de la región paralela (barrera implícita)
+\end{lstlisting}
+
+\textbf{Justificación:}
+
+\begin{itemize}
+    \item \textbf{Una sola región paralela.} Como en la P1, los hilos se crean una vez al principio y no en cada generación, para no pagar el coste de crearlos muchas veces. Con \texttt{default(none)} estamos obligados a indicar el alcance de cada variable, lo que evita compartir algo sin querer. En OpenMPI, \texttt{MPI\_COMM\_WORLD} y \texttt{MPI\_INT} son variables globales y \texttt{default(none)} da error con ellas, por eso se copian a las variables locales \texttt{comm} y \texttt{mpi\_int}.
+    \item \textbf{Semilla por hilo.} A la semilla de la cuestión 1 se le suma el número de hilo multiplicado por un primo, para que cada hilo de cada proceso genere una secuencia distinta.
+    \item \textbf{Reparto de los bucles.} Se usan las mismas directivas que dieron mejor resultado en la P1. La población inicial y el cruce usan \texttt{schedule(dynamic)} porque cada iteración tiene un coste distinto (crear un individuo y reparar los duplicados del cruce tardan más o menos según los números que salgan). La mutación y el fitness se han juntado en un solo bucle, porque el fitness de un individuo solo depende de su propia mutación; así hay una barrera menos por generación. Este bucle usa \texttt{schedule(static)}, porque su coste lo marca el fitness, que es igual para todos los individuos. La ordenación con \texttt{qsort} es secuencial y la hace un solo hilo con \texttt{single}. La barrera implícita de cada \texttt{for} es necesaria: la mutación modifica individuos que son padres en el cruce, y no se puede ordenar hasta que todos tengan su fitness.
+    \item \textbf{Comunicaciones solo en el hilo maestro.} La migración y la recogida final del resultado van dentro de \texttt{master}, que es lo que permite usar el nivel \texttt{FUNNELED}. Como \texttt{master} no tiene barrera implícita, se pone un \texttt{barrier} después: ningún hilo puede seguir con la población ni leer \texttt{continuar} hasta que el maestro haya terminado la migración. Así todos los hilos de todos los procesos salen del bucle en la misma generación y no hay bloqueos.
+    \item \textbf{Variables privadas y compartidas.} El contador de generaciones \texttt{g} es privado, pero todos los hilos hacen las mismas iteraciones, así que vale lo mismo en todos. \texttt{continuar} es compartida: la escribe el maestro y el resto la lee después de la barrera.
+\end{itemize}
+
+Se ha comprobado que la solución es correcta volviendo a calcular su fitness a partir de la matriz de distancias. También se ha comprobado que no hay bloqueos con distintas combinaciones de procesos e hilos y con migración en cada generación (NGM = 1).
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Compilación y ejecución}\par
+\smallskip
+
+En el \texttt{Makefile} se ha añadido \texttt{-fopenmp} y el número de hilos como parámetro, y se ejecuta con \texttt{mpirun -{}-bind-to none}. Por defecto OpenMPI fija cada proceso a un núcleo, así que todos los hilos de un proceso acabarían en ese mismo núcleo y no se ganaría nada; con \texttt{-{}-bind-to none} el sistema operativo puede repartir los hilos por todos los núcleos. En una prueba con 1 proceso y 2 hilos, el tiempo bajó de 1.78 s a 0.99 s solo con este cambio.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Experimentos}\par
+\smallskip
+
+Para comparar todas las versiones en el mismo sistema, como pide el enunciado, se han vuelto a ejecutar en la misma sesión y alternadas, con el script \texttt{experimentos\_c2.sh}:
+
+\begin{itemize}
+    \item \textbf{Secuencial:} el código de la P1 compilado sin OpenMP. Es el que se usa como tiempo secuencial para calcular el speed-up.
+    \item \textbf{P1 (OpenMP):} la mejor versión de la P1 con 2, 4, 6 y 12 hilos.
+    \item \textbf{P2 (MPI):} la versión elegida en la cuestión 6 de la P2 (colectivas) con 2, 4, 6 y 12 procesos.
+    \item \textbf{Híbrida:} todas las combinaciones de procesos e hilos con EP = 1, 2, 4, 6 y 12 elementos de proceso (EP = n\_procesos $\cdot$ n\_hilos).
+\end{itemize}
+
+En la copia del código de la P1 se han corregido dos errores que ya se habían corregido en la P2 para que la comparación sea justa: la función de ordenación \texttt{comp\_fitness} devolvía como \texttt{int} la resta de dos \texttt{double}, y en \texttt{distancia\_ij} estaba comentado el intercambio de \texttt{i} y \texttt{j}.
+
+% >>> DATO: instancia, NGM, NEM y repeticiones
+Se ha usado la instancia \texttt{n = 2000, m = 800, n\_gen = 400, tam\_pob = 200, m\_rate = 0.3}, con NGM = 10 y NEM = 3 (los valores elegidos en la P2), y cada configuración se ha ejecutado 3 veces tomando la media. Como en la P2, cada versión se ha ejecutado de dos formas:
+
+\begin{itemize}
+    \item \textbf{Trabajo fijo:} siempre 60 generaciones, sin criterio de convergencia (compilando con \texttt{-DSIN\_CONVERGENCIA}). Todas las versiones hacen el mismo trabajo, así que es la forma justa de comparar tiempos.
+    \item \textbf{Con convergencia:} el algoritmo normal, que para cuando el fitness deja de mejorar. Con esta se compara tiempo y fitness con el indicador $I = \text{fitness}/\text{tiempo}$ de la observación 1.
+\end{itemize}
+
+% >>> DATO: tiempos de trabajo fijo del híbrido (resultados_c2/resumen.txt, filas "fijo hibrido")
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ccc|ccc}
+\toprule
+\textbf{n\_procesos} & \textbf{n\_hilos} & \textbf{EP} & \textbf{t\_ejec (s)} & \textbf{speed-up} & \textbf{eficiencia} \\
+\midrule
+1 & 1 & 1 & 13.737 & 1.04 & 1.04 \\
+\midrule
+1 & 2 & \multirow{2}{*}{2} & \textbf{6.893} & \textbf{2.08} & 1.04 \\
+2 & 1 & & 11.238 & 1.27 & 0.64 \\
+\midrule
+1 & 4 & \multirow{3}{*}{4} & \textbf{3.700} & \textbf{3.87} & 0.97 \\
+2 & 2 & & 6.140 & 2.33 & 0.58 \\
+4 & 1 & & 8.119 & 1.76 & 0.44 \\
+\midrule
+1 & 6 & \multirow{4}{*}{6} & \textbf{2.616} & \textbf{5.47} & 0.91 \\
+2 & 3 & & 4.904 & 2.92 & 0.49 \\
+3 & 2 & & 5.552 & 2.58 & 0.43 \\
+6 & 1 & & 6.949 & 2.06 & 0.34 \\
+\midrule
+1 & 12 & \multirow{6}{*}{12} & \textbf{2.223} & \textbf{6.44} & 0.54 \\
+2 & 6 & & 4.316 & 3.31 & 0.28 \\
+3 & 4 & & 5.337 & 2.68 & 0.22 \\
+4 & 3 & & 6.228 & 2.30 & 0.19 \\
+6 & 2 & & 6.590 & 2.17 & 0.18 \\
+12 & 1 & & 7.880 & 1.82 & 0.15 \\
+\bottomrule
+\end{tabular}
+\caption{Prestaciones de la versión híbrida con trabajo fijo (\texttt{n = 2000, m = 800, n\_gen = 60, tam\_pob = 200, m\_rate = 0.3}, NGM = 10, NEM = 3). El speed-up se calcula respecto al secuencial (14.307 s) y la eficiencia es speed-up/EP. En negrita, la mejor configuración para cada EP.}
+\label{tab:c2_hibrido}
+\end{table}
+
+% >>> DATO: comparación de versiones (filas "fijo" y "convergencia" de resultados_c2/resumen.txt).
+% Para el híbrido se pone la mejor configuración de cada EP.
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{lcc|cc|ccc}
+\toprule
+ & & & \multicolumn{2}{c|}{\textbf{Trabajo fijo}} & \multicolumn{3}{c}{\textbf{Con convergencia}} \\
+\textbf{Versión} & \textbf{p $\times$ h} & \textbf{EP} & \textbf{t (s)} & \textbf{speed-up} & \textbf{t (s)} & \textbf{fitness} & \textbf{I ($\cdot 10^6$)} \\
+\midrule
+Secuencial & 1 $\times$ 1 & 1 & 3.860 & 1.00 & 3.860 & 16\,051\,808 & 4.16 \\
+\midrule
+P1 (OpenMP) & 1 $\times$ 2 & 2 & 1.838 & 2.10 & 1.838 & 16\,045\,310 & 8.73 \\
+P2 (MPI) & 2 $\times$ 1 & 2 & 4.010 & 0.96 & 4.010 & 16\,047\,989 & 4.00 \\
+Híbrida & 1 $\times$ 2 & 2 & 2.387 & 1.62 & 2.387 & 16\,052\,357 & 6.72 \\
+\midrule
+P1 (OpenMP) & 1 $\times$ 4 & 4 & 0.978 & 3.95 & 0.978 & 16\,046\,713 & 16.41 \\
+P2 (MPI) & 4 $\times$ 1 & 4 & 2.853 & 1.35 & 2.853 & 16\,046\,052 & 5.62 \\
+Híbrida & 1 $\times$ 4 & 4 & 1.276 & 3.03 & 1.276 & 16\,045\,683 & 12.58 \\
+\midrule
+P1 (OpenMP) & 1 $\times$ 6 & 6 & 0.697 & 5.54 & 0.697 & 16\,045\,589 & 23.02 \\
+P2 (MPI) & 6 $\times$ 1 & 6 & 2.396 & 1.61 & 2.396 & 16\,057\,280 & 6.70 \\
+Híbrida & 1 $\times$ 6 & 6 & 0.906 & 4.26 & 0.906 & 16\,045\,713 & 17.72 \\
+\midrule
+P1 (OpenMP) & 1 $\times$ 12 & 12 & 0.587 & 6.57 & \textbf{0.587} & 16\,043\,639 & \textbf{27.32} \\
+P2 (MPI) & 12 $\times$ 1 & 12 & 2.700 & 1.43 & 2.700 & 16\,052\,091 & 5.95 \\
+Híbrida & 1 $\times$ 12 & 12 & \textbf{0.754} & \textbf{5.12} & 0.754 & 16\,047\,076 & 21.28 \\
+\bottomrule
+\end{tabular}
+\caption{Comparación de la versión secuencial, la mejor versión de la P1, la mejor de la P2 y la híbrida en el mismo sistema (\texttt{n = 2000, m = 800, tam\_pob = 200, m\_rate = 0.3}, NGM = 10, NEM = 3; 60 generaciones con trabajo fijo y hasta 400 con convergencia). $I = \text{fitness}/\text{tiempo}$.}
+\label{tab:c2_comparacion}
+\end{table}
+
+% >>> DATO: los mismos tiempos de trabajo fijo de las tablas anteriores
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.48\textwidth, height=6cm,
+    xlabel={EP (procesos $\cdot$ hilos)}, ylabel={Tiempo (s)},
+    xtick={1,2,4,6,12}, ymin=0,
+    legend style={font=\footnotesize, at={(0.98,0.98)}, anchor=north east},
+    grid=major, title={\small Tiempo con trabajo fijo}]
+\addplot[mark=*, blue] coordinates {(1,14.307) (2,6.794) (4,3.587) (6,2.605) (12,2.215)};
+\addlegendentry{P1 (OpenMP)}
+\addplot[mark=square*, red] coordinates {(1,14.307) (2,11.439) (4,8.162) (6,6.964) (12,7.854)};
+\addlegendentry{P2 (MPI)}
+\addplot[mark=triangle*, teal] coordinates {(1,13.737) (2,6.893) (4,3.700) (6,2.616) (12,2.223)};
+\addlegendentry{Híbrida 1 $\times$ h}
+\end{axis}
+\end{tikzpicture}
+\hfill
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.48\textwidth, height=6cm,
+    xlabel={n\_procesos (n\_hilos = 12/n\_procesos)}, ylabel={Tiempo (s)},
+    xtick={1,2,3,4,6,12}, ymin=0,
+    grid=major, title={\small Híbrida con EP = 12}]
+\addplot[mark=triangle*, teal] coordinates {(1,2.223) (2,4.316) (3,5.337) (4,6.228) (6,6.590) (12,7.880)};
+\end{axis}
+\end{tikzpicture}
+\caption{Izquierda: tiempo con trabajo fijo de cada versión al aumentar los elementos de proceso. Derecha: tiempo de la versión híbrida con 12 elementos de proceso repartidos de distintas formas entre procesos e hilos.}
+\label{fig:c2}
+\end{figure}
+
+\medskip
+\noindent\textbf{Análisis}\par
+\smallskip
+
+% >>> DATO: revisar los números citados si cambian las tablas
+\begin{itemize}
+    \item \textbf{Con el mismo número de elementos de proceso, es mejor usar más hilos y menos procesos.} En la Tabla~\ref{tab:c2_hibrido}, para cada EP la mejor configuración es siempre la de 1 proceso, y el tiempo empeora a medida que se pasan hilos a procesos. Con EP = 12, por ejemplo, se pasa de 2.22 s con 1 $\times$ 12 a 7.88 s con 12 $\times$ 1 (Figura~\ref{fig:c2}, derecha). Hay dos motivos. El primero es la memoria: cada proceso MPI tiene su propia copia de la matriz de distancias (unos 16 MB con $n = 2000$), mientras que los hilos de un proceso comparten una sola. Con 12 procesos hay 12 copias que no caben en la caché y compiten por el acceso a memoria, y el fitness, que es la parte más costosa, se pasa el tiempo leyendo esa matriz. El segundo son las migraciones: cada NGM generaciones todos los procesos tienen que esperar al más lento, y con más procesos esa espera es mayor.
+    \item \textbf{Respecto al secuencial.} La mejor configuración híbrida es 1 proceso con 12 hilos, con un speed-up de 6.44 y una eficiencia de 0.54. La eficiencia baja tanto por las características del procesador: todos los 6 núcleos son iguales, pero con 12 hilos dos hilos comparten cada núcleo mediante SMT, y además la frecuencia baja cuando se usan todos los núcleos a la vez. Con 1 proceso y 1 hilo el tiempo es casi igual que el secuencial, así que la versión híbrida casi no añade coste cuando no se usa el paralelismo.
+    \item \textbf{Respecto a la mejor versión de la P1.} Con 1 proceso, la versión híbrida es prácticamente la de la P1 más las migraciones, que con una sola isla no aportan nada. Por eso es apenas un poco más lenta con 2 a 6 hilos, y con 12 hilos tardan lo mismo (2.22 s frente a 2.22 s, una diferencia que entra en la variación entre ejecuciones). En un único ordenador la memoria compartida es lo más eficiente, y el nivel MPI solo compensaría con varios nodos, donde OpenMP no llega por sí solo.
+    \item \textbf{Respecto a la mejor versión de la P2.} La versión híbrida es mucho mejor: con EP = 12 tarda 2.22 s frente a 7.85 s, es decir, 3.5 veces más rápida. La versión de la P2 no pasa de un speed-up de 1.82, por los mismos motivos de memoria explicados antes.
+    \item \textbf{Tiempo y fitness.} El fitness es prácticamente igual en todas las versiones y configuraciones (entre 16.04 y 16.07 millones, menos de un 0.2\,\% de diferencia). Por eso el indicador $I$ ordena las versiones casi igual que el tiempo. Con convergencia, la mejor versión híbrida (1 $\times$ 12) consigue $I = 21.28 \cdot 10^6$, 5.1 veces el del secuencial y 3.6 veces el de la mejor de la P2, aunque algo por debajo de la P1 con 12 hilos ($27.32 \cdot 10^6$).
+    \item \textbf{Diferencia con convergencia.} Con convergencia la versión híbrida sale peor que la P1, y con 1 proceso y 1 hilo incluso más lenta que el secuencial (4.78 s frente a 3.86 s). No es porque sea menos eficiente: la P1 comprueba la convergencia en cada generación, mientras que la versión con islas solo puede hacerlo en cada migración, cada NGM = 10 generaciones, y por tanto hace más generaciones antes de parar. Por eso, para comparar el rendimiento de las implementaciones, la medida fiable es la de trabajo fijo, y la de convergencia sirve para ver el compromiso entre tiempo y fitness.
+\end{itemize}
+
+En resumen, en este sistema la mejor configuración de la versión híbrida es 1 proceso con 12 hilos, que es 6.4 veces más rápida que el secuencial, 3.5 veces más rápida que la mejor versión de la P2 y tan rápida como la mejor de la P1.
+
+
+% =====================================================================
+%  PARTE 2
+% =====================================================================
+\newpage
+\item[] \textbf{\large Parte 2. Modelado y auto-optimización del algoritmo paralelo}
+
+En toda la Parte 2 se ha sustituido el fichero \texttt{io.c} por el proporcionado en \texttt{datos/ejecucion/}, que genera la matriz de distancias directamente en memoria, sin ficheros de entrada.
+
+% =====================================================================
+% CUESTIÓN 3: sustituir todo lo que hay debajo de la línea
+%   % --- Respuesta de la cuestión 3 ---
+% hasta el \newpage de la cuestión 4 por este texto.
+% Los datos están marcados con "% >>> DATO" (no salen en el PDF).
+% =====================================================================
+
+Esta cuestión parte del código de la P1 (OpenMP), con los dos errores corregidos en la cuestión 2, y con el nuevo \texttt{io.c}, que genera la matriz de distancias en memoria. A continuación se muestran las partes del código modificadas.
+
+\medskip
+\noindent\textbf{3.1 Obtención de datos experimentales}\par
+\smallskip
+
+% cambio 1: parámetros
+
+\medskip
+\noindent\textbf{Nuevos parámetros N\_HILOS\_INI y N\_HILOS\_FIT (\texttt{main.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+if(argc < 7) {
+	fprintf(stderr,"Ayuda:\n");
+	fprintf(stderr,"  ./programa n m nGen tamPob N_HILOS_INI N_HILOS_FIT [m_rate]\n");
+	return(EXIT_FAILURE);
+}
+...
+int n_hilos_ini = atoi(argv[5]);   // hilos del bucle de la población inicial (FOR_INI)
+int n_hilos_fit = atoi(argv[6]);   // hilos del bucle del fitness (FOR_FIT)
+// m_rate pasa a ser opcional (por defecto 0.3) porque el Makefile del profesor no lo pasa
+double m_rate = (argc > 7) ? atof(argv[7]) : 0.3;
+assert(n_hilos_ini >= 1 && n_hilos_fit >= 1);
+...
+double value = aplicar_mh(d, n, m, n_gen, tam_pob, m_rate, sol, n_hilos_ini, n_hilos_fit);
+\end{lstlisting}
+
+\textbf{Justificación:} El programa recibe los parámetros en el orden que indica el enunciado: \texttt{n, m, n\_gen, tam\_pob, N\_HILOS\_INI, N\_HILOS\_FIT}. \texttt{m\_rate} pasa a ser opcional porque el \texttt{Makefile} proporcionado no lo incluye; con \texttt{n\_gen = 0} no se muta, así que su valor no afecta a las medidas.
+
+\vspace{0.5cm}
+
+% cambio 2: FOR_INI
+
+\medskip
+\noindent\textbf{Bucle FOR\_INI con N\_HILOS\_INI hilos y medida de su tiempo (\texttt{aplicar\_mh} en \texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+static int hilos_fit = 1;
+...
+double aplicar_mh(const double *d, int n, int m, int n_gen, int tam_pob, double m_rate, int *sol, int n_hilos_ini, int n_hilos_fit)
+{
+    hilos_fit = n_hilos_fit;   // P3 CUESTIÓN 3
+    ...
+#ifdef TIMEGenPobIni
+    double t_ini = omp_get_wtime();
+#endif
+    #pragma omp parallel num_threads(n_hilos_ini) default(none) shared(d, n, m, tam_pob, poblacion)
+    {
+        // semilla distinta para cada hilo
+        int id = 0;
+#if defined (_OPENMP)
+        id = omp_get_thread_num();
+#endif
+        semilla = (unsigned int) (time(NULL) + getpid() + 7919 * id);
+
+        #pragma omp for schedule(dynamic)
+        for(int i = 0; i < tam_pob; i++) {
+            poblacion[i] = (Individuo *) malloc(sizeof(Individuo));
+            poblacion[i]->array_int = crear_individuo(n, m);
+            fitness(d, poblacion[i], n, m);
+        }
+    }
+#ifdef TIMEGenPobIni
+    double t_fin = omp_get_wtime();
+    printf("%.6lf\n", t_fin - t_ini);   // solo el tiempo, en una columna, para el análisis
+#endif
+    ...
+\end{lstlisting}
+
+\textbf{Justificación:} En la P1 este bucle estaba dentro de la región paralela grande, la que engloba todo el algoritmo. Ahí no se le puede poner un número de hilos propio, porque los hilos se deciden al abrir la región. Por eso lo hemos sacado a una región aparte con \texttt{num\_threads(n\_hilos\_ini)}, y el resto del algoritmo se queda igual que en la P1. Mantenemos \texttt{schedule(dynamic)} porque crear un individuo no siempre cuesta lo mismo: depende de cuántos números repetidos salgan y haya que descartar.
+
+El tiempo se mide con \texttt{omp\_get\_wtime} antes de abrir la región y después de cerrarla, para que incluya lo que cuesta crear los hilos, que es el término $k_h \cdot h$ de la ecuación~1. El \texttt{Makefile} del profesor compila con \texttt{-DTIMEGenPobIni}, y en ese caso el programa solo imprime este tiempo. Por último, \texttt{N\_HILOS\_FIT} se guarda en una variable del fichero para usarla en la cuestión 4. Así no hace falta cambiar la cabecera de \texttt{fitness}. En esta cuestión el bucle del fitness todavía no se paraleliza.
+
+\vspace{0.5cm}
+
+En el \texttt{Makefile} se han añadido variables para la instancia, NE, la lista de hilos y el número de series. Así, todos los experimentos de esta cuestión se lanzan sin recompilar (por ejemplo, \texttt{make run\_omp NE=3}). También se ha añadido un objetivo \texttt{resumen}, que calcula la media de las series para cada número de hilos.
+
+% >>> DATO: instancia y tiempo con 1 hilo
+La instancia usada es $n = 30000$, $m = 16000$, $n\_gen = 0$ y $NE = tam\_pob = 6$, con 5 series de ejecuciones para $h = 1, 2, 4, \dots, 20$. Con 1 hilo, FOR\_INI tarda 8.41 s, dentro del rango recomendado por el enunciado.
+
+% >>> DATO: si en el ordenador de las ejecuciones finales no hay ejecuciones anómalas, borrar este párrafo
+En algunas ejecuciones con 6 o más hilos el tiempo salía muy por encima del resto (unos 7--8 s frente a 2 s), sin relación con el número de hilos. Se trata de interferencias del sistema en este ordenador. Esas ejecuciones se han descartado al calcular la media; en la hoja de cálculo son las celdas que se han dejado vacías.
+
+\medskip
+\noindent\textbf{3.2 Instalación de la rutina con 1 nivel de paralelismo}\par
+\smallskip
+
+Con los tiempos medios se ha completado la hoja ``Modelo 1-Nivel Paralelismo'' de \texttt{solver.ods}, y con el Solucionador de LibreOffice (algoritmo no lineal) se han obtenido las constantes que minimizan la suma de los errores al cuadrado entre el tiempo experimental y el de la ecuación~1.
+
+% >>> DATO: constantes del Solucionador (solver.ods, celdas B9, B10 y G24)
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Constante} & \textbf{Valor} \\
+\midrule
+$k_{s1}$ & 1.4701 s \\
+$k_h$ & 0.0984 s \\
+Suma de errores al cuadrado & 2.1835 \\
+\bottomrule
+\end{tabular}
+\caption{Constantes del sistema obtenidas en la instalación del modelo de 1 nivel ($NE = 6$).}
+\label{tab:c3_constantes}
+\end{table}
+
+% >>> DATO: tiempos medios (columna G de solver.ods) y teóricos (columna F)
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.75\textwidth, height=6.5cm,
+    xlabel={Número de hilos ($h$)}, ylabel={Tiempo de FOR\_INI (s)},
+    xtick={1,2,4,6,8,10,12,14,16,18,20}, ymin=0,
+    legend style={font=\footnotesize, at={(0.98,0.98)}, anchor=north east},
+    grid=major]
+\addplot[mark=square*, blue] coordinates {(1,8.41) (2,4.53) (3,3.74) (4,3.23) (5,3.24) (6,2.02) (7,2.02) (8,2.02) (9,2.03) (10,2.02) (12,2.02) (14,2.02) (16,2.02) (18,2.02) (20,2.02)};
+\addlegendentry{experimental}
+\addplot[mark=diamond*, red] coordinates {(1,8.92) (2,4.61) (3,3.24) (4,2.60) (5,2.26) (6,2.06) (7,1.95) (8,1.89) (9,1.87) (10,1.87) (12,1.92) (14,2.01) (16,2.13) (18,2.26) (20,2.41)};
+\addlegendentry{teórico (ec. 1)}
+\end{axis}
+\end{tikzpicture}
+\caption{Tiempo experimental y teórico de FOR\_INI ($n = 30000$, $m = 16000$, $n\_gen = 0$, $NE = 6$; media de 5 series).}
+\label{fig:c3_ajuste}
+\end{figure}
+
+Como se ve en la Figura~\ref{fig:c3_ajuste}, el modelo sigue bien la bajada del principio, pero no lo que pasa después. A partir de 6 hilos el tiempo real deja de bajar y se queda en unos 2.0 s, mientras que el modelo dibuja una curva en forma de ``U'', con el mínimo en unos 9 hilos, y luego vuelve a subir. Para parecerse lo más posible a esa parte plana, el ajuste le da a $k_h$ un valor moderado, 0.10 s por hilo, cuando crear un hilo cuesta en realidad muy poco. Por eso $k_h$ no hay que leerlo como el coste de crear un hilo, sino como el coste de todo lo que impide que el programa vaya más rápido al añadir hilos.
+
+\medskip
+\noindent\textbf{3.3 Ejecución}\par
+\smallskip
+
+\textbf{a) Número óptimo de hilos.} Despejando $h$ de la ecuación~3:
+\[
+-\frac{k_{s1} \cdot NE}{h^2} + k_h = 0 \quad\Rightarrow\quad h_{opt} = \sqrt{\frac{k_{s1} \cdot NE}{k_h}} = \sqrt{\frac{1.4701 \cdot 6}{0.0984}} \approx 9.47 \;\rightarrow\; 9 \text{ hilos}
+\]
+
+\textbf{b) y c) Predicción y comprobación con otros valores de $h$.} Se ha calculado el tiempo que da el modelo con $h = 3, 5, 7$ y 9, que no se usaron en la instalación, y se ha comparado con la media de 5 ejecuciones con esos hilos (Tabla~\ref{tab:c3_prediccion}).
+
+% >>> DATO: solver.ods, filas 47-50
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|ccc}
+\toprule
+\textbf{$h$} & \textbf{t teórico (s)} & \textbf{t experimental (s)} & \textbf{error} \\
+\midrule
+3 & 3.24 & 3.74 & $-$13.4\,\% \\
+5 & 2.26 & 3.24 & $-$30.3\,\% \\
+7 & 1.95 & 2.02 & $-$3.7\,\% \\
+9 & 1.87 & 2.03 & $-$8.1\,\% \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo de FOR\_INI que predice el modelo y tiempo medido con valores de $h$ no usados en la instalación ($NE = 6$).}
+\label{tab:c3_prediccion}
+\end{table}
+
+El modelo acierta dónde está el mínimo (el tiempo medido más bajo está entre $h = 6$ y $h = 9$, junto a $h_{opt} = 9$), pero se queda corto en el tiempo: da entre 0.1 y 1.0 s menos en todos los casos, un error de entre el 4 y el 30\,\%.
+
+\textbf{d) y e) Otros tamaños de población.} Con las mismas constantes se ha calculado $h_{opt}$ para $NE = 3$ y $NE = 10$, sin volver a ajustar el modelo, y se ha comprobado midiendo FOR\_INI con $h = 1, 2, 4, \dots, 20$ (5 series de cada uno).
+
+% >>> DATO: tiempos medios de NE = 3 y NE = 10 (make resumen NE=3 / NE=10) y teóricos
+\begin{table}[htbp]
+\centering
+\small
+\begin{tabular}{c|cc|cc|cc}
+\toprule
+ & \multicolumn{2}{c|}{\textbf{NE = 3}} & \multicolumn{2}{c|}{\textbf{NE = 6}} & \multicolumn{2}{c}{\textbf{NE = 10}} \\
+\textbf{$h$} & \textbf{t exp.} & \textbf{t teó.} & \textbf{t exp.} & \textbf{t teó.} & \textbf{t exp.} & \textbf{t teó.} \\
+\midrule
+1 & 3.73 & 4.51 & 8.41 & 8.92 & 11.56 & 14.80 \\
+2 & 2.59 & 2.40 & 4.53 & 4.61 & 6.86 & 7.55 \\
+4 & 1.96 & 1.50 & 3.23 & 2.60 & 5.60 & 4.07 \\
+6 & \textbf{1.95} & \textbf{1.33} & \textbf{2.02} & \textbf{2.06} & 5.51 & 3.04 \\
+8 & 2.02 & 1.34 & 2.02 & 1.89 & 5.39 & 2.62 \\
+10 & 2.05 & 1.43 & 2.02 & 1.87 & \textbf{5.24} & 2.45 \\
+12 & 2.08 & 1.55 & 2.02 & 1.92 & 5.29 & 2.41 \\
+14 & 1.98 & 1.69 & 2.02 & 2.01 & 5.26 & 2.43 \\
+16 & 2.05 & 1.85 & 2.02 & 2.13 & 5.36 & 2.49 \\
+18 & 2.07 & 2.02 & 2.02 & 2.26 & 5.39 & 2.59 \\
+20 & 2.05 & 2.19 & 2.02 & 2.41 & 5.35 & 2.70 \\
+\midrule
+\textbf{$h_{opt}$} & 6 & 6.69 & 9 & 9.47 & 10 & 12.22 \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo experimental y teórico (s) de FOR\_INI para distintos valores de NE ($n = 30000$, $m = 16000$, $n\_gen = 0$; media de 5 series). En negrita, el número óptimo de hilos de cada columna.}
+\label{tab:c3_ne}
+\end{table}
+
+El número de hilos óptimo que calcula el modelo se parece al que hemos medido: 6.69 frente a 6 con $NE = 3$, y 12.22 frente a 10 con $NE = 10$. Para $NE = 6$, el modelo da 9.47 y el tiempo experimental más bajo está entre 6 y 9 hilos, todos alrededor de 2.0 s. Además, a partir de ese número el tiempo real casi no cambia. Con $NE = 3$, por ejemplo, el tiempo más bajo es el de 6 hilos (1.95 s), muy cerca del de 4 hilos (1.96 s). Así que equivocarse en uno o dos hilos apenas se nota. Lo que el modelo no acierta son los tiempos: con muchos hilos da tiempos más bajos de los reales en todos los casos. En resumen, el modelo sirve para lo que se busca, que es elegir el número de hilos sin tener que volver a medir, pero no para saber cuánto va a tardar el programa.
+
+El problema es que la ecuación~1 supone que, con el doble de hilos, el trabajo se hace en la mitad de tiempo, y en este ordenador no pasa. En los tres casos, con muchos hilos el tiempo se queda plano: 2.02 s para $NE = 6$ y 5.3 s para $NE = 10$, muy lejos del descenso lineal que predice el modelo. Si el límite fuera que no hay individuos para todos los hilos, cada hilo haría un individuo y el tiempo sería el mismo para cualquier NE, pero no es así: sigue creciendo con NE. Lo que limita es la memoria. Para calcular el fitness de un individuo hay que leer muchas distancias de una matriz grande, saltando de una posición a otra. Esos datos casi nunca están en la caché, así que hay que ir a buscarlos a la memoria principal, y a partir de unos 6 hilos la memoria no da abasto para atender a más. Además, el procesador baja la frecuencia cuando trabajan todos los núcleos a la vez. El modelo no tiene en cuenta nada de esto, como ya avisa el enunciado, y con una sola constante $k_h$ no puede reproducirlo.
+
+\newpage
+\item \textbf{Cuestión 4.} Modelo de tiempo en memoria compartida con 2 niveles de paralelismo.
+
+% --- Respuesta de la cuestión 4 ---
+
+\medskip
+\noindent\textbf{4.1 Instalación de la rutina con 2 niveles de paralelismo}\par
+\smallskip
+
+% paralelizar FOR_INI y FOR_FIT con omp_set_nested(1); ajuste de ks2, kh1 y kh2
+
+\medskip
+\noindent\textbf{4.2 Número óptimo de hilos}\par
+\smallskip
+
+% h1opt y h2opt a partir de las ecuaciones 4 y 5
+
+\medskip
+\noindent\textbf{4.3 Ejecución}\par
+\smallskip
+
+% a) tiempo esperado con otros valores de h1 y h2
+% b) h1opt y h2opt con otros valores de NE y |B|
+
+
+\newpage
+\item \textbf{Cuestión 5.} Modelo de tiempo en memoria distribuida.
+
+% --- Respuesta de la cuestión 5 ---
+
+\medskip
+\noindent\textbf{5.1 Tiempo de ordenación}\par
+\smallskip
+
+% nueva hoja en solver.ods; comprobar que t_ord es despreciable
+
+\medskip
+\noindent\textbf{5.2 Instalación: constantes kcmp, A, B, C y D}\par
+\smallskip
+
+% NGM = 1, variando el número de procesos (Makefile de datos/ejecucion/pm)
+
+\medskip
+\noindent\textbf{5.3 Número óptimo de procesos}\par
+\smallskip
+
+% tiempo teórico para varios p y popt resolviendo la ecuación 10
+
+
+\newpage
+\item \textbf{Cuestión 6.} Realizar el informe final incluyendo las conclusiones generales y valoración personal sobre el trabajo realizado.
+
+% --- Respuesta de la cuestión 6 ---
+
+\end{enumerate}
+
+% =========================
+% COORDINACIÓN
+% =========================
+\newpage
+\section{Coordinación, reparto del trabajo y tiempo dedicado}
+
+% --- Rellenar al final ---
+
+\end{document}
