@@ -722,49 +722,349 @@ El problema es que la ecuación~1 supone que, con el doble de hilos, el trabajo 
 \item \textbf{Cuestión 4.} Modelo de tiempo en memoria compartida con 2 niveles de paralelismo.
 
 % --- Respuesta de la cuestión 4 ---
+% =====================================================================
+% CUESTIÓN 4: sustituir todo lo que hay debajo de la línea
+%   % --- Respuesta de la cuestión 4 ---
+% hasta el \newpage de la cuestión 5 por este texto.
+% Los datos están marcados con "% >>> DATO" (no salen en el PDF).
+% =====================================================================
+
+Esta cuestión parte del código de la cuestión 3. Ahora, además de repartir los individuos entre los hilos (FOR\_INI, primer nivel), cada uno de esos hilos reparte el cálculo del fitness de su individuo entre otro grupo de hilos (FOR\_FIT, segundo nivel). Por ejemplo, con 3 hilos en FOR\_INI y 4 en FOR\_FIT trabajan 12 hilos a la vez: 3 grupos de 4, uno por individuo.
 
 \medskip
 \noindent\textbf{4.1 Instalación de la rutina con 2 niveles de paralelismo}\par
 \smallskip
 
-% paralelizar FOR_INI y FOR_FIT con omp_set_nested(1); ajuste de ks2, kh1 y kh2
+\medskip
+\noindent\textbf{Activar el paralelismo anidado (\texttt{aplicar\_mh} en \texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+    hilos_fit = n_hilos_fit;   // P3 CUESTIÓN 3
+#if defined (_OPENMP)
+    // P3 CUESTIÓN 4: activa el paralelismo anidado. Sin esto, la región paralela del fitness
+    // (FOR_FIT), que se abre dentro de la de FOR_INI, se ejecutaría con un solo hilo
+    omp_set_nested(1);
+#endif
+\end{lstlisting}
+
+\textbf{Justificación:} Por defecto, si un hilo abre una región paralela estando ya dentro de otra, OpenMP la ejecuta con un solo hilo. Con \texttt{omp\_set\_nested(1)}, como indica el enunciado, la región del fitness sí crea sus propios hilos.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Bucle FOR\_FIT con N\_HILOS\_FIT hilos (\texttt{fitness} en \texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+void fitness(const double *d, Individuo *individuo, int n, int m)
+{
+    double fitness = 0.0;
+    #pragma omp parallel for num_threads(hilos_fit) default(none) shared(d, individuo, n, m) reduction(+:fitness) schedule(dynamic)
+    for(int i = 0 ; i < m-1 ; i++){
+        for(int j = i + 1; j < m ; j++){
+            fitness += distancia_ij(d,individuo->array_int[i], individuo->array_int[j], n);
+        }
+    }
+    individuo->fitness = fitness;
+}
+\end{lstlisting}
+
+\textbf{Justificación:} Se reparten entre los hilos las filas del doble bucle, que es el FOR\_FIT del enunciado y tiene $|B| = m-1$ iteraciones. Todos los hilos suman sobre la misma variable, así que se usa \texttt{reduction(+:fitness)}: cada hilo suma en su propia copia y al final OpenMP las junta, sin que los hilos se pisen. Se usa \texttt{schedule(dynamic)} porque la fila $i$ tiene $m-1-i$ pares, así que las primeras filas cuestan mucho más que las últimas y un reparto en bloques iguales dejaría a unos hilos con mucho más trabajo que a otros. El número de hilos es el \texttt{N\_HILOS\_FIT} que se guardó en la cuestión 3.
+
+\vspace{0.5cm}
+
+En el \texttt{Makefile} se ha añadido el objetivo \texttt{run\_omp2}, que ejecuta todas las combinaciones de dos listas de hilos (\texttt{HILOS1} para FOR\_INI y \texttt{HILOS2} para FOR\_FIT), y \texttt{resumen2}, que calcula la media de cada combinación.
+
+% >>> DATO: instancia y combinaciones
+Se ha usado la misma instancia que en la cuestión 3 ($n = 30000$, $m = 16000$, $n\_gen = 0$, $NE = 6$, por lo que $|B| = 15999$). Se han medido 24 combinaciones: $h_1 = 1, 2, 3, 6$ (divisores de NE, para que todos los hilos tengan el mismo número de individuos) y $h_2 = 1, 2, 4, 6, 8, 12$, con 3 series cada una. Con los tiempos medios se ha completado la hoja ``Modelo 2-Niveles Paralelismo'' de \texttt{solver.ods} y se han obtenido las constantes con el Solucionador, igual que en la cuestión 3.
+
+% >>> DATO: tiempos medios (columna F de solver.ods, filas 11-34)
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|cccccc}
+\toprule
+\textbf{$h_1$ \textbackslash{} $h_2$} & \textbf{1} & \textbf{2} & \textbf{4} & \textbf{6} & \textbf{8} & \textbf{12} \\
+\midrule
+1 & 6.51 & 4.02 & 3.36 & 3.09 & 2.94 & 2.88 \\
+2 & 4.09 & 3.39 & 3.06 & 2.94 & \textbf{2.85} & 2.87 \\
+3 & 4.12 & 3.28 & 3.00 & 2.98 & 2.94 & 2.98 \\
+6 & 3.46 & 3.07 & 3.04 & 3.06 & 3.08 & 3.06 \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo experimental (s) de FOR\_INI con dos niveles de paralelismo, según los hilos de FOR\_INI ($h_1$, filas) y de FOR\_FIT ($h_2$, columnas). Media de 3 series. En negrita, el menor tiempo.}
+\label{tab:c4_tiempos}
+\end{table}
+
+% >>> DATO: constantes del Solucionador (solver.ods, B10, B11, B12 y H36)
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Constante} & \textbf{Valor} \\
+\midrule
+$k_{s2}$ & $7.121 \cdot 10^{-5}$ s \\
+$k_{h,1}$ & 0.3513 s \\
+$k_{h,2}$ & 0.1724 s \\
+Suma de errores al cuadrado & 6.881 \\
+\bottomrule
+\end{tabular}
+\caption{Constantes del sistema obtenidas en la instalación del modelo de 2 niveles ($NE = 6$, $|B| = 15999$).}
+\label{tab:c4_constantes}
+\end{table}
+
+% >>> DATO: revisar los números citados
+Con el segundo nivel el programa va más rápido: el mejor tiempo es 2.85 s (2 hilos en FOR\_INI y 8 en FOR\_FIT), frente a 3.4 s, que era lo mejor que se conseguía con un solo nivel en la cuestión 3. La razón es que con un solo nivel no se pueden usar más de NE = 6 hilos, porque solo hay 6 individuos, y con dos niveles sí. Aun así, a partir de unos 8--12 hilos en total el tiempo se queda en unos 2.9--3.0 s, casi sin importar cómo se repartan. Es el mismo límite de la memoria que se vio en la cuestión 3.
+
+El modelo vuelve a tener un error grande (en la columna de $h_2 = 12$ con $h_1 = 6$ da 4.27 s frente a los 3.06 s medidos). Igual que en la cuestión 3, supone que, con el doble de hilos, el tiempo se reduce a la mitad, y para acercarse a la parte plana de los datos sube mucho $k_{h,1}$ y $k_{h,2}$. El coste por hilo del primer nivel sale el doble que el del segundo, así que, según el modelo, compensa más poner hilos en el bucle del fitness que en el de los individuos.
 
 \medskip
 \noindent\textbf{4.2 Número óptimo de hilos}\par
 \smallskip
 
-% h1opt y h2opt a partir de las ecuaciones 4 y 5
+Derivando la ecuación~2 respecto a $h_1$ y a $h_2$ e igualando a cero (ecuaciones 4 y 5), y llamando $K = k_{s2} \cdot NE \cdot |B|$:
+\[
+\left.
+\begin{aligned}
+-\frac{K}{h_1^2 \, h_2} + k_{h,1} &= 0 \\
+-\frac{K}{h_1 \, h_2^2} + k_{h,2} &= 0
+\end{aligned}
+\right\}
+\quad\Rightarrow\quad
+h_{1,opt} = \sqrt[3]{\frac{K \cdot k_{h,2}}{k_{h,1}^2}}, \qquad
+h_{2,opt} = \sqrt[3]{\frac{K \cdot k_{h,1}}{k_{h,2}^2}}
+\]
+
+Dividiendo una ecuación entre la otra se ve que $h_2 / h_1 = k_{h,1} / k_{h,2}$: el nivel cuyos hilos cuestan menos tiene más hilos. Sustituyendo las constantes:
+
+% >>> DATO: solver.ods, B38 y B39
+\[
+h_{1,opt} \approx 2.12 \;\rightarrow\; 2 \text{ hilos}, \qquad h_{2,opt} \approx 4.32 \;\rightarrow\; 4 \text{ hilos}
+\]
+
+Experimentalmente, la combinación $(2, 4)$ tarda 3.06 s, y la mejor medida es $(2, 8)$ con 2.85 s, solo un 7\,\% menos. El modelo acierta en que lo mejor es poner 2 hilos en FOR\_INI y más hilos en FOR\_FIT, aunque se queda algo corto en el segundo nivel.
 
 \medskip
 \noindent\textbf{4.3 Ejecución}\par
 \smallskip
 
-% a) tiempo esperado con otros valores de h1 y h2
-% b) h1opt y h2opt con otros valores de NE y |B|
+\textbf{a) Tiempo esperado con otros valores de $h_1$ y $h_2$.} Se ha calculado el tiempo que da el modelo con combinaciones que no se usaron en la instalación, y se ha comparado con la media de 3 ejecuciones de cada una (Tabla~\ref{tab:c4_prediccion}).
 
+% >>> DATO: solver.ods, filas 42-45
+\begin{table}[htbp]
+\centering
+\begin{tabular}{cc|ccc}
+\toprule
+\textbf{$h_1$} & \textbf{$h_2$} & \textbf{t teórico (s)} & \textbf{t experimental (s)} & \textbf{error} \\
+\midrule
+2 & 3 & 2.36 & 3.41 & $-$30.7\,\% \\
+2 & 5 & 2.25 & 3.06 & $-$26.5\,\% \\
+3 & 3 & 2.33 & 3.09 & $-$24.6\,\% \\
+3 & 5 & 2.37 & 3.01 & $-$21.2\,\% \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo que predice el modelo de 2 niveles y tiempo medido con combinaciones de hilos no usadas en la instalación.}
+\label{tab:c4_prediccion}
+\end{table}
+
+Como en la cuestión 3, el modelo da tiempos entre 0.6 y 1 s más bajos que los reales, porque no tiene en cuenta el límite de la memoria. Pero sí ordena bien las combinaciones: en los dos casos la más lenta es $(2, 3)$, y las otras tres quedan muy juntas.
+
+\textbf{b) Número óptimo de hilos con otros valores de NE y $|B|$.} Con las mismas constantes y las fórmulas del apartado 4.2 se han calculado los hilos óptimos para otros tamaños de población y de individuo ($|B| = 9999$ y $23999$ corresponden a $m = 10000$ y $m = 24000$).
+
+% >>> DATO: solver.ods, filas 48-51
+\begin{table}[htbp]
+\centering
+\begin{tabular}{cc|cc}
+\toprule
+\textbf{NE} & \textbf{$|B|$} & \textbf{$h_{1,opt}$} & \textbf{$h_{2,opt}$} \\
+\midrule
+3 & 15999 & 1.68 & 3.43 \\
+6 & 15999 & 2.12 & 4.32 \\
+10 & 15999 & 2.52 & 5.13 \\
+6 & 9999 & 1.81 & 3.70 \\
+6 & 23999 & 2.43 & 4.95 \\
+\bottomrule
+\end{tabular}
+\caption{Número óptimo de hilos de cada nivel que da el modelo para distintos valores de NE y $|B|$.}
+\label{tab:c4_otros}
+\end{table}
+
+Cuanto más trabajo hay, con más individuos o individuos más grandes, más hilos compensa usar en los dos niveles. Los dos crecen igual, con la raíz cúbica de $NE \cdot |B|$, y siempre se mantiene la misma proporción: unas dos veces más hilos en FOR\_FIT que en FOR\_INI, porque esa proporción solo depende de $k_{h,1}/k_{h,2}$. Esto es lo útil del modelo: una vez instalado, se puede elegir el número de hilos de cada nivel para cualquier problema sin tener que volver a medir.
 
 \newpage
 \item \textbf{Cuestión 5.} Modelo de tiempo en memoria distribuida.
 
 % --- Respuesta de la cuestión 5 ---
+% ------------------------------- CUESTIÓN 5 -------------------------------
+
+Esta cuestión parte de la versión MPI elegida en la P2 (modelo de islas con comunicaciones colectivas), con el nuevo \texttt{io.c}. Ese \texttt{io.c} genera la matriz con una semilla distinta en cada proceso, así que la sigue generando solo el proceso 0 y se la manda al resto con \texttt{MPI\_Bcast}, como ya se hacía. Los cambios en el código son pocos.
+
+\medskip
+\noindent\textbf{Parámetros de entrada (\texttt{main.c}) y tamaño del individuo (\texttt{mh.h})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+// mh.h
+#define MAX_M 2000  // P3 CUESTIÓN 5: la instancia de datos/ejecucion/pm usa m = 2000
+
+// main.c
+if(argc < 5) { ... }
+int n = atoi(argv[1]);
+int m = atoi(argv[2]);
+int n_gen = atoi(argv[3]);
+int tam_pob = atoi(argv[4]);
+double m_rate = (argc > 5) ? atof(argv[5]) : 0.3;
+int NGM = (argc > 6) ? atoi(argv[6]) : 1;   // cada cuántas generaciones hay migración
+int NEM = (argc > 7) ? atoi(argv[7]) : 3;   // cuántos individuos migran de cada isla
+\end{lstlisting}
+
+\textbf{Justificación:} El \texttt{Makefile} de \texttt{datos/ejecucion/pm} solo pasa \texttt{n, m, n\_gen, tam\_pob}, así que el resto de parámetros pasan a ser opcionales. Por defecto NGM vale 1, que es lo que supone el modelo, y NEM vale 3, el valor elegido en la P2. Además, como en la P2 los genes van en un array fijo dentro del \texttt{struct} (para poder enviarlo con el tipo derivado), hay que agrandarlo para que quepan los 2000 genes de esta instancia.
+
+\vspace{0.5cm}
+
+\medskip
+\noindent\textbf{Tiempo de ordenación en el proceso 0 (\texttt{aplicar\_mh} en \texttt{mh.c})}\par
+\smallskip
+
+\begin{lstlisting}[style=EstiloC]
+if (rank == 0) {
+	for (i = 0; i < NEM * size; i++)
+		p_mezcla[i] = &mezcla[i];
+#ifdef TIME_ORD
+	double t_ord_ini = MPI_Wtime();
+#endif
+	qsort(p_mezcla, NEM * size, sizeof(Individuo *), comp_fitness);
+#ifdef TIME_ORD
+	printf("Sort Time: %.6lf sec\n", MPI_Wtime() - t_ord_ini);
+#endif
+	...
+\end{lstlisting}
+
+\textbf{Justificación:} En cada migración, el proceso 0 junta los NEM mejores de cada isla y los ordena para quedarse con los mejores. Ese es el $t_{ord}$ de la ecuación~6, y se mide con \texttt{MPI\_Wtime} solo alrededor del \texttt{qsort}.
+
+\vspace{0.5cm}
+
+En el \texttt{Makefile} se ha puesto la instancia del \texttt{Makefile} de \texttt{datos/ejecucion/pm} y se ha añadido un bucle que ejecuta el programa con distintos números de procesos y guarda en cada línea el número de procesos, el tiempo total y el de ordenación. También tiene un objetivo \texttt{resumen} que saca la media. Se ejecuta con \texttt{--oversubscribe} para poder lanzar más procesos que núcleos.
+
+% >>> DATO: instancia, procesos y series
+Se ha usado la instancia del enunciado: $n = 5000$, $m = 2000$, $n\_gen = 1$ y $tam\_pob = 500$, con NGM = 1 y NEM = 3. Con una sola generación y NGM = 1, cada ejecución es justo un ciclo completo del algoritmo: crear la población, una generación de computación en las islas, una migración (con su ordenación) y la recogida del resultado. Se ha ejecutado con $p = 1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24$ y 30 procesos, 3 veces cada uno. Los cálculos están en la hoja nueva ``Modelo Paso de Mensajes'' de \texttt{solver.ods}.
 
 \medskip
 \noindent\textbf{5.1 Tiempo de ordenación}\par
 \smallskip
 
-% nueva hoja en solver.ods; comprobar que t_ord es despreciable
+% >>> DATO: solver.ods, hoja "Modelo Paso de Mensajes", columnas D, E, H e I
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|ccc}
+\toprule
+\textbf{$p$} & \textbf{t total (s)} & \textbf{$t_{ord}$ ($\mu$s)} & \textbf{$t_{ord}$ / t total} \\
+\midrule
+1 & 15.295 & 0 & 0 \\
+2 & 9.741 & 0 & 0 \\
+4 & 8.550 & 2 & $2.3 \cdot 10^{-7}$ \\
+6 & 7.275 & 3 & $4.1 \cdot 10^{-7}$ \\
+8 & 6.559 & 3 & $4.6 \cdot 10^{-7}$ \\
+10 & 6.203 & 4 & $6.4 \cdot 10^{-7}$ \\
+12 & 6.397 & 6 & $9.4 \cdot 10^{-7}$ \\
+14 & 6.577 & 6 & $9.1 \cdot 10^{-7}$ \\
+16 & 6.546 & 7 & $1.1 \cdot 10^{-6}$ \\
+18 & 6.647 & 8 & $1.2 \cdot 10^{-6}$ \\
+20 & 6.658 & 9 & $1.4 \cdot 10^{-6}$ \\
+24 & 6.580 & 10 & $1.5 \cdot 10^{-6}$ \\
+30 & 6.558 & 11 & $1.7 \cdot 10^{-6}$ \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo total de un ciclo del algoritmo y tiempo de ordenación en el proceso 0 ($n = 5000$, $m = 2000$, $n\_gen = 1$, $tam\_pob = 500$, NGM = 1, NEM = 3; media de 3 ejecuciones).}
+\label{tab:c5_tord}
+\end{table}
+
+El tiempo de ordenación es como mucho de 11 microsegundos, frente a más de 6 segundos de tiempo total: menos de dos millonésimas partes (Tabla~\ref{tab:c5_tord}). Es lógico, porque el proceso 0 solo ordena $p \cdot NEM$ individuos, como mucho 90, mientras que cada isla tiene que calcular el fitness de todos sus individuos, y cada fitness son unos 2 millones de sumas. Crece un poco con $p$, porque hay más individuos que ordenar, pero sigue siendo despreciable. Por tanto, se puede quitar $t_{ord}$ de la ecuación~6, como se hace en la ecuación~9.
 
 \medskip
-\noindent\textbf{5.2 Instalación: constantes kcmp, A, B, C y D}\par
+\noindent\textbf{5.2 Instalación: constantes $k_{cmp}$, A, B, C y D}\par
 \smallskip
 
-% NGM = 1, variando el número de procesos (Makefile de datos/ejecucion/pm)
+Con los tiempos medios se ha ajustado la ecuación~9 con el Solucionador, minimizando la suma de los errores al cuadrado, igual que en las cuestiones 3 y 4. Esta vez no se ha marcado la opción de variables no negativas, porque los coeficientes del polinomio de las comunicaciones pueden ser negativos.
+
+% >>> DATO: solver.ods, hoja "Modelo Paso de Mensajes", B4:B8 y G18
+\begin{table}[htbp]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Constante} & \textbf{Valor} \\
+\midrule
+$k_{cmp}$ & 9.432 s \\
+A & $-1.884 \cdot 10^{-4}$ \\
+B & $9.169 \cdot 10^{-3}$ \\
+C & $-9.065 \cdot 10^{-2}$ \\
+D & 5.782 s \\
+Suma de errores al cuadrado & 1.027 \\
+\bottomrule
+\end{tabular}
+\caption{Constantes del modelo de paso de mensajes (ecuación~9).}
+\label{tab:c5_constantes}
+\end{table}
+
+% >>> DATO: tiempos experimentales (columna E) y teóricos (columna F)
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.75\textwidth, height=6.5cm,
+    xlabel={Número de procesos ($p$)}, ylabel={Tiempo (s)},
+    xtick={1,4,8,12,16,20,24,30}, ymin=0,
+    legend style={font=\footnotesize, at={(0.98,0.98)}, anchor=north east},
+    grid=major]
+\addplot[mark=square*, blue] coordinates {(1,15.295) (2,9.741) (4,8.550) (6,7.275) (8,6.559) (10,6.203) (12,6.397) (14,6.577) (16,6.546) (18,6.647) (20,6.658) (24,6.580) (30,6.558)};
+\addlegendentry{experimental}
+\addplot[mark=diamond*, red] coordinates {(1,15.132) (2,10.352) (4,7.912) (6,7.100) (8,6.726) (10,6.548) (12,6.476) (14,6.468) (16,6.498) (18,6.548) (20,6.603) (24,6.679) (30,6.545)};
+\addlegendentry{teórico (ec. 9)}
+\end{axis}
+\end{tikzpicture}
+\caption{Tiempo experimental y teórico del algoritmo de paso de mensajes según el número de procesos.}
+\label{fig:c5_ajuste}
+\end{figure}
+
+Esta vez el modelo se ajusta bastante mejor que en memoria compartida: el error es de unas décimas de segundo en casi todos los puntos (Figura~\ref{fig:c5_ajuste}). Tiene cinco constantes en lugar de dos o tres, y el polinomio de grado 3 es flexible y puede seguir bien la forma de la curva.
+
+Al ver las constantes hay que tener cuidado con lo que significan. El tiempo baja hasta unos 10 procesos, que son los núcleos del portátil, y a partir de ahí se queda en unos 6.5 s. Cuando hay más procesos que núcleos, varios procesos tienen que compartir núcleo, y como las islas se esperan unas a otras en cada migración, el ritmo lo marca la más lenta. Por eso D sale tan grande (5.8 s): es una parte del tiempo que no baja al añadir procesos. Y A sale negativo, lo que no tiene sentido físico (las comunicaciones no pueden tardar menos con más procesos). Es solo la forma que encuentra el polinomio de ajustarse a la parte plana. Por eso el modelo sirve dentro del rango medido, de 1 a 30 procesos, pero no para predecir fuera de él: con muchos más procesos, el término $A \cdot p^3$ haría que el tiempo saliera negativo.
 
 \medskip
 \noindent\textbf{5.3 Número óptimo de procesos}\par
 \smallskip
 
-% tiempo teórico para varios p y popt resolviendo la ecuación 10
+Con las constantes del apartado anterior se ha calculado el tiempo teórico para valores de $p$ que no se midieron:
+
+% >>> DATO: solver.ods, hoja "Modelo Paso de Mensajes", filas 25-30
+\begin{table}[htbp]
+\centering
+\begin{tabular}{c|cccccc}
+\toprule
+\textbf{$p$} & 3 & 5 & 7 & 9 & 11 & 13 \\
+\midrule
+\textbf{t teórico (s)} & 8.73 & 7.42 & 6.88 & 6.62 & 6.50 & 6.47 \\
+\bottomrule
+\end{tabular}
+\caption{Tiempo teórico del modelo de paso de mensajes para otros números de procesos.}
+\label{tab:c5_teorico}
+\end{table}
+
+El número óptimo de procesos es el que hace cero la derivada del tiempo (ecuación~10):
+\[
+\frac{dt_{total}}{dp} = -\frac{k_{cmp}}{p^2} + 3 A p^2 + 2 B p + C = 0
+\]
+
+Es una ecuación de grado 4 en $p$, así que se ha resuelto con un método numérico. El Solucionador no lineal de nuestra versión de LibreOffice no permite pedir que una celda valga 0 cuando hay condiciones, así que se ha usado la ``Búsqueda del valor destino'' de LibreOffice, que busca el valor de $p$ que hace 0 la celda de la derivada, empezando desde $p = 10$. La ecuación tiene otra solución, en $p \approx 25$, pero esa es un máximo de la curva, no un mínimo.
+
+% >>> DATO: solver.ods, hoja "Modelo Paso de Mensajes", B20 y B22
+\[
+p_{opt} \approx 13.29 \;\rightarrow\; 13 \text{ procesos}, \qquad t(p_{opt}) \approx 6.47 \text{ s}
+\]
+
+Experimentalmente, el menor tiempo se obtiene con 10 procesos (6.20 s). La diferencia está en la zona plana de la curva: con 12 y 14 procesos el tiempo real es 6.40 y 6.58 s, a menos de 0.4 s del mínimo. Así que el modelo no da exactamente el mejor número de procesos, pero sí indica que no compensa pasar de unos 10--14 procesos en este sistema, y equivocarse dentro de ese rango apenas cambia el tiempo.
+
+
 
 
 \newpage
@@ -772,14 +1072,34 @@ El problema es que la ecuación~1 supone que, con el doble de hilos, el trabajo 
 
 % --- Respuesta de la cuestión 6 ---
 
-\end{enumerate}
+% ------------------------------- CUESTIÓN 6 -------------------------------
 
-% =========================
-% COORDINACIÓN
-% =========================
-\newpage
-\section{Coordinación, reparto del trabajo y tiempo dedicado}
+% >>> DATO: revisar los números citados con los datos finales de cada cuestión
+\medskip
+\noindent\textbf{Conclusiones generales}\par
+\smallskip
 
-% --- Rellenar al final ---
+En esta práctica hemos juntado lo hecho en las dos anteriores en una versión híbrida, y hemos visto cómo se puede elegir el número de hilos o procesos con un modelo en lugar de probando todas las combinaciones.
+
+\begin{itemize}
+    \item \textbf{Versión híbrida.} En un solo ordenador, la mejor forma de usar la versión híbrida es con un solo proceso y todos los hilos, que es prácticamente la versión OpenMP de la P1. Con 12 elementos de proceso, la versión híbrida tarda 4.56 s, frente a 4.62 s de la P1 y 9.72 s de la P2. Con el mismo número de elementos de proceso, siempre ha ido mejor usar hilos que procesos, porque los hilos comparten una sola copia de la matriz de distancias y no tienen que sincronizarse en las migraciones. El nivel MPI tendría sentido con varios ordenadores, donde la memoria no es compartida.
+    \item \textbf{Modelos de memoria compartida.} Los modelos de 1 y 2 niveles aciertan bastante bien el número de hilos que conviene usar (6 hilos con NE = 6, y unos 2 hilos para los individuos y 4 para el fitness con dos niveles), pero se quedan cortos en el tiempo, con errores del 20 al 30\,\%. El motivo es el mismo en los dos casos: los modelos suponen que con el doble de hilos se tarda la mitad, y aquí, a partir de unos 4--8 hilos, el límite es el acceso a la memoria, no la computación. Aun así, el paralelismo en dos niveles ha permitido bajar de 3.4 a 2.85 s, porque deja usar más hilos que individuos.
+    \item \textbf{Modelo de paso de mensajes.} Es el que mejor se ajusta a los datos, gracias a sus cinco constantes, y su $p_{opt}$ (13 procesos) cae cerca del mejor medido (10 procesos). Hay que tener cuidado al interpretar las constantes, porque el polinomio de grado 3 solo es fiable dentro del rango de procesos medido. También hemos comprobado que el tiempo de ordenación en el proceso 0 es despreciable.
+    \item \textbf{Utilidad de los modelos.} Aunque no predigan bien el tiempo exacto, los modelos sirven para lo que se buscaba: una vez instalados, permiten elegir un buen número de hilos o procesos para otros tamaños de problema (otros NE, $|B|$ o $p$) sin tener que volver a medir. Y en todos los casos el tiempo cerca del óptimo es bastante plano, así que equivocarse en uno o dos hilos o procesos apenas se nota.
+    \item \textbf{El sistema importa.} Muchos de los resultados dependen del ordenador: tener núcleos de dos tipos, el límite de potencia de un portátil o el número de núcleos cambian dónde está el óptimo. Por eso las constantes hay que obtenerlas en el sistema donde se va a ejecutar, que es justo la idea de la fase de instalación.
+\end{itemize}
+
+\medskip
+\noindent\textbf{Valoración personal}\par
+\smallskip
+
+
+% >>> DATO: revisar y adaptar a vuestra opinión
+Esta práctica nos ha parecido la más completa de las tres, porque une lo que hicimos en la P1 y la P2 y le añade una parte nueva de modelado que no habíamos visto antes en la práctica. Lo que más nos ha costado ha sido la parte híbrida: entender por qué no mejoraba al añadir hilos hasta que descubrimos que OpenMPI fija cada proceso a un núcleo, y organizar la región paralela para que solo el hilo maestro hiciera las llamadas a MPI sin que se bloqueara nada. En la Parte 2, lo más interesante ha sido ver que un modelo puede acertar la decisión (cuántos hilos usar) aunque falle en el tiempo, y entender por qué falla. También hemos aprendido a desconfiar de las medidas en un portátil: varias veces hemos tenido que repetir ejecuciones o descartar algunas por interferencias del sistema. Lo que menos nos ha gustado es el tiempo que llevan las ejecuciones, sobre todo con la matriz de 3.6 GB, y algunas limitaciones del Solucionador de LibreOffice, que no tenía todos los algoritmos disponibles.
+
 
 \end{document}
+
+
+
+

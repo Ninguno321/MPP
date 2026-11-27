@@ -1,0 +1,12 @@
+.~lock.*
+**/input/
+**/src/mpi
+**/src/mpi_fijo
+**/src/omp
+**/src/omp_fijo
+**/src/sec
+**/src/sec_fijo
+*.aux
+*.log
+*.toc
+*.out
