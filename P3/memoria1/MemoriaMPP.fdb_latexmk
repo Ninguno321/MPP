@@ -1,7 +1,7 @@
 # Fdb version 4
-["pdflatex"] 1795541509.43706 "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/P3/memoria/MemoriaMPP.tex" "MemoriaMPP.pdf" "MemoriaMPP" 1795541510.79712 0
+["pdflatex"] 1795796620.09441 "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/P3/memoria1/MemoriaMPP.tex" "MemoriaMPP.pdf" "MemoriaMPP" 1795796621.57616 0
   "/etc/texmf/web2c/texmf.cnf" 1758975172.57738 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/P3/memoria/MemoriaMPP.tex" 1795541509.31424 42188 9bf8aca0d8f32592cff1696ab2cd52e0 ""
+  "/home/andy/Escritorio/MPP/PRACTICA/Pr_cticas/Pr_ctica_0/Sesi_n_2/P3/memoria1/MemoriaMPP.tex" 1795796619.96751 64158 3195d401fa44c83b9eaffd897502c5f9 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/adobe/symbol/psyr.tfm" 1136768653 1408 5937f58aa508ea2cea4901c07d10f5fe ""
@@ -33,6 +33,7 @@
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb" 1248133631 36299 5f9df58c2139e7edcf37c8fca4bd384d ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb" 1248133631 35752 024fb6c41858982481f6968b5fc26508 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1248133631 32569 5e5ddc8df908dea60932f3c484a54c0d ""
+  "/usr/share/texlive/texmf-dist/fonts/type1/urw/symbol/usyr.pfb" 1136849748 33709 b09d2e140b7e807d3a97058263ab6693 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb" 1136849748 44729 811d6c62865936705a31c797a1d5dada ""
   "/usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pfb" 1136849748 46026 6dab18b61c907687b520c72847215a68 ""
   "/usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb" 1136849748 45458 a3faba884469519614ca56ba5f6b1de1 ""
@@ -237,10 +238,10 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1707919699 40399 f2c302f7d2af602abb742093540a5834 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1758976704.7222 5472669 54eaf61a88b6b7896ebd0dac973cb29c ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1758976728 8214834 66938f21b6776074ba61687929f0c78c ""
-  "MemoriaMPP.aux" 1795541510.70625 4725 b039c1bc694741a65c8ce1b512c82413 "pdflatex"
-  "MemoriaMPP.out" 1795541510.70925 563 d9d890ef6e0139a09df61e46aea00e70 "pdflatex"
-  "MemoriaMPP.tex" 1795541509.31424 42188 9bf8aca0d8f32592cff1696ab2cd52e0 ""
-  "MemoriaMPP.toc" 1795541510.71052 282 942a84f27b1e7c51b76698b9b858bd98 "pdflatex"
+  "MemoriaMPP.aux" 1795796621.48292 7667 6ad0a1ab074d4fe6c9a30bd3dd475eaf "pdflatex"
+  "MemoriaMPP.out" 1795796621.48392 244 e43e021f35a79b8f58ee363f393ff0da "pdflatex"
+  "MemoriaMPP.tex" 1795796619.96751 64158 3195d401fa44c83b9eaffd897502c5f9 ""
+  "MemoriaMPP.toc" 1795796621.48392 173 e97f8a0a68d84358befb8482d1888585 "pdflatex"
   "sello.png" 1775584921 151467 deef7738a5e1a35219f97c50f6ff611f ""
   "sistema.png" 1795541489.63256 50339 ec5f4716bb94c1ccfd82a673c2781c14 ""
   (generated)
